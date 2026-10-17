@@ -47,6 +47,8 @@ export const businesses = pgTable("businesses", {
   description: text("description"),
   timezone: text("timezone").notNull().default("Europe/Podgorica"),
   currency: text("currency").notNull().default("EUR"),
+  // Key into BRANDS in src/lib/brand.ts
+  brandColor: text("brand_color").notNull().default("adriatic"),
   // Booking rules
   slotStepMinutes: integer("slot_step_minutes").notNull().default(15),
   minNoticeMinutes: integer("min_notice_minutes").notNull().default(60),

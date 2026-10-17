@@ -25,7 +25,7 @@ async function StaffList() {
 
   return (
     <div className="max-w-3xl space-y-5">
-      <h1 className="text-xl font-semibold tracking-tight">{t.dash.staff} · {t.dash.hours}</h1>
+      <h1 className="display text-[40px]">{t.dash.staff} · {t.dash.hours}</h1>
       {members.map((m) => {
         const days: DayHours[] = Array.from({ length: 7 }, (_, i) => {
           const ranges = hours.filter((h) => h.staffId === m.id && h.weekday === i + 1).sort((a, b) => a.startMinute - b.startMinute);

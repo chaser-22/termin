@@ -1,42 +1,46 @@
 @import "tailwindcss";
 
+/* Warm ivory and ink, with one brand accent. Public pages override the
+   accent per business (see src/lib/brand.ts). */
 :root {
-  --bg: #f7f6f3;
-  --surface: #ffffff;
-  --surface-2: #f1efea;
-  --ink: #1b1a17;
-  --muted: #6b675f;
-  --line: #e4e1da;
+  --bg: #f5f1ea;
+  --surface: #fffdf9;
+  --surface-2: #eee8de;
+  --ink: #16140f;
+  --muted: #6e675b;
+  --line: #e4ddd1;
   --accent: #0e5a63;
-  --accent-hover: #0a4850;
-  --accent-soft: #e3eff0;
+  --accent-hover: #0a474e;
+  --accent-soft: #e2eeee;
   --accent-ink: #ffffff;
   --danger: #b42318;
-  --danger-soft: #fdecea;
-  --ok: #157f3d;
-  --ok-soft: #e6f4ea;
-  --warn: #9a6700;
-  --warn-soft: #fff4d6;
+  --danger-soft: #fbeae7;
+  --ok: #187a3e;
+  --ok-soft: #e4f3e8;
+  --warn: #8f6200;
+  --warn-soft: #fbf1d8;
+  --shadow-color: 32 26 15;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #121211;
-    --surface: #1b1b19;
-    --surface-2: #242421;
-    --ink: #f0eee9;
-    --muted: #a19d94;
-    --line: #2f2e2a;
-    --accent: #5fb7bf;
-    --accent-hover: #7ccad1;
-    --accent-soft: #17393c;
-    --accent-ink: #0b1f21;
-    --danger: #f97066;
-    --danger-soft: #3a1714;
-    --ok: #4ade80;
-    --ok-soft: #14301f;
-    --warn: #fbbf24;
+    --bg: #0e0d0b;
+    --surface: #181613;
+    --surface-2: #221f1a;
+    --ink: #f3eee5;
+    --muted: #a39a8b;
+    --line: #2d2922;
+    --accent: #6fc0c7;
+    --accent-hover: #8ed1d6;
+    --accent-soft: #16343a;
+    --accent-ink: #08191b;
+    --danger: #f4806f;
+    --danger-soft: #3a1712;
+    --ok: #5fd38b;
+    --ok-soft: #12301d;
+    --warn: #f0c060;
     --warn-soft: #33270b;
+    --shadow-color: 0 0 0;
   }
 }
 
@@ -59,23 +63,39 @@
   --color-warn-soft: var(--warn-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display-serif);
+  --shadow-soft: 0 1px 2px rgb(var(--shadow-color) / 0.04), 0 8px 24px -12px rgb(var(--shadow-color) / 0.12);
+  --shadow-lift: 0 2px 4px rgb(var(--shadow-color) / 0.05), 0 24px 48px -20px rgb(var(--shadow-color) / 0.28);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {
   -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
 }
 
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ------------------------------------------------------------ components */
+
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 h-11 text-[15px] font-medium tracking-[-0.01em] transition-[background-color,transform,box-shadow,color] duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none;
 }
 @utility btn-primary {
-  @apply btn bg-accent text-accent-ink hover:bg-accent-hover;
+  @apply btn bg-accent text-accent-ink hover:bg-accent-hover shadow-[0_1px_0_rgb(255_255_255/0.15)_inset,0_8px_20px_-8px_var(--accent)];
+}
+@utility btn-ink {
+  @apply btn bg-ink text-bg hover:opacity-90;
 }
 @utility btn-secondary {
   @apply btn bg-surface text-ink border border-line hover:bg-surface-2;
@@ -84,17 +104,88 @@ body {
   @apply btn text-muted hover:text-ink hover:bg-surface-2;
 }
 @utility btn-sm {
-  @apply h-9 px-3 text-sm rounded-lg;
+  @apply h-9 px-3.5 text-sm;
 }
 @utility input {
-  @apply w-full h-11 rounded-xl border border-line bg-surface px-3.5 text-[15px] text-ink placeholder:text-muted/70 outline-none focus:border-accent focus:ring-4 focus:ring-accent/15 transition;
+  @apply w-full h-12 rounded-2xl border border-line bg-surface px-4 text-[15px] text-ink placeholder:text-muted/60 outline-none focus:border-accent focus:ring-4 focus:ring-accent/12 transition;
 }
 @utility label {
-  @apply block text-sm font-medium text-ink mb-1.5;
+  @apply block text-[13px] font-medium text-muted mb-1.5 tracking-wide;
 }
 @utility card {
-  @apply rounded-2xl border border-line bg-surface;
+  @apply rounded-3xl border border-line bg-surface shadow-soft;
 }
 @utility chip {
   @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
+@utility eyebrow {
+  @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-muted;
+}
+@utility display {
+  @apply font-display font-normal tracking-[-0.02em] leading-[1.02];
+}
+
+/* ------------------------------------------------------------ motion */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+@utility animate-rise {
+  animation: rise 0.55s var(--ease-out-soft) both;
+}
+@utility animate-pop {
+  animation: pop 0.5s var(--ease-out-soft) both;
+}
+@utility animate-draw {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw 0.5s 0.25s var(--ease-out-soft) forwards;
+}
+@utility animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

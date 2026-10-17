@@ -4,6 +4,8 @@ import { useActionState } from "react";
 import type { Dict } from "@/i18n/dict";
 import { submitKeepingValues } from "@/lib/form";
 import { BUSINESS_TYPES, type BusinessType } from "@/lib/slug";
+import { BRANDS, BRAND_KEYS } from "@/lib/brand";
+import type { Locale } from "@/i18n/dict";
 import { saveSettings, type FormState } from "../actions";
 
 type Values = {
@@ -17,9 +19,10 @@ type Values = {
   minNoticeMinutes: number;
   maxDaysAhead: number;
   slotStepMinutes: number;
+  brandColor: string;
 };
 
-export function SettingsForm({ host, business: b, t }: { host: string; business: Values; t: Pick<Dict, "dash" | "common" | "businessTypes"> }) {
+export function SettingsForm({ host, business: b, locale, t }: { host: string; business: Values; locale: Locale; t: Pick<Dict, "dash" | "common" | "businessTypes"> }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveSettings, null);
   return (
     <form action={action}
@@ -52,6 +55,21 @@ export function SettingsForm({ host, business: b, t }: { host: string; business:
         <Field label={t.dash.city}>
           <input name="city" defaultValue={b.city} className="input" />
         </Field>
+      </div>
+      <div>
+        <span className="label">{t.dash.brandColor}</span>
+        <div className="flex flex-wrap gap-2.5">
+          {BRAND_KEYS.map((k) => (
+            <label key={k} className="group cursor-pointer" title={BRANDS[k].name[locale]}>
+              <input type="radio" name="brandColor" value={k} defaultChecked={b.brandColor === k} className="peer sr-only" />
+              <span
+                className="block size-10 rounded-full ring-offset-2 ring-offset-surface transition peer-checked:ring-2 peer-checked:ring-ink peer-focus-visible:ring-2 peer-focus-visible:ring-accent group-hover:scale-105"
+                style={{ background: BRANDS[k].light.accent }}
+              />
+              <span className="mt-1 block text-center text-[11px] text-muted">{BRANDS[k].name[locale]}</span>
+            </label>
+          ))}
+        </div>
       </div>
       <Field label={t.dash.description}>
         <textarea name="description" defaultValue={b.description} maxLength={300} rows={2} className="input h-auto py-2.5" />

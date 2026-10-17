@@ -93,7 +93,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
           <Link href={hrefFor({ date: today })} className="btn-secondary btn-sm">{t.common.today}</Link>
           <Link href={hrefFor({ date: addDays(date, 1) })} className="btn-secondary btn-sm w-9 px-0" aria-label="Next day">›</Link>
         </div>
-        <h1 className="text-lg font-semibold tracking-tight">{formatDateLong(date, t, locale)}</h1>
+        <h1 className="display text-[30px]">{formatDateLong(date, t, locale)}</h1>
         <div className="ml-auto flex items-center gap-4 text-sm text-muted">
           <span>
             <b className="text-ink tabular-nums">{active.length}</b> {t.dash.bookingsToday}
@@ -251,7 +251,7 @@ function SelectedBooking({
     <div className="card p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-semibold">{customer.name}</p>
+          <p className="display text-[22px]">{customer.name}</p>
           <p className="text-sm text-muted tabular-nums">
             {time}–{formatTime(booking.endsAt, tz)} · {serviceName} · {staffName}
           </p>

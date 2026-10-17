@@ -6,6 +6,7 @@ import { getDict } from "@/i18n/server";
 import { logout } from "@/app/actions";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { requireUser } from "@/lib/server/auth";
+import { brandCss } from "@/lib/brand";
 import { db } from "@/lib/server/db";
 import { DashNav } from "./DashNav";
 
@@ -28,9 +29,10 @@ async function TopBar() {
   const d = await db();
   const business = await d.query.businesses.findFirst({ where: eq(businesses.ownerId, user.id) });
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-line bg-surface/85 backdrop-blur-xl">
+      {business && <style>{brandCss(business.brandColor)}</style>}
       <div className="mx-auto max-w-6xl px-4 py-2 sm:py-0 sm:h-14 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        <Link href="/dashboard" className="font-semibold tracking-tight truncate max-w-48 h-10 sm:h-auto flex items-center">
+        <Link href="/dashboard" className="display text-[24px] truncate max-w-56 h-10 sm:h-auto flex items-center">
           {business?.name ?? t.appName}
         </Link>
         {business && (

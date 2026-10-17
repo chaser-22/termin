@@ -78,6 +78,63 @@ export async function getSlots(business: Business, serviceId: string, staffId: s
   return mergeStaffSlots(perStaff).map((s) => s.start.toISOString());
 }
 
+/**
+ * Free start times for each day from `from` for `days` days (clipped to the
+ * booking window), in two queries. Days with no times are included as [].
+ */
+export async function getSlotsRange(business: Business, serviceId: string, staffId: string | null, from: DateKey, days: number) {
+  const now = new Date();
+  const range = bookableRange(business, now);
+  const first = from < range.first ? range.first : from;
+  const lastWanted = addDays(first, Math.max(1, Math.min(days, 31)) - 1);
+  const last = lastWanted > range.last ? range.last : lastWanted;
+  const result: Record<DateKey, string[]> = {};
+  if (first > last) return result;
+
+  const d = await db();
+  const service = await d.query.services.findFirst({
+    where: and(eq(services.id, serviceId), eq(services.businessId, business.id), eq(services.active, true)),
+  });
+  if (!service) return result;
+  const staffIds = await activeStaffIds(d, business.id, staffId);
+  const [hours, busy] = await Promise.all([
+    staffIds.length ? d.select().from(workingHours).where(inArray(workingHours.staffId, staffIds)) : [],
+    busyFor(d, staffIds, dayBounds(first, business.timezone).start, dayBounds(last, business.timezone).end),
+  ]);
+  for (let date = first; date <= last; date = addDays(date, 1)) {
+    const perStaff = staffIds.map((id) => ({
+      staffId: id,
+      starts: availableStarts({
+        date,
+        timeZone: business.timezone,
+        hours: hours.filter((h) => h.staffId === id),
+        busy: busy.filter((b) => b.staffId === id),
+        durationMinutes: service.durationMinutes,
+        stepMinutes: business.slotStepMinutes,
+        now,
+        minNoticeMinutes: business.minNoticeMinutes,
+      }),
+    }));
+    result[date] = mergeStaffSlots(perStaff).map((s) => s.start.toISOString());
+  }
+  return result;
+}
+
+/** The earliest free time in the next `days` days for the shortest active service, if any. */
+export async function firstFreeSlot(business: Business, days = 7) {
+  const d = await db();
+  const shortest = await d.query.services.findFirst({
+    where: and(eq(services.businessId, business.id), eq(services.active, true)),
+    orderBy: (s, { asc }) => [asc(s.durationMinutes)],
+  });
+  if (!shortest) return null;
+  const range = await getSlotsRange(business, shortest.id, null, todayKey(business.timezone), days);
+  for (const date of Object.keys(range).sort()) {
+    if (range[date].length) return new Date(range[date][0]);
+  }
+  return null;
+}
+
 export type CreateBookingInput = {
   business: Business;
   serviceId: string;

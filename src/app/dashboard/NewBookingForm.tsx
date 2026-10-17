@@ -33,7 +33,7 @@ export function NewBookingForm({ date, services, staff, defaultTime, t }: Props)
       onSubmit={submitKeepingValues(action)}
       className="card p-4 space-y-3"
     >
-      <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center justify-between font-semibold lg:pointer-events-none cursor-pointer">
+      <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center justify-between display text-[24px] lg:pointer-events-none cursor-pointer">
         {t.dash.newBooking}
         <span className="lg:hidden text-accent text-xl leading-none">{open ? "−" : "+"}</span>
       </button>

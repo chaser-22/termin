@@ -24,7 +24,7 @@ async function Verify({ searchParams }: { searchParams: Promise<Record<string, s
   }
   return (
     <form action={confirmLogin.bind(null, token)} className="card p-6 w-full max-w-sm space-y-4 text-center">
-      <h1 className="text-xl font-semibold tracking-tight">{t.auth.continueTitle}</h1>
+      <h1 className="display text-[36px]">{t.auth.continueTitle}</h1>
       <button className="btn-primary w-full">{t.auth.continueButton}</button>
     </form>
   );

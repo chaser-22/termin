@@ -10,6 +10,7 @@ import { requireBusiness, requireUser } from "@/lib/server/auth";
 import { createBooking } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
 import { createBusinessWithDefaults, isValidSlug } from "@/lib/server/setup";
+import { isBrandKey } from "@/lib/brand";
 import { normalizePhone } from "@/lib/phone";
 import { isDateKey, localToInstant, parseTime } from "@/lib/time";
 
@@ -242,6 +243,7 @@ export async function saveSettings(_prev: FormState, fd: FormData): Promise<Form
       minNoticeMinutes: int("minNotice", 0, 7 * 24 * 60, business.minNoticeMinutes),
       maxDaysAhead: int("maxDays", 1, 365, business.maxDaysAhead),
       slotStepMinutes: int("slotStep", 5, 120, business.slotStepMinutes),
+      brandColor: isBrandKey(str(fd, "brandColor")) ? str(fd, "brandColor") : business.brandColor,
     })
     .where(eq(businesses.id, business.id));
   refresh();

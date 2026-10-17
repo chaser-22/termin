@@ -22,7 +22,7 @@ async function Services() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-xl font-semibold tracking-tight mb-4">{t.dash.services}</h1>
+      <h1 className="display text-[40px] mb-5">{t.dash.services}</h1>
       <div className="card divide-y divide-line">
         <div className="hidden sm:grid grid-cols-[1fr_110px_100px_180px] gap-3 px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide">
           <span>{t.dash.name}</span>

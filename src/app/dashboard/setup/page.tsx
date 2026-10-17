@@ -23,7 +23,7 @@ async function Setup() {
   const { t } = await getDict();
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="text-2xl font-semibold tracking-tight">{t.dash.setupTitle}</h1>
+      <h1 className="display text-[44px]">{t.dash.setupTitle}</h1>
       <p className="mt-2 text-muted">{t.dash.setupBody}</p>
       <SetupForm host={(await appOrigin()).replace(/^https?:\/\//, "")} t={{ dash: t.dash, businessTypes: t.businessTypes, common: t.common }} />
     </div>

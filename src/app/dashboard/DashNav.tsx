@@ -13,8 +13,8 @@ export function DashNav({ items, className = "" }: { items: { href: string; labe
           <Link
             key={item.href}
             href={item.href}
-            className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              active ? "bg-surface-2 text-ink" : "text-muted hover:text-ink"
+            className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+              active ? "bg-ink text-bg" : "text-muted hover:text-ink hover:bg-surface-2"
             }`}
           >
             {item.label}

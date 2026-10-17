@@ -12,7 +12,7 @@ vi.mock("server-only", () => ({}));
 const state = vi.hoisted(() => ({ db: null as unknown }));
 vi.mock("@/lib/server/db", () => ({ db: async () => state.db }));
 
-const { createBooking, getSlots, cancelByToken } = await import("./booking");
+const { createBooking, getSlots, getSlotsRange, firstFreeSlot, cancelByToken } = await import("./booking");
 
 const TZ = "Europe/Podgorica";
 let client: PGlite;
@@ -139,6 +139,30 @@ describe("createBooking", () => {
     const rows = await db.select().from(schema.customers);
     expect(rows).toHaveLength(1);
     expect(rows[0].name).toBe("New name");
+  });
+});
+
+describe("getSlotsRange", () => {
+  it("matches the single-day result for every day in the range", async () => {
+    await book();
+    const from = addDays(monday, -3);
+    const range = await getSlotsRange(business, haircut.id, null, from, 7);
+    expect(Object.keys(range)).toHaveLength(7);
+    for (const [date, slots] of Object.entries(range)) {
+      expect(slots).toEqual(await getSlots(business, haircut.id, null, date));
+    }
+    expect(range[monday]).not.toHaveLength(0);
+  });
+
+  it("clips to the booking window", async () => {
+    const range = await getSlotsRange(business, haircut.id, null, addDays(todayKey(TZ), -10), 31);
+    expect(Object.keys(range).sort()[0]).toBe(todayKey(TZ));
+  });
+
+  it("finds the first free time", async () => {
+    const first = await firstFreeSlot(business, 14);
+    expect(first).not.toBeNull();
+    expect(first!.getTime()).toBeGreaterThan(Date.now());
   });
 });
 

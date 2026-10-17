@@ -16,7 +16,7 @@ export default function SettingsPage() {
 
 async function Settings() {
   const { business } = await requireBusiness();
-  const { t } = await getDict();
+  const { locale, t } = await getDict();
   const origin = await appOrigin();
   const link = `${origin}/${business.slug}`;
   const qrSvg = await QRCode.toString(link, { type: "svg", margin: 1, color: { dark: "#1b1a17", light: "#ffffff" } });
@@ -25,7 +25,7 @@ async function Settings() {
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_300px] items-start max-w-5xl">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight mb-4">{t.dash.settings}</h1>
+        <h1 className="display text-[40px] mb-5">{t.dash.settings}</h1>
         <SettingsForm
           host={origin.replace(/^https?:\/\//, "")}
           business={{
@@ -39,11 +39,13 @@ async function Settings() {
             minNoticeMinutes: business.minNoticeMinutes,
             maxDaysAhead: business.maxDaysAhead,
             slotStepMinutes: business.slotStepMinutes,
+            brandColor: business.brandColor,
           }}
+          locale={locale}
           t={{ dash: t.dash, common: t.common, businessTypes: t.businessTypes }}
         />
       </div>
-      <aside className="card p-4 space-y-4 lg:mt-11">
+      <aside className="card p-5 space-y-4 lg:mt-[68px]">
         <p className="text-sm font-medium">{t.dash.bookingLink}</p>
         <CopyLink url={link} copyLabel={t.dash.copy} copiedLabel={t.dash.copied} />
         {/* eslint-disable-next-line @next/next/no-img-element */}

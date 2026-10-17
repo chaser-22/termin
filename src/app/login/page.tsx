@@ -22,11 +22,11 @@ async function Login({ searchParams }: { searchParams: Promise<Record<string, st
   return (
     <div className="w-full max-w-sm">
       <div className="flex items-center justify-between mb-8">
-        <Link href="/" className="font-semibold tracking-tight text-lg">{t.appName}</Link>
+        <Link href="/" className="display text-[28px]">{t.appName}</Link>
         <LanguageSwitch current={locale} />
       </div>
-      <div className="card p-6">
-        <h1 className="text-xl font-semibold tracking-tight">{t.auth.loginTitle}</h1>
+      <div className="card p-7 shadow-lift">
+        <h1 className="display text-[36px]">{t.auth.loginTitle}</h1>
         <p className="mt-1.5 text-sm text-muted">{t.auth.loginBody}</p>
         {error && <p className="mt-4 rounded-xl bg-danger-soft text-danger text-sm px-3.5 py-2.5">{t.auth.invalidLink}</p>}
         <LoginForm t={{ auth: t.auth, common: t.common }} />

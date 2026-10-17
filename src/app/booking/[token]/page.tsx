@@ -1,15 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { CalendarPlus, MapPin, Phone, RotateCcw } from "lucide-react";
 import { getDict } from "@/i18n/server";
+import { brandCss } from "@/lib/brand";
 import { getBookingByToken } from "@/lib/server/booking";
-import { formatDateLong, formatPrice } from "@/lib/format";
-import { dateKeyOf, formatTime, isPast } from "@/lib/time";
+import { formatPrice } from "@/lib/format";
+import { dateKeyOf, formatTime, isPast, isoWeekday, parseDateKey } from "@/lib/time";
 import { CancelButton } from "./CancelButton";
+import { ShareButton } from "./ShareButton";
 
 export default function BookingPage({ params }: PageProps<"/booking/[token]">) {
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-10">
-      <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
+    <main className="flex-1 mx-auto w-full max-w-md px-4 py-8 sm:py-14">
+      <Suspense fallback={<div className="h-[560px] rounded-3xl bg-surface-2 animate-pulse" />}>
         <BookingDetails params={params} />
       </Suspense>
     </main>
@@ -25,63 +28,105 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
   const tz = business.timezone;
   const cancelled = booking.status === "cancelled";
   const past = isPast(booking.startsAt);
+  const dayKey = dateKeyOf(booking.startsAt, tz);
+  const { m, d } = parseDateKey(dayKey);
+  const weekday = t.weekdays[isoWeekday(dayKey) - 1];
+  const dateLine = locale === "me" ? `${weekday}, ${d}. ${t.monthsLong[m - 1]}` : `${weekday}, ${d} ${t.monthsLong[m - 1]}`;
+  const mapUrl = business.address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([business.name, business.address, business.city].filter(Boolean).join(", "))}`
+    : null;
 
   return (
-    <div className="card overflow-hidden">
-      <div className={`px-6 pt-8 pb-6 text-center ${cancelled ? "" : "bg-accent-soft"}`}>
-        <div className={`mx-auto grid place-items-center size-14 rounded-full text-2xl ${cancelled ? "bg-surface-2 text-muted" : "bg-accent text-accent-ink"}`}>
-          {cancelled ? "×" : "✓"}
-        </div>
-        <h1 className="mt-4 text-xl font-semibold tracking-tight">{cancelled ? t.booking.cancelledTitle : t.booking.confirmedTitle}</h1>
-        <p className="mt-1 text-muted">{business.name}</p>
+    <div>
+      <style>{brandCss(business.brandColor)}</style>
+
+      {/* Headline */}
+      <div className="text-center mb-7">
+        {cancelled ? (
+          <div className="mx-auto grid place-items-center size-16 rounded-full bg-surface-2 text-muted text-2xl animate-pop">×</div>
+        ) : (
+          <div className="mx-auto grid place-items-center size-16 rounded-full bg-accent text-accent-ink shadow-[0_12px_32px_-10px_var(--accent)] animate-pop">
+            <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M5 12.5l4.5 4.5L19 7.5" className="animate-draw" />
+            </svg>
+          </div>
+        )}
+        <p className="eyebrow mt-5 animate-rise [animation-delay:120ms]">{cancelled ? t.booking.cancelledTitle : t.booking.confirmedTitle}</p>
+        <h1 className="display text-[44px] mt-1.5 animate-rise [animation-delay:180ms]">{cancelled ? business.name : t.booking.seeYou}</h1>
+        {cancelled && <p className="mt-2 text-muted text-sm max-w-xs mx-auto">{t.booking.cancelledBody}</p>}
       </div>
 
-      <dl className="divide-y divide-line border-y border-line text-[15px]">
-        <Row label={t.booking.when}>
-          <span className={cancelled ? "line-through text-muted" : "font-medium"}>
-            {formatDateLong(dateKeyOf(booking.startsAt, tz), t, locale)}, {formatTime(booking.startsAt, tz)}–{formatTime(booking.endsAt, tz)}
-          </span>
-        </Row>
-        <Row label={t.booking.service}>
-          {service.name} · {formatPrice(service.priceCents, t.common.priceOnRequest)}
-        </Row>
-        <Row label={t.booking.staff}>{staff.name}</Row>
-        {business.address && (
-          <Row label={t.booking.where}>
-            {business.address}
-            {business.city ? `, ${business.city}` : ""}
-          </Row>
-        )}
-      </dl>
+      {/* Ticket */}
+      <div className="card overflow-hidden shadow-lift animate-rise [animation-delay:240ms]">
+        <div className="relative px-6 pt-6 pb-7 bg-gradient-to-br from-accent-soft via-surface to-surface">
+          <p className="eyebrow">{t.booking.yourBooking}</p>
+          <p className={`display text-[30px] mt-2 ${cancelled ? "line-through text-muted" : ""}`}>{dateLine}</p>
+          <p className={`mt-1 text-[40px] font-medium tracking-tight tabular-nums leading-none ${cancelled ? "line-through text-muted" : ""}`}>
+            {formatTime(booking.startsAt, tz)}
+            <span className="text-muted text-[22px] font-normal"> – {formatTime(booking.endsAt, tz)}</span>
+          </p>
+        </div>
 
-      <div className="p-6 space-y-3">
-        {!cancelled && (
-          <a href={`/booking/${token}/calendar.ics`} className="btn-primary w-full">
-            {t.booking.addToCalendar}
-          </a>
-        )}
-        <div className="grid grid-cols-2 gap-3">
-          {business.phone && (
-            <a href={`tel:${business.phone.replace(/\s/g, "")}`} className="btn-secondary">
-              {t.booking.call}
+        {/* Perforation */}
+        <div className="relative h-0 border-t-2 border-dashed border-line mx-6">
+          <span className="absolute -left-[37px] -top-[13px] size-6 rounded-full bg-bg border border-line" />
+          <span className="absolute -right-[37px] -top-[13px] size-6 rounded-full bg-bg border border-line" />
+        </div>
+
+        <dl className="px-6 py-5 space-y-3.5 text-[15px]">
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted">{t.booking.service}</dt>
+            <dd className="text-right font-medium">
+              {service.name} <span className="text-muted font-normal">· {formatPrice(service.priceCents, t.common.priceOnRequest)}</span>
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted">{t.booking.staff}</dt>
+            <dd className="text-right font-medium">{staff.name}</dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted">{t.booking.where}</dt>
+            <dd className="text-right">
+              <span className="font-medium">{business.name}</span>
+              {business.address && (
+                <span className="block text-muted text-sm">
+                  {business.address}
+                  {business.city ? `, ${business.city}` : ""}
+                </span>
+              )}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="px-6 pb-6 space-y-2.5">
+          {!cancelled && !past && (
+            <a href={`/booking/${token}/calendar.ics`} className="btn-primary w-full h-12">
+              <CalendarPlus className="size-[18px]" /> {t.booking.addToCalendar}
             </a>
           )}
-          <Link href={`/${business.slug}`} className={`btn-secondary ${business.phone ? "" : "col-span-2"}`}>
-            {t.booking.bookAgain}
-          </Link>
+          <div className="grid grid-cols-3 gap-2.5">
+            {business.phone && (
+              <a href={`tel:${business.phone.replace(/\s/g, "")}`} className="btn-secondary btn-sm h-11 px-2">
+                <Phone className="size-4" /> {t.booking.call}
+              </a>
+            )}
+            {mapUrl && (
+              <a href={mapUrl} target="_blank" rel="noreferrer" className="btn-secondary btn-sm h-11 px-2">
+                <MapPin className="size-4" /> {t.book.directions}
+              </a>
+            )}
+            <ShareButton label={t.booking.share} copiedLabel={t.booking.copied} title={`${business.name} · ${dateLine} ${formatTime(booking.startsAt, tz)}`} />
+          </div>
         </div>
-        {!cancelled && !past && <CancelButton token={token} label={t.booking.cancelBooking} confirmText={t.booking.cancelConfirm} />}
-        {!cancelled && <p className="text-xs text-muted text-center pt-2">{t.booking.saveLink}</p>}
       </div>
-    </div>
-  );
-}
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-4 px-6 py-3.5">
-      <dt className="w-16 shrink-0 text-muted">{label}</dt>
-      <dd className="min-w-0">{children}</dd>
+      <div className="mt-6 space-y-3 text-center animate-rise [animation-delay:320ms]">
+        <Link href={`/${business.slug}`} className="btn-ink w-full h-12">
+          <RotateCcw className="size-4" /> {cancelled || past ? t.booking.bookAgain : t.booking.bookNext}
+        </Link>
+        {!cancelled && !past && <CancelButton token={token} label={t.booking.cancelBooking} confirmText={t.booking.cancelConfirm} />}
+        {!cancelled && <p className="text-xs text-muted pt-1">{t.booking.saveLink}</p>}
+      </div>
     </div>
   );
 }

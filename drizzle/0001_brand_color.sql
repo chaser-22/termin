@@ -1,0 +1,1 @@
+ALTER TABLE "businesses" ADD COLUMN "brand_color" text DEFAULT 'adriatic' NOT NULL;
