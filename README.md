@@ -26,6 +26,8 @@ npm run dev
 
 No database to install: without `DATABASE_URL` the app uses an embedded Postgres in `.data/pglite`.
 Stop the dev server before running `db:seed` (the embedded database allows one process).
+To start over with only the demo data, stop the dev server and run `npm run db:reset`.
+Copy the project without `.data` (some copy tools drop its empty folders, which breaks it); reset instead.
 Without an email provider, the sign-in link is shown on screen in development.
 
 ```bash
