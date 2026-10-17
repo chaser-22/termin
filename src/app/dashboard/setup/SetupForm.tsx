@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { Dict } from "@/i18n/dict";
 import { submitKeepingValues } from "@/lib/form";
 import { BUSINESS_TYPES, slugify } from "@/lib/slug";
@@ -13,8 +13,16 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
   const [slugEdited, setSlugEdited] = useState(false);
   const shownSlug = slugEdited ? slug : slugify(name);
 
+  useEffect(() => {
+    // A full page load on purpose: a client-side push can reuse a /dashboard
+    // prefetched before the business existed, which redirects back to setup.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    if (state?.ok) window.location.assign("/dashboard");
+  }, [state]);
+
   return (
-    <form onSubmit={submitKeepingValues(action)} className="card mt-6 p-6 space-y-5">
+    <form action={action}
+      onSubmit={submitKeepingValues(action)} className="card mt-6 p-6 space-y-5">
       <div>
         <label className="label" htmlFor="type">{t.dash.businessType}</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -61,7 +69,7 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
         </div>
       </div>
       {state?.error === "invalid" && <p className="text-sm text-danger">{t.common.error}</p>}
-      <button className="btn-primary w-full h-12" disabled={pending}>
+      <button className="btn-primary w-full h-12" disabled={pending || !!state?.ok}>
         {pending ? t.common.loading : t.dash.setupSubmit}
       </button>
     </form>

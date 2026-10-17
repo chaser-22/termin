@@ -31,6 +31,11 @@ function loadDetails(): Details {
   return { name: "", phone: "", email: "" };
 }
 
+// Stable ref callback: scrolls once when the element mounts, not on every render
+function scrollIntoViewOnMount(el: HTMLElement | null) {
+  el?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function saveDetails(d: Details) {
   try {
     localStorage.setItem(DETAILS_KEY, JSON.stringify(d));
@@ -68,7 +73,8 @@ export function BookingFlow({ slug, timeZone, services, staff, days, t }: Props)
   }, [pickedDate, openDays, slotCache, serviceId, staffId]);
 
   const key = date ? keyFor(date) : null;
-  const slots = key ? (slotCache[key] ?? null) : null;
+  // No open day at all (no working hours) reads as "no free times", not loading
+  const slots = key ? (slotCache[key] ?? null) : [];
   const slot = selection && selection.key === key ? selection.slot : null;
   const selectedDay = days.find((d) => d.key === date) ?? null;
 
@@ -275,14 +281,14 @@ function DetailsStep({
       } else if (res.error === "slot_taken") {
         onSlotTaken();
       } else {
-        setError(res.error === "phone" ? `${t.book.phone}?` : t.common.error);
+        setError(res.error === "phone" ? t.book.invalidPhone : res.error === "name" ? t.book.invalidName : t.common.error);
       }
     });
   }
 
   return (
     <>
-      <section ref={(el) => el?.scrollIntoView({ behavior: "smooth", block: "start" })} className="card scroll-mt-4">
+      <section ref={scrollIntoViewOnMount} className="card scroll-mt-4">
         <StepHeader n={n} title={t.book.yourDetails} done={false} />
         <form id="book-form" onSubmit={submit} className="px-5 pb-5 space-y-4">
           <div>

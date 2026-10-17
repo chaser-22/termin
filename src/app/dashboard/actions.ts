@@ -1,7 +1,7 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
-import { refresh } from "next/cache";
+import { and, eq, gt, lt, ne } from "drizzle-orm";
+import { refresh, revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { BOOKING_STATUSES, BUSINESS_TYPES, bookings, businesses, services, staff, workingHours } from "@/db/schema";
@@ -49,7 +49,10 @@ export async function setupBusiness(_prev: FormState, fd: FormData): Promise<For
     city: optional(parsed.data.city),
     locale: await getLocale(),
   });
-  redirect("/dashboard");
+  revalidatePath("/", "layout");
+  // The form does a full page load to /dashboard: the browser may hold a copy of
+  // /dashboard prefetched before the business existed, which redirects back here.
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- bookings
@@ -80,16 +83,36 @@ export async function createDashboardBooking(_prev: FormState, fd: FormData): Pr
   return { ok: true };
 }
 
-export async function setBookingStatus(bookingId: string, status: string) {
+export async function setBookingStatus(bookingId: string, status: string): Promise<FormState> {
   const { business } = await requireBusiness();
   const parsed = z.enum(BOOKING_STATUSES).safeParse(status);
-  if (!parsed.success) return;
+  if (!parsed.success) return { error: "invalid" };
   const d = await db();
-  await d
-    .update(bookings)
-    .set({ status: parsed.data, cancelledAt: parsed.data === "cancelled" ? new Date() : null })
-    .where(and(eq(bookings.id, bookingId), eq(bookings.businessId, business.id)));
-  refresh();
+  const result = await d.transaction(async (tx) => {
+    const booking = await tx.query.bookings.findFirst({ where: and(eq(bookings.id, bookingId), eq(bookings.businessId, business.id)) });
+    if (!booking) return { error: "invalid" };
+    // Un-cancelling takes the time back, so it must still be free
+    if (booking.status === "cancelled" && parsed.data !== "cancelled") {
+      await tx.select({ id: staff.id }).from(staff).where(eq(staff.id, booking.staffId)).for("update");
+      const clash = await tx.query.bookings.findFirst({
+        where: and(
+          eq(bookings.staffId, booking.staffId),
+          ne(bookings.id, booking.id),
+          ne(bookings.status, "cancelled"),
+          lt(bookings.startsAt, booking.endsAt),
+          gt(bookings.endsAt, booking.startsAt),
+        ),
+      });
+      if (clash) return { error: "restoreConflict" };
+    }
+    await tx
+      .update(bookings)
+      .set({ status: parsed.data, cancelledAt: parsed.data === "cancelled" ? new Date() : null })
+      .where(eq(bookings.id, booking.id));
+    return { ok: true };
+  });
+  if (result.ok) refresh();
+  return result;
 }
 
 // ---------------------------------------------------------------- services

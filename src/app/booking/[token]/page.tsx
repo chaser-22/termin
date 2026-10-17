@@ -20,7 +20,7 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
   const { token } = await params;
   const { locale, t } = await getDict();
   const data = await getBookingByToken(token);
-  if (!data) return <p className="card p-8 text-center text-muted">{t.book.notFound}</p>;
+  if (!data) return <p className="card p-8 text-center text-muted">{t.booking.notFound}</p>;
   const { booking, business, service, staff } = data;
   const tz = business.timezone;
   const cancelled = booking.status === "cancelled";

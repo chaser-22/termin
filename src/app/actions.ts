@@ -2,14 +2,14 @@
 
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import { refresh } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
 import { businesses } from "@/db/schema";
 import { DICTS, isLocale } from "@/i18n/dict";
 import { getDict } from "@/i18n/server";
-import { createLoginToken, signOut } from "@/lib/server/auth";
+import { consumeLoginToken, createLoginToken, signOut } from "@/lib/server/auth";
 import { cancelByToken, createBooking } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
 import { emailEnabled, sendEmail } from "@/lib/server/email";
@@ -21,7 +21,8 @@ import { dateKeyOf, formatTime } from "@/lib/time";
 export async function setLanguage(locale: string) {
   if (!isLocale(locale)) return;
   (await cookies()).set("lang", locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
-  refresh();
+  // Pages the browser already holds are in the old language; drop them all
+  revalidatePath("/", "layout");
 }
 
 const bookSchema = z.object({
@@ -30,21 +31,23 @@ const bookSchema = z.object({
   staffId: z.uuid().nullable(),
   startsAt: z.iso.datetime(),
   name: z.string().trim().min(2).max(80),
-  phone: z.string().trim().min(6).max(30),
+  phone: z.string().trim().max(30),
   email: z.union([z.literal(""), z.email().max(120)]).optional(),
   note: z.string().trim().max(300).optional(),
 });
 
 export type BookState =
   | { ok: true; token: string }
-  | { ok: false; error: "slot_taken" | "invalid" | "phone" | "error" };
+  | { ok: false; error: "slot_taken" | "invalid" | "phone" | "name" | "error" };
 
 export async function bookAppointment(input: z.input<typeof bookSchema>): Promise<BookState> {
+  // Check the fields a person types first, so the message can say which one is wrong
+  if (typeof input.name !== "string" || input.name.trim().length < 2) return { ok: false, error: "name" };
+  const phone = typeof input.phone === "string" ? normalizePhone(input.phone) : null;
+  if (!phone) return { ok: false, error: "phone" };
   const parsed = bookSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const data = parsed.data;
-  const phone = normalizePhone(data.phone);
-  if (!phone) return { ok: false, error: "phone" };
 
   const d = await db();
   const business = await d.query.businesses.findFirst({ where: eq(businesses.slug, data.slug) });
@@ -86,7 +89,7 @@ export async function bookAppointment(input: z.input<typeof bookSchema>): Promis
 
 export async function cancelBooking(token: string) {
   await cancelByToken(token);
-  refresh();
+  revalidatePath(`/booking/${token}`);
 }
 
 export type LoginState = { status: "idle" } | { status: "sent"; email: string; devLink?: string } | { status: "error" };
@@ -108,7 +111,16 @@ export async function requestLoginLink(_prev: LoginState, formData: FormData): P
   return { status: "sent", email: email.data, devLink };
 }
 
+/** Second step of email sign-in: a button press, so link scanners can't spend the token. */
+export async function confirmLogin(token: string) {
+  const ok = await consumeLoginToken(token);
+  // Pages fetched while signed out (e.g. a /dashboard that redirects to /login) are stale now
+  if (ok) revalidatePath("/", "layout");
+  redirect(ok ? "/dashboard" : "/login?error=1");
+}
+
 export async function logout() {
   await signOut();
+  revalidatePath("/", "layout");
   redirect("/login");
 }

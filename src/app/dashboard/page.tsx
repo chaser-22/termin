@@ -43,8 +43,8 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
   const d = await db();
   const dayStart = localToInstant(date, 0, tz);
   const dayEnd = localToInstant(addDays(date, 1), 0, tz);
-  const [staffRows, serviceRows, dayBookings] = await Promise.all([
-    d.select().from(staff).where(and(eq(staff.businessId, business.id), eq(staff.active, true))).orderBy(asc(staff.sortOrder), asc(staff.createdAt)),
+  const [allStaff, serviceRows, dayBookings] = await Promise.all([
+    d.select().from(staff).where(eq(staff.businessId, business.id)).orderBy(asc(staff.sortOrder), asc(staff.createdAt)),
     d.select().from(services).where(eq(services.businessId, business.id)).orderBy(asc(services.sortOrder)),
     d
       .select({ booking: bookings, customer: customers })
@@ -53,6 +53,9 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
       .where(and(eq(bookings.businessId, business.id), lt(bookings.startsAt, dayEnd), gt(bookings.endsAt, dayStart)))
       .orderBy(asc(bookings.startsAt)),
   ]);
+  // Hidden staff still appear on days they have bookings, so nothing disappears
+  const staffRows = allStaff.filter((s) => s.active || dayBookings.some(({ booking }) => booking.staffId === s.id));
+  const cancelled = dayBookings.filter(({ booking }) => booking.status === "cancelled");
   const hours = staffRows.length
     ? await d.select().from(workingHours).where(and(inArray(workingHours.staffId, staffRows.map((s) => s.id)), eq(workingHours.weekday, weekday)))
     : [];
@@ -102,6 +105,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_320px] items-start">
+        <div className="space-y-3 min-w-0">
         {/* Time grid */}
         <div className="card overflow-x-auto">
           {staffRows.length === 0 ? (
@@ -136,7 +140,8 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
                         <div key={i} className="absolute inset-x-0 border-t border-line/70" style={{ top: i * 60 * PX_PER_MIN }} />
                       ))}
                       {dayBookings
-                        .filter(({ booking }) => booking.staffId === s.id)
+                        // Cancelled bookings free their time, so they're listed below instead of drawn here
+                        .filter(({ booking }) => booking.staffId === s.id && booking.status !== "cancelled")
                         .map(({ booking, customer }) => {
                           const top = (minutesOfDay(booking.startsAt, tz) - startMin) * PX_PER_MIN;
                           const h = Math.max(22, (booking.endsAt.getTime() - booking.startsAt.getTime()) / 60_000 * PX_PER_MIN - 2);
@@ -168,6 +173,21 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
             </div>
           )}
         </div>
+        {cancelled.length > 0 && (
+          <div className="card px-4 py-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted mb-1.5">{t.dash.cancelledList} ({cancelled.length})</p>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {cancelled.map(({ booking, customer }) => (
+                <li key={booking.id}>
+                  <Link href={hrefFor({ b: booking.id })} scroll={false} className={`text-muted line-through hover:text-ink ${booking.id === selectedId ? "text-ink font-medium" : ""}`}>
+                    <span className="tabular-nums">{formatTime(booking.startsAt, tz)}</span> {customer.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        </div>
 
         {/* Side panel */}
         <aside className="space-y-5 order-first lg:order-none lg:sticky lg:top-20">
@@ -185,7 +205,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
           <NewBookingForm
             date={date}
             services={serviceRows.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name, durationMinutes: s.durationMinutes }))}
-            staff={staffRows.map((s) => ({ id: s.id, name: s.name }))}
+            staff={staffRows.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name }))}
             defaultTime={nowMin !== null ? formatMinutes(Math.ceil(nowMin / 15) * 15 % 1440) : "09:00"}
             t={{ dash: t.dash, book: t.book, common: t.common }}
           />
@@ -250,9 +270,10 @@ function SelectedBooking({
       </div>
       <p className="text-xs text-muted tabular-nums">{customer.phone}</p>
       <BookingActions
+        key={booking.id}
         id={booking.id}
         status={booking.status}
-        labels={{ completed: t.dash.markCompleted, noShow: t.dash.markNoShow, cancel: t.common.cancel, restore: t.dash.restore }}
+        labels={{ completed: t.dash.markCompleted, noShow: t.dash.markNoShow, cancel: t.common.cancel, restore: t.dash.restore, restoreConflict: t.dash.restoreConflict, error: t.common.error }}
       />
     </div>
   );

@@ -13,7 +13,8 @@ export function HoursForm({ staffId, days, t }: { staffId: string; days: DayHour
   const [showBreak, setShowBreak] = useState(days.map((d) => d.breakFrom !== ""));
 
   return (
-    <form onSubmit={submitKeepingValues(action)} className="p-4 space-y-2">
+    <form action={action}
+      onSubmit={submitKeepingValues(action)} className="p-4 space-y-2">
       <input type="hidden" name="staffId" value={staffId} />
       {days.map((day, i) => {
         const w = i + 1;
@@ -59,7 +60,7 @@ export function HoursForm({ staffId, days, t }: { staffId: string; days: DayHour
       <div className="flex items-center gap-3 pt-2">
         <button className="btn-primary btn-sm" disabled={pending}>{pending ? t.common.loading : t.common.save}</button>
         {state?.ok && <span className="text-sm text-ok">{t.common.saved}</span>}
-        {state?.error && <span className="text-sm text-danger">{t.common.error}</span>}
+        {state?.error && <span className="text-sm text-danger">{t.dash.invalidHours}</span>}
       </div>
     </form>
   );

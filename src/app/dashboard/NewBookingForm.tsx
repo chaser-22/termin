@@ -24,11 +24,12 @@ export function NewBookingForm({ date, services, staff, defaultTime, t }: Props)
   }, [state]);
 
   const errorText =
-    state?.error === "conflict" ? t.dash.conflict : state?.error === "phone" ? `${t.book.phone}?` : state?.error ? t.common.error : null;
+    state?.error === "conflict" ? t.dash.conflict : state?.error === "phone" ? t.book.invalidPhone : state?.error ? t.common.error : null;
 
   return (
     <form
       ref={formRef}
+      action={action}
       onSubmit={submitKeepingValues(action)}
       className="card p-4 space-y-3"
     >

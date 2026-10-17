@@ -1,4 +1,8 @@
 import { Suspense } from "react";
+import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { businesses } from "@/db/schema";
+import { db } from "@/lib/server/db";
 import { getDict } from "@/i18n/server";
 import { requireUser } from "@/lib/server/auth";
 import { appOrigin } from "@/lib/server/url";
@@ -13,7 +17,9 @@ export default function SetupPage() {
 }
 
 async function Setup() {
-  await requireUser();
+  const user = await requireUser();
+  const d = await db();
+  if (await d.query.businesses.findFirst({ where: eq(businesses.ownerId, user.id) })) redirect("/dashboard");
   const { t } = await getDict();
   return (
     <div className="mx-auto max-w-lg">

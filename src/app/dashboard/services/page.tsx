@@ -33,13 +33,14 @@ async function Services() {
         {rows.map((s) => (
           <form key={s.id} action={saveService} className={`grid grid-cols-2 sm:grid-cols-[1fr_110px_100px_180px] gap-3 px-4 py-3 items-center ${s.active ? "" : "opacity-55"}`}>
             <input type="hidden" name="id" value={s.id} />
+            {!s.active && <span className="col-span-2 sm:col-span-4 chip bg-surface-2 text-muted w-fit">{t.dash.hiddenHint}</span>}
             <input name="name" defaultValue={s.name} required className="input col-span-2 sm:col-span-1" aria-label={t.dash.name} />
             <input name="duration" type="number" min={5} max={600} step={5} defaultValue={s.durationMinutes} required className="input tabular-nums" aria-label={t.dash.duration} />
             <input name="price" inputMode="decimal" defaultValue={s.priceCents === null ? "" : String(s.priceCents / 100)} placeholder="—" className="input tabular-nums" aria-label={t.dash.price} />
             <div className="col-span-2 sm:col-span-1 flex gap-2 justify-end">
               <button className="btn-secondary btn-sm">{t.common.save}</button>
               <button formAction={toggleService.bind(null, s.id, !s.active)} formNoValidate className="btn-ghost btn-sm">
-                {s.active ? t.dash.active : t.dash.inactive}
+                {s.active ? t.dash.deactivate : t.dash.activate}
               </button>
             </div>
           </form>

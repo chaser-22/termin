@@ -46,8 +46,9 @@ async function StaffList() {
               <input type="hidden" name="id" value={m.id} />
               <input name="name" defaultValue={m.name} required className="input max-w-xs font-medium" aria-label={t.dash.staffName} />
               <button className="btn-secondary btn-sm">{t.common.save}</button>
+              {!m.active && <span className="chip bg-surface-2 text-muted">{t.dash.hiddenHint}</span>}
               <button formAction={toggleStaff.bind(null, m.id, !m.active)} formNoValidate className="btn-ghost btn-sm ml-auto">
-                {m.active ? t.dash.active : t.dash.inactive}
+                {m.active ? t.dash.deactivate : t.dash.activate}
               </button>
             </form>
             <HoursForm staffId={m.id} days={days} t={{ dash: t.dash, common: t.common, weekdays: t.weekdays }} />

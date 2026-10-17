@@ -22,7 +22,8 @@ type Values = {
 export function SettingsForm({ host, business: b, t }: { host: string; business: Values; t: Pick<Dict, "dash" | "common" | "businessTypes"> }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveSettings, null);
   return (
-    <form onSubmit={submitKeepingValues(action)} className="card p-5 space-y-5">
+    <form action={action}
+      onSubmit={submitKeepingValues(action)} className="card p-5 space-y-5">
       <div className="grid sm:grid-cols-2 gap-4">
         <Field label={t.dash.businessName}>
           <input name="name" required defaultValue={b.name} className="input" />
