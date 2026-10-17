@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface-2: #f1efea;
+  --ink: #1b1a17;
+  --muted: #6b675f;
+  --line: #e4e1da;
+  --accent: #0e5a63;
+  --accent-hover: #0a4850;
+  --accent-soft: #e3eff0;
+  --accent-ink: #ffffff;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --ok: #157f3d;
+  --ok-soft: #e6f4ea;
+  --warn: #9a6700;
+  --warn-soft: #fff4d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121211;
+    --surface: #1b1b19;
+    --surface-2: #242421;
+    --ink: #f0eee9;
+    --muted: #a19d94;
+    --line: #2f2e2a;
+    --accent: #5fb7bf;
+    --accent-hover: #7ccad1;
+    --accent-soft: #17393c;
+    --accent-ink: #0b1f21;
+    --danger: #f97066;
+    --danger-soft: #3a1714;
+    --ok: #4ade80;
+    --ok-soft: #14301f;
+    --warn: #fbbf24;
+    --warn-soft: #33270b;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-accent-ink hover:bg-accent-hover;
+}
+@utility btn-secondary {
+  @apply btn bg-surface text-ink border border-line hover:bg-surface-2;
+}
+@utility btn-ghost {
+  @apply btn text-muted hover:text-ink hover:bg-surface-2;
+}
+@utility btn-sm {
+  @apply h-9 px-3 text-sm rounded-lg;
+}
+@utility input {
+  @apply w-full h-11 rounded-xl border border-line bg-surface px-3.5 text-[15px] text-ink placeholder:text-muted/70 outline-none focus:border-accent focus:ring-4 focus:ring-accent/15 transition;
+}
+@utility label {
+  @apply block text-sm font-medium text-ink mb-1.5;
+}
+@utility card {
+  @apply rounded-2xl border border-line bg-surface;
+}
+@utility chip {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
