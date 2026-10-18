@@ -59,9 +59,6 @@ async function Landing({ params }: { params: Promise<{ vertical: string }> }) {
               {h.seeDemo}
             </Link>
           </div>
-          <a href="#kontakt" className="mt-5 inline-block text-sm text-muted underline underline-offset-4 hover:text-ink">
-            {h.contactTitle}
-          </a>
         </div>
         <div className="relative flex flex-col items-center gap-4 animate-rise [animation-delay:200ms]">
           <PhoneMock
@@ -106,7 +103,7 @@ async function Landing({ params }: { params: Promise<{ vertical: string }> }) {
         </ol>
       </section>
 
-      <ContactBlock t={t} setupType={v.setupType} />
+      <ContactBlock t={t} />
     </div>
   );
 }
