@@ -9,13 +9,13 @@ export function ContactBlock({ t, setupType }: { t: Dict; setupType?: BusinessTy
   const h = t.home;
   return (
     <section id="kontakt" className="px-4 pb-16 scroll-mt-6">
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[36px] bg-[var(--pill-bg)] text-[var(--pill-fg)] backdrop-blur-2xl px-6 py-14 sm:px-12 sm:py-16">
+      <div className="relative mx-auto max-w-3xl overflow-hidden text-center rounded-[36px] bg-[var(--pill-bg)] text-[var(--pill-fg)] backdrop-blur-2xl px-6 py-14 sm:px-12 sm:py-16">
         <div aria-hidden className="absolute -right-24 -bottom-32 size-[420px] max-w-[100vw] rounded-full opacity-40 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
-        <div className="relative max-w-2xl">
+        <div className="relative mx-auto max-w-xl">
           <h2 className="display text-[30px] sm:text-[44px]">{h.contactTitle}</h2>
           <p className="mt-3 text-lg opacity-80">{h.contactBody}</p>
           <p className="mt-6 display text-[26px] tabular-nums select-all">{CONTACT.phone}</p>
-          <div className="mt-6 flex flex-wrap gap-2.5">
+          <div className="mt-6 flex flex-wrap justify-center gap-2.5">
             <a href={CONTACT_LINKS.call} className="btn h-12 px-5 bg-[var(--pill-fg)] text-[var(--pill-bg)] hover:opacity-90">
               <Phone className="size-4" /> {h.call}
             </a>
