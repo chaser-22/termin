@@ -7,7 +7,7 @@ import { isDateKey } from "@/lib/time";
 const UUID = /^[0-9a-f-]{36}$/i;
 
 // GET /api/slots?b=<slug>&s=<serviceId>&st=<staffId|any>&d=YYYY-MM-DD[&days=14]
-// → { days: { "YYYY-MM-DD": [ISO start, …] } }
+// → { days: { "YYYY-MM-DD": [ISO start, …] }, left: { ISO start: places left } } (left only for classes)
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const slug = params.get("b") ?? "";
@@ -29,6 +29,6 @@ export async function GET(request: Request) {
   const d = await db();
   const business = await d.query.businesses.findFirst({ where: eq(businesses.slug, slug) });
   if (!business) return Response.json({ error: "not_found" }, { status: 404 });
-  const range = await getSlotsRange(business, serviceId, staffParam === "any" ? null : staffParam, date, days);
-  return Response.json({ days: range }, { headers: { "Cache-Control": "no-store" } });
+  const { days: range, left } = await getSlotsRange(business, serviceId, staffParam === "any" ? null : staffParam, date, days);
+  return Response.json({ days: range, left }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -1,9 +1,9 @@
 // Creating a business with starter data. No Next.js imports, so the seed
 // script can use it too.
 import type { Db } from "@/db/client";
-import { businesses, services, staff, workingHours, type BusinessType } from "@/db/schema";
+import { businesses, classTimes, services, staff, workingHours, type BusinessType } from "@/db/schema";
 import type { Locale } from "@/i18n/dict";
-import { RESOURCE_TYPES, defaultHours, templateResources, templateServices } from "@/lib/templates";
+import { RESOURCE_TYPES, defaultHours, templateResources, templateSchedule, templateServices } from "@/lib/templates";
 
 export { isValidSlug, slugify } from "@/lib/slug";
 
@@ -39,7 +39,18 @@ export async function createBusinessWithDefaults(db: Db, input: NewBusiness) {
       : [{ businessId: business.id, name: input.ownerName, kind: "person" as const, sortOrder: 0 }];
     const created = await tx.insert(staff).values(bookables).returning();
     await tx.insert(workingHours).values(created.flatMap((b) => defaultHours(input.type).map((h) => ({ ...h, staffId: b.id }))));
-    await tx.insert(services).values(templateServices(input.type, input.locale).map((s) => ({ ...s, businessId: business.id })));
+    const createdServices = await tx
+      .insert(services)
+      .values(templateServices(input.type, input.locale).map((s) => ({ ...s, businessId: business.id })))
+      .returning();
+    // Classes start on a weekly schedule led by the first person
+    const lead = created.find((b) => b.kind === "person");
+    if (lead) {
+      const rows = createdServices.flatMap((svc) =>
+        templateSchedule(input.type, svc.sortOrder).map((c) => ({ ...c, serviceId: svc.id, staffId: lead.id })),
+      );
+      if (rows.length) await tx.insert(classTimes).values(rows);
+    }
     return business;
   });
 }

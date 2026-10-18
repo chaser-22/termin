@@ -84,7 +84,7 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
             </dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-muted">{t.booking.staff}</dt>
+            <dt className="text-muted">{staff.kind === "resource" ? t.booking.reserved : t.booking.staff}</dt>
             <dd className="text-right font-medium">{staff.name}</dd>
           </div>
           <div className="flex justify-between gap-4">

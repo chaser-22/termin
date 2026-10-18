@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq, gt, inArray, lt, ne } from "drizzle-orm";
-import { bookings, businesses, customers, services, serviceStaff, staff, workingHours, type Business, type BookingSource } from "@/db/schema";
-import { availableStarts, mergeStaffSlots, overlaps } from "@/lib/slots";
+import { bookings, businesses, classTimes, customers, services, serviceStaff, staff, workingHours, type Business, type BookingSource, type Service } from "@/db/schema";
+import { availableStarts, fits, mergeStaffSlots, placesTaken } from "@/lib/slots";
 import { addDays, dateKeyOf, localToInstant, todayKey, type DateKey } from "@/lib/time";
 import { randomToken } from "./crypto";
 import { db } from "./db";
@@ -21,7 +21,7 @@ function dayBounds(date: DateKey, timeZone: string) {
 async function busyFor(conn: Conn, staffIds: string[], from: Date, to: Date) {
   if (staffIds.length === 0) return [];
   return conn
-    .select({ staffId: bookings.staffId, startsAt: bookings.startsAt, endsAt: bookings.endsAt })
+    .select({ staffId: bookings.staffId, serviceId: bookings.serviceId, startsAt: bookings.startsAt, endsAt: bookings.endsAt })
     .from(bookings)
     .where(
       and(
@@ -31,27 +31,6 @@ async function busyFor(conn: Conn, staffIds: string[], from: Date, to: Date) {
         gt(bookings.endsAt, from),
       ),
     );
-}
-
-async function startsForStaff(conn: Conn, business: Business, staffIds: string[], date: DateKey, durationMinutes: number, now: Date) {
-  const { start, end } = dayBounds(date, business.timezone);
-  const [hours, busy] = await Promise.all([
-    staffIds.length ? conn.select().from(workingHours).where(inArray(workingHours.staffId, staffIds)) : [],
-    busyFor(conn, staffIds, start, end),
-  ]);
-  return staffIds.map((staffId) => ({
-    staffId,
-    starts: availableStarts({
-      date,
-      timeZone: business.timezone,
-      hours: hours.filter((h) => h.staffId === staffId),
-      busy: busy.filter((b) => b.staffId === staffId),
-      durationMinutes,
-      stepMinutes: business.slotStepMinutes,
-      now,
-      minNoticeMinutes: business.minNoticeMinutes,
-    }),
-  }));
 }
 
 /**
@@ -73,24 +52,74 @@ async function activeStaffIds(conn: Conn, businessId: string, staffId: string | 
   return ids.filter((id) => allowed.has(id));
 }
 
+/** One day's free starts, merged across staff, with places left for classes. */
+type DaySlots = { starts: string[]; left: Record<string, number> };
+
+/**
+ * Free starts for `service` from `first` to `last` (inclusive), per day, in
+ * three queries. For a class, the people are those on its schedule.
+ */
+async function computeSlots(conn: Conn, business: Business, service: Service, staffIds: string[], first: DateKey, last: DateKey, now: Date) {
+  const schedule = await conn.select().from(classTimes).where(eq(classTimes.serviceId, service.id));
+  const isScheduled = schedule.length > 0;
+  const ids = isScheduled ? staffIds.filter((id) => schedule.some((c) => c.staffId === id)) : staffIds;
+  const [hours, busy] = await Promise.all([
+    ids.length ? conn.select().from(workingHours).where(inArray(workingHours.staffId, ids)) : [],
+    busyFor(conn, ids, dayBounds(first, business.timezone).start, dayBounds(last, business.timezone).end),
+  ]);
+  const result: Record<DateKey, DaySlots> = {};
+  for (let date = first; date <= last; date = addDays(date, 1)) {
+    const left: Record<string, number> = {};
+    const perStaff = ids.map((id) => {
+      const staffBusy = busy.filter((b) => b.staffId === id);
+      const starts = availableStarts({
+        date,
+        timeZone: business.timezone,
+        hours: hours.filter((h) => h.staffId === id),
+        busy: staffBusy,
+        durationMinutes: service.durationMinutes,
+        stepMinutes: business.slotStepMinutes,
+        now,
+        minNoticeMinutes: business.minNoticeMinutes,
+        capacity: service.capacity,
+        serviceId: service.id,
+        classTimes: isScheduled ? schedule.filter((c) => c.staffId === id) : undefined,
+      });
+      if (service.capacity > 1) {
+        for (const st of starts) {
+          const iso = st.toISOString();
+          left[iso] = Math.max(left[iso] ?? 0, service.capacity - placesTaken(st, staffBusy, service.id));
+        }
+      }
+      return { staffId: id, starts };
+    });
+    result[date] = { starts: mergeStaffSlots(perStaff).map((s) => s.start.toISOString()), left };
+  }
+  return result;
+}
+
+async function activeService(conn: Conn, business: Business, serviceId: string) {
+  return conn.query.services.findFirst({
+    where: and(eq(services.id, serviceId), eq(services.businessId, business.id), eq(services.active, true)),
+  });
+}
+
 /** Free start times on one day, for one staff member or anyone. */
 export async function getSlots(business: Business, serviceId: string, staffId: string | null, date: DateKey) {
   const now = new Date();
   const range = bookableRange(business, now);
   if (date < range.first || date > range.last) return [];
   const d = await db();
-  const service = await d.query.services.findFirst({
-    where: and(eq(services.id, serviceId), eq(services.businessId, business.id), eq(services.active, true)),
-  });
+  const service = await activeService(d, business, serviceId);
   if (!service) return [];
   const staffIds = await activeStaffIds(d, business.id, staffId, service.id);
-  const perStaff = await startsForStaff(d, business, staffIds, date, service.durationMinutes, now);
-  return mergeStaffSlots(perStaff).map((s) => s.start.toISOString());
+  return (await computeSlots(d, business, service, staffIds, date, date, now))[date].starts;
 }
 
 /**
  * Free start times for each day from `from` for `days` days (clipped to the
- * booking window), in two queries. Days with no times are included as [].
+ * booking window). Days with no times are included as []. `left` has places
+ * left per start, for classes only.
  */
 export async function getSlotsRange(business: Business, serviceId: string, staffId: string | null, from: DateKey, days: number) {
   const now = new Date();
@@ -99,35 +128,19 @@ export async function getSlotsRange(business: Business, serviceId: string, staff
   const lastWanted = addDays(first, Math.max(1, Math.min(days, 31)) - 1);
   const last = lastWanted > range.last ? range.last : lastWanted;
   const result: Record<DateKey, string[]> = {};
-  if (first > last) return result;
+  const left: Record<string, number> = {};
+  if (first > last) return { days: result, left };
 
   const d = await db();
-  const service = await d.query.services.findFirst({
-    where: and(eq(services.id, serviceId), eq(services.businessId, business.id), eq(services.active, true)),
-  });
-  if (!service) return result;
+  const service = await activeService(d, business, serviceId);
+  if (!service) return { days: result, left };
   const staffIds = await activeStaffIds(d, business.id, staffId, service.id);
-  const [hours, busy] = await Promise.all([
-    staffIds.length ? d.select().from(workingHours).where(inArray(workingHours.staffId, staffIds)) : [],
-    busyFor(d, staffIds, dayBounds(first, business.timezone).start, dayBounds(last, business.timezone).end),
-  ]);
-  for (let date = first; date <= last; date = addDays(date, 1)) {
-    const perStaff = staffIds.map((id) => ({
-      staffId: id,
-      starts: availableStarts({
-        date,
-        timeZone: business.timezone,
-        hours: hours.filter((h) => h.staffId === id),
-        busy: busy.filter((b) => b.staffId === id),
-        durationMinutes: service.durationMinutes,
-        stepMinutes: business.slotStepMinutes,
-        now,
-        minNoticeMinutes: business.minNoticeMinutes,
-      }),
-    }));
-    result[date] = mergeStaffSlots(perStaff).map((s) => s.start.toISOString());
+  const computed = await computeSlots(d, business, service, staffIds, first, last, now);
+  for (const [date, day] of Object.entries(computed)) {
+    result[date] = day.starts;
+    Object.assign(left, day.left);
   }
-  return result;
+  return { days: result, left };
 }
 
 /** The earliest free time in the next `days` days for the shortest active service, and that service. */
@@ -138,7 +151,7 @@ export async function firstFreeSlot(business: Business, days = 7) {
     orderBy: (s, { asc }) => [asc(s.durationMinutes)],
   });
   if (!shortest) return null;
-  const range = await getSlotsRange(business, shortest.id, null, todayKey(business.timezone), days);
+  const { days: range } = await getSlotsRange(business, shortest.id, null, todayKey(business.timezone), days);
   for (const date of Object.keys(range).sort()) {
     if (range[date].length) return { serviceId: shortest.id, start: new Date(range[date][0]) };
   }
@@ -190,14 +203,14 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
     for (const staffId of candidates) {
       await tx.select({ id: staff.id }).from(staff).where(eq(staff.id, staffId)).for("update");
       if (input.source === "online") {
-        const [{ starts }] = await startsForStaff(tx, input.business, [staffId], date, service.durationMinutes, new Date());
-        if (starts.some((s) => s.getTime() === startsAt.getTime())) {
+        const day = (await computeSlots(tx, input.business, service, [staffId], date, date, new Date()))[date];
+        if (day.starts.includes(startsAt.toISOString())) {
           chosen = staffId;
           break;
         }
       } else {
         const busy = await busyFor(tx, [staffId], startsAt, endsAt);
-        if (!busy.some((b) => overlaps(startsAt, endsAt, b.startsAt, b.endsAt))) {
+        if (fits(startsAt, endsAt, busy, service.capacity, service.id)) {
           chosen = staffId;
           break;
         }

@@ -4,7 +4,7 @@ import { and, eq, gt, lt, ne } from "drizzle-orm";
 import { refresh, revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { BOOKING_STATUSES, BUSINESS_TYPES, bookings, businesses, serviceStaff, services, staff, workingHours } from "@/db/schema";
+import { BOOKING_STATUSES, BUSINESS_TYPES, bookings, businesses, classTimes, serviceStaff, services, staff, workingHours } from "@/db/schema";
 import { getLocale } from "@/i18n/server";
 import { requireBusiness, requireUser } from "@/lib/server/auth";
 import { createBooking } from "@/lib/server/booking";
@@ -124,7 +124,10 @@ export async function saveService(fd: FormData) {
   const duration = Number(str(fd, "duration"));
   const priceRaw = str(fd, "price").replace(",", ".");
   const price = priceRaw === "" ? null : Math.round(Number(priceRaw) * 100);
+  const capacityRaw = str(fd, "capacity");
+  const capacity = capacityRaw === "" ? 1 : Number(capacityRaw);
   if (!name || !Number.isInteger(duration) || duration < 5 || duration > 600) return;
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 200) return;
   if (price !== null && (!Number.isFinite(price) || price < 0)) return;
 
   const d = await db();
@@ -132,12 +135,40 @@ export async function saveService(fd: FormData) {
   if (id) {
     await d
       .update(services)
-      .set({ name, durationMinutes: duration, priceCents: price })
+      .set({ name, durationMinutes: duration, priceCents: price, capacity })
       .where(and(eq(services.id, id), eq(services.businessId, business.id)));
   } else {
     const count = await d.$count(services, eq(services.businessId, business.id));
-    await d.insert(services).values({ businessId: business.id, name, durationMinutes: duration, priceCents: price, sortOrder: count });
+    await d.insert(services).values({ businessId: business.id, name, durationMinutes: duration, priceCents: price, capacity, sortOrder: count });
   }
+  refresh();
+}
+
+export async function addClassTime(serviceId: string, fd: FormData) {
+  const { business } = await requireBusiness();
+  const weekday = Number(str(fd, "weekday"));
+  const minute = parseTime(str(fd, "time"));
+  const staffId = str(fd, "staffId");
+  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7 || minute === null) return;
+  const d = await db();
+  const [service, member] = await Promise.all([
+    d.query.services.findFirst({ where: and(eq(services.id, serviceId), eq(services.businessId, business.id)) }),
+    d.query.staff.findFirst({ where: and(eq(staff.id, staffId), eq(staff.businessId, business.id)) }),
+  ]);
+  if (!service || !member) return;
+  await d.insert(classTimes).values({ serviceId, staffId, weekday, startMinute: minute });
+  refresh();
+}
+
+export async function removeClassTime(id: string) {
+  const { business } = await requireBusiness();
+  const d = await db();
+  const row = await d
+    .select({ id: classTimes.id })
+    .from(classTimes)
+    .innerJoin(services, eq(services.id, classTimes.serviceId))
+    .where(and(eq(classTimes.id, id), eq(services.businessId, business.id)));
+  if (row.length) await d.delete(classTimes).where(eq(classTimes.id, id));
   refresh();
 }
 

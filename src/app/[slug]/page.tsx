@@ -73,7 +73,7 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
           {business.name.slice(0, 1).toUpperCase()}
         </div>
         <p className="eyebrow mt-6 animate-rise [animation-delay:60ms]">
-          {t.businessTypes[business.type]}
+          {t.businessTypes[business.type].split(" (")[0]}
           {business.city ? ` · ${business.city}` : ""}
         </p>
         <h1 className="display mt-2.5 text-balance animate-rise [animation-delay:100ms]" style={{ fontSize: nameSize(business.name) }}>
@@ -115,6 +115,7 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
             name: s.name,
             durationMinutes: s.durationMinutes,
             priceCents: s.priceCents,
+            capacity: s.capacity,
             // Empty means every person/resource does it
             staffIds: links.filter((l) => l.serviceId === s.id).map((l) => l.staffId),
           }))}

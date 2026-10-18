@@ -139,25 +139,32 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
                       {Array.from({ length: (endMin - startMin) / 60 }).map((_, i) => (
                         <div key={i} className="absolute inset-x-0 border-t border-line/70" style={{ top: i * 60 * PX_PER_MIN }} />
                       ))}
-                      {dayBookings
-                        // Cancelled bookings free their time, so they're listed below instead of drawn here
-                        .filter(({ booking }) => booking.staffId === s.id && booking.status !== "cancelled")
-                        .map(({ booking, customer }) => {
+                      {groupForGrid(dayBookings.filter(({ booking }) => booking.staffId === s.id && booking.status !== "cancelled"))
+                        .map(({ booking, customer, count }) => {
                           const top = (minutesOfDay(booking.startsAt, tz) - startMin) * PX_PER_MIN;
                           const h = Math.max(22, (booking.endsAt.getTime() - booking.startsAt.getTime()) / 60_000 * PX_PER_MIN - 2);
                           const service = serviceById.get(booking.serviceId);
+                          const isClass = (service?.capacity ?? 1) > 1;
+                          const inSelectedClass = isClass && selected && selected.booking.serviceId === booking.serviceId && selected.booking.startsAt.getTime() === booking.startsAt.getTime() && selected.booking.staffId === booking.staffId;
                           return (
                             <Link
                               key={booking.id}
                               href={hrefFor({ b: booking.id })}
                               scroll={false}
                               className={`absolute inset-x-1 rounded-lg border px-2 py-1 text-xs leading-tight overflow-hidden hover:shadow-md transition-shadow ${STATUS_STYLE[booking.status]} ${
-                                booking.id === selectedId ? "ring-2 ring-accent" : ""
+                                booking.id === selectedId || inSelectedClass ? "ring-2 ring-accent" : ""
                               }`}
                               style={{ top: top + 1, height: h }}
                             >
-                              <span className="font-semibold tabular-nums">{formatTime(booking.startsAt, tz)}</span> {customer.name}
-                              {h > 30 && <span className="block text-muted truncate">{service?.name}</span>}
+                              <span className="font-semibold tabular-nums">{formatTime(booking.startsAt, tz)}</span>{" "}
+                              {isClass ? (
+                                <>
+                                  {service?.name} <span className="font-semibold tabular-nums">· {count}/{service?.capacity}</span>
+                                </>
+                              ) : (
+                                customer.name
+                              )}
+                              {h > 30 && !isClass && <span className="block text-muted truncate">{service?.name}</span>}
                             </Link>
                           );
                         })}
@@ -191,6 +198,31 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
 
         {/* Side panel */}
         <aside className="space-y-5 order-first lg:order-none lg:sticky lg:top-20">
+          {selected && (serviceById.get(selected.booking.serviceId)?.capacity ?? 1) > 1 && (
+            <div className="card p-4">
+              <p className="display text-[20px]">
+                {serviceById.get(selected.booking.serviceId)?.name}{" "}
+                <span className="text-muted text-base tabular-nums">{formatTime(selected.booking.startsAt, tz)}</span>
+              </p>
+              <p className="eyebrow mt-3 mb-1.5">{t.dash.attendees}</p>
+              <ul className="space-y-0.5 text-sm">
+                {dayBookings
+                  .filter(({ booking }) => booking.serviceId === selected.booking.serviceId && booking.staffId === selected.booking.staffId && booking.startsAt.getTime() === selected.booking.startsAt.getTime())
+                  .map(({ booking, customer }) => (
+                    <li key={booking.id}>
+                      <Link
+                        href={hrefFor({ b: booking.id })}
+                        scroll={false}
+                        className={`flex justify-between rounded-lg px-2 py-1 hover:bg-surface ${booking.id === selectedId ? "bg-surface font-semibold" : ""} ${booking.status === "cancelled" ? "line-through text-muted" : ""}`}
+                      >
+                        {customer.name}
+                        <span className="text-muted tabular-nums">{customer.phone}</span>
+                      </Link>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
           {selected && (
             <SelectedBooking
               data={selected}
@@ -277,4 +309,16 @@ function SelectedBooking({
       />
     </div>
   );
+}
+
+/** Several bookings of the same class (same service, person and start) become one block with a count. */
+function groupForGrid<T extends { booking: { serviceId: string; staffId: string; startsAt: Date } }>(rows: T[]): (T & { count: number })[] {
+  const groups = new Map<string, T & { count: number }>();
+  for (const row of rows) {
+    const key = `${row.booking.serviceId}|${row.booking.staffId}|${row.booking.startsAt.getTime()}`;
+    const g = groups.get(key);
+    if (g) g.count++;
+    else groups.set(key, { ...row, count: 1 });
+  }
+  return [...groups.values()];
 }

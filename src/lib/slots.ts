@@ -1,7 +1,9 @@
 import { isoWeekday, localToInstant, type DateKey } from "./time";
 
 export type HoursRange = { weekday: number; startMinute: number; endMinute: number };
-export type BusyRange = { startsAt: Date; endsAt: Date };
+/** An existing booking that occupies time. `serviceId` lets classes share a start. */
+export type BusyRange = { startsAt: Date; endsAt: Date; serviceId?: string };
+export type ClassTime = { weekday: number; startMinute: number };
 
 export type SlotInput = {
   date: DateKey;
@@ -12,35 +14,66 @@ export type SlotInput = {
   stepMinutes: number;
   now: Date;
   minNoticeMinutes: number;
+  /** Places per start. Above 1, bookings of the same service at the same start share it. */
+  capacity?: number;
+  serviceId?: string;
+  /** For classes: the only starts offered, instead of a grid over working hours. */
+  classTimes?: ClassTime[];
 };
 
 export function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
   return aStart < bEnd && bStart < aEnd;
 }
 
+/** How many bookings of this service already sit at exactly this start. */
+export function placesTaken(start: Date, busy: BusyRange[], serviceId: string | undefined): number {
+  return busy.filter((b) => b.serviceId === serviceId && b.startsAt.getTime() === start.getTime()).length;
+}
+
 /**
- * Start times one staff member can take on `date`: inside working hours,
- * not overlapping a busy range, and at least `minNoticeMinutes` from now.
- * Starts are aligned to `stepMinutes` from the start of each hours range.
+ * Whether [start, end) can be booked against existing bookings. With capacity
+ * above 1, the only overlaps allowed are bookings of the same service at the
+ * same start, and only while places are left.
+ */
+export function fits(start: Date, end: Date, busy: BusyRange[], capacity = 1, serviceId?: string): boolean {
+  const clashing = busy.filter((b) => overlaps(start, end, b.startsAt, b.endsAt));
+  if (clashing.length === 0) return true;
+  if (capacity <= 1) return false;
+  const sameClass = clashing.every((b) => b.serviceId === serviceId && b.startsAt.getTime() === start.getTime());
+  return sameClass && clashing.length < capacity;
+}
+
+/**
+ * Start times one staff member can take on `date`, at least `minNoticeMinutes`
+ * from now. Normally starts are aligned to `stepMinutes` inside working hours;
+ * a class offers only its scheduled class times.
  */
 export function availableStarts(input: SlotInput): Date[] {
   const weekday = isoWeekday(input.date);
   const earliest = new Date(input.now.getTime() + input.minNoticeMinutes * 60_000);
-  const step = Math.max(5, input.stepMinutes);
-  const result: Date[] = [];
+  const capacity = input.capacity ?? 1;
+  const candidates: number[] = [];
 
-  const ranges = input.hours
-    .filter((h) => h.weekday === weekday && h.endMinute > h.startMinute)
-    .sort((a, b) => a.startMinute - b.startMinute);
-
-  for (const range of ranges) {
-    for (let t = range.startMinute; t + input.durationMinutes <= range.endMinute; t += step) {
-      const start = localToInstant(input.date, t, input.timeZone);
-      const end = new Date(start.getTime() + input.durationMinutes * 60_000);
-      if (start < earliest) continue;
-      if (input.busy.some((b) => overlaps(start, end, b.startsAt, b.endsAt))) continue;
-      result.push(start);
+  if (input.classTimes) {
+    for (const c of input.classTimes) if (c.weekday === weekday) candidates.push(c.startMinute);
+    candidates.sort((a, b) => a - b);
+  } else {
+    const step = Math.max(5, input.stepMinutes);
+    const ranges = input.hours
+      .filter((h) => h.weekday === weekday && h.endMinute > h.startMinute)
+      .sort((a, b) => a.startMinute - b.startMinute);
+    for (const range of ranges) {
+      for (let t = range.startMinute; t + input.durationMinutes <= range.endMinute; t += step) candidates.push(t);
     }
+  }
+
+  const result: Date[] = [];
+  for (const t of candidates) {
+    const start = localToInstant(input.date, t, input.timeZone);
+    const end = new Date(start.getTime() + input.durationMinutes * 60_000);
+    if (start < earliest) continue;
+    if (!fits(start, end, input.busy, capacity, input.serviceId)) continue;
+    result.push(start);
   }
   return result;
 }

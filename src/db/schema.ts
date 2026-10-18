@@ -107,6 +107,8 @@ export const services = pgTable(
     durationMinutes: integer("duration_minutes").notNull(),
     // Price in cents; null means "price on request"
     priceCents: integer("price_cents"),
+    // Places per start. 1 = an appointment; above 1 = a class or group session.
+    capacity: integer("capacity").notNull().default(1),
     active: boolean("active").notNull().default(true),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: createdAt(),
@@ -128,6 +130,24 @@ export const workingHours = pgTable(
     endMinute: integer("end_minute").notNull(),
   },
   (t) => [index("working_hours_staff_idx").on(t.staffId)],
+);
+
+// Weekly schedule for a class: "Mondays 18:00 with Ana". When a service has
+// rows here it is offered only at these times, not on the working-hours grid.
+export const classTimes = pgTable(
+  "class_times",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    serviceId: uuid("service_id")
+      .notNull()
+      .references(() => services.id, { onDelete: "cascade" }),
+    staffId: uuid("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    weekday: integer("weekday").notNull(),
+    startMinute: integer("start_minute").notNull(),
+  },
+  (t) => [index("class_times_service_idx").on(t.serviceId)],
 );
 
 export const customers = pgTable(
@@ -188,4 +208,5 @@ export type Staff = typeof staff.$inferSelect;
 export type Service = typeof services.$inferSelect;
 export type WorkingHours = typeof workingHours.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
+export type ClassTimeRow = typeof classTimes.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;

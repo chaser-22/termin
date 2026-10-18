@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Clock, RotateCcw, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Clock, RotateCcw, Sparkles, Users } from "lucide-react";
 import { bookAppointment } from "@/app/actions";
 import type { Dict } from "@/i18n/dict";
 import { Odometer } from "@/components/Odometer";
 import { formatDuration, formatPrice } from "@/lib/format";
 
-type ServiceOption = { id: string; name: string; durationMinutes: number; priceCents: number | null; staffIds: string[] };
+type ServiceOption = { id: string; name: string; durationMinutes: number; priceCents: number | null; capacity: number; staffIds: string[] };
 type StaffOption = { id: string; name: string; kind: "person" | "resource"; weekdays: number[] };
 type DayOption = { key: string; weekday: number; day: number; month: number };
 type T = Pick<Dict, "book" | "common" | "weekdaysShort" | "months">;
@@ -87,6 +87,8 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   // Free times keyed by service|staff|chunk start, each a map of day → ISO starts
   const [cache, setCache] = useState<Record<string, Record<string, string[]>>>({});
+  // Places left per start (ISO), for classes
+  const [left, setLeft] = useState<Record<string, number>>({});
   const [selection, setSelection] = useState<{ key: string; slot: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,7 +145,10 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
     const ctrl = new AbortController();
     fetch(`/api/slots?b=${encodeURIComponent(slug)}&s=${service.id}&st=${staffId}&d=${from}&days=${CHUNK_DAYS}`, { signal: ctrl.signal })
       .then((r) => r.json())
-      .then((data: { days?: Record<string, string[]> }) => setCache((c) => ({ ...c, [key]: data.days ?? {} })))
+      .then((data: { days?: Record<string, string[]>; left?: Record<string, number> }) => {
+        setCache((c) => ({ ...c, [key]: data.days ?? {} }));
+        if (data.left) setLeft((l) => ({ ...l, ...data.left }));
+      })
       .catch((e) => {
         if (e.name !== "AbortError") setCache((c) => ({ ...c, [key]: {} }));
       });
@@ -252,7 +257,14 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                   style={{ animationDelay: `${260 + i * 45}ms` }}
                   className="group card w-full h-full min-h-[112px] p-4 flex flex-col justify-between gap-5 text-left animate-rise hover:-translate-y-0.5 hover:shadow-lift active:scale-[0.98] transition-[transform,box-shadow] duration-200 cursor-pointer"
                 >
-                  <span className="text-[15px] font-semibold leading-snug">{s.name}</span>
+                  <span>
+                    <span className="block text-[15px] font-semibold leading-snug">{s.name}</span>
+                    {s.capacity > 1 && (
+                      <span className="mt-1 inline-flex items-center gap-1 text-[11.5px] font-semibold text-accent">
+                        <Users className="size-3.5" /> {t.book.groupClass}
+                      </span>
+                    )}
+                  </span>
                   <span className="flex items-end justify-between gap-2">
                     <span className="flex items-center gap-1 text-[12.5px] text-muted">
                       <Clock className="size-3.5" />
@@ -365,13 +377,18 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                             setError(null);
                             if (key && date) setSelection({ key: `${key}|${date}`, slot: s });
                           }}
-                          className={`h-11 rounded-xl border text-[15px] font-semibold tabular-nums transition active:scale-95 cursor-pointer ${
+                          className={`${service.capacity > 1 ? "h-14" : "h-11"} rounded-xl border text-[15px] font-semibold tabular-nums transition active:scale-95 cursor-pointer flex flex-col items-center justify-center leading-tight ${
                             slot === s
                               ? "bg-accent border-accent text-accent-ink shadow-[0_8px_20px_-8px_var(--accent)]"
                               : "border-line bg-surface hover:border-accent hover:text-accent"
                           }`}
                         >
                           {timeFmt.format(new Date(s))}
+                          {service.capacity > 1 && left[s] !== undefined && (
+                            <span className={`text-[10.5px] font-medium ${slot === s ? "opacity-80" : left[s] === 1 ? "text-danger" : "text-muted"}`}>
+                              {left[s] === 1 ? t.book.lastPlace : `${left[s]} ${t.book.placesLeft}`}
+                            </span>
+                          )}
                         </button>
                       ))}
                     </div>

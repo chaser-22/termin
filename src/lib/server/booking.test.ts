@@ -36,6 +36,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
+  await db.delete(schema.classTimes);
   await db.delete(schema.serviceStaff);
   await db.delete(schema.bookings);
   await db.delete(schema.customers);
@@ -147,7 +148,7 @@ describe("getSlotsRange", () => {
   it("matches the single-day result for every day in the range", async () => {
     await book();
     const from = addDays(monday, -3);
-    const range = await getSlotsRange(business, haircut.id, null, from, 7);
+    const { days: range } = await getSlotsRange(business, haircut.id, null, from, 7);
     expect(Object.keys(range)).toHaveLength(7);
     for (const [date, slots] of Object.entries(range)) {
       expect(slots).toEqual(await getSlots(business, haircut.id, null, date));
@@ -156,7 +157,7 @@ describe("getSlotsRange", () => {
   });
 
   it("clips to the booking window", async () => {
-    const range = await getSlotsRange(business, haircut.id, null, addDays(todayKey(TZ), -10), 31);
+    const { days: range } = await getSlotsRange(business, haircut.id, null, addDays(todayKey(TZ), -10), 31);
     expect(Object.keys(range).sort()[0]).toBe(todayKey(TZ));
   });
 
@@ -182,6 +183,41 @@ describe("service links", () => {
   it("lets the business book anyone from the dashboard", async () => {
     await db.insert(schema.serviceStaff).values({ serviceId: haircut.id, staffId: ivo.id });
     expect((await book({ staffId: ana.id, source: "phone" })).ok).toBe(true);
+  });
+});
+
+describe("classes", () => {
+  async function makeClass(capacity: number) {
+    const [yoga] = await db.insert(schema.services).values({ businessId: business.id, name: "Yoga", durationMinutes: 60, capacity }).returning();
+    await db.insert(schema.classTimes).values({ serviceId: yoga.id, staffId: ana.id, weekday: 1, startMinute: 18 * 60 });
+    return yoga;
+  }
+
+  it("offers only the scheduled time, with places left", async () => {
+    const yoga = await makeClass(2);
+    const { days, left } = await getSlotsRange(business, yoga.id, null, monday, 1);
+    expect(days[monday]).toEqual([at(18 * 60).toISOString()]);
+    expect(left[at(18 * 60).toISOString()]).toBe(2);
+  });
+
+  it("takes bookings until full, then refuses", async () => {
+    const yoga = await makeClass(2);
+    const one = await book({ serviceId: yoga.id, staffId: null, startsAt: at(18 * 60), phone: "+38267000001" });
+    const two = await book({ serviceId: yoga.id, staffId: null, startsAt: at(18 * 60), phone: "+38267000002" });
+    const three = await book({ serviceId: yoga.id, staffId: null, startsAt: at(18 * 60), phone: "+38267000003" });
+    expect([one.ok, two.ok, three.ok]).toEqual([true, true, false]);
+    const { days } = await getSlotsRange(business, yoga.id, null, monday, 1);
+    expect(days[monday]).toEqual([]);
+  });
+
+  it("blocks the instructor's other services during the class", async () => {
+    const yoga = await makeClass(5);
+    // A 30-minute haircut can't be booked with Ana while her class runs
+    await db.insert(schema.workingHours).values({ staffId: ana.id, weekday: 1, startMinute: 17 * 60, endMinute: 20 * 60 });
+    expect((await book({ serviceId: yoga.id, staffId: null, startsAt: at(18 * 60) })).ok).toBe(true);
+    const free = await getSlots(business, haircut.id, ana.id, monday);
+    expect(free).not.toContain(at(18 * 60 + 30).toISOString());
+    expect(free).toContain(at(19 * 60).toISOString());
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { availableStarts, mergeStaffSlots } from "./slots";
+import { availableStarts, fits, mergeStaffSlots, placesTaken } from "./slots";
 import { addDays, formatTime, isoWeekday, isDateKey, localToInstant, parseTime } from "./time";
 
 const TZ = "Europe/Podgorica";
@@ -83,5 +83,47 @@ describe("mergeStaffSlots", () => {
       { start: a, staffIds: ["s2"] },
       { start: b, staffIds: ["s1", "s2"] },
     ]);
+  });
+});
+
+describe("classes", () => {
+  const monday = "2026-10-19";
+  const base = {
+    date: monday,
+    timeZone: TZ,
+    hours: [],
+    busy: [] as { startsAt: Date; endsAt: Date; serviceId?: string }[],
+    durationMinutes: 60,
+    stepMinutes: 15,
+    now: new Date("2026-10-01T00:00:00Z"),
+    minNoticeMinutes: 60,
+    capacity: 3,
+    serviceId: "yoga",
+    classTimes: [
+      { weekday: 1, startMinute: 18 * 60 },
+      { weekday: 3, startMinute: 18 * 60 },
+    ],
+  };
+  const at = (m: number) => localToInstant(monday, m, TZ);
+  const booked = (n: number, serviceId = "yoga", start = 18 * 60) =>
+    Array.from({ length: n }, () => ({ startsAt: at(start), endsAt: at(start + 60), serviceId }));
+
+  it("offers only scheduled class times", () => {
+    expect(times(availableStarts(base))).toEqual(["18:00"]);
+  });
+
+  it("stays open until the class is full", () => {
+    expect(times(availableStarts({ ...base, busy: booked(2) }))).toEqual(["18:00"]);
+    expect(availableStarts({ ...base, busy: booked(3) })).toEqual([]);
+  });
+
+  it("is blocked by another service at the same time", () => {
+    expect(availableStarts({ ...base, busy: booked(1, "massage", 17 * 60 + 30) })).toEqual([]);
+  });
+
+  it("counts places taken", () => {
+    expect(placesTaken(at(18 * 60), booked(2), "yoga")).toBe(2);
+    expect(fits(at(18 * 60), at(19 * 60), booked(2), 3, "yoga")).toBe(true);
+    expect(fits(at(18 * 60), at(19 * 60), booked(1), 1, "yoga")).toBe(false);
   });
 });

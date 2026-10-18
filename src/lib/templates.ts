@@ -1,7 +1,16 @@
 import type { BusinessType } from "@/db/schema";
 import type { Locale } from "@/i18n/dict";
 
-type TemplateService = { me: string; en: string; minutes: number; price: number | null };
+type TemplateService = {
+  me: string;
+  en: string;
+  minutes: number;
+  price: number | null;
+  /** Places per class; omitted = a 1:1 appointment */
+  capacity?: number;
+  /** Weekly class times as [ISO weekday, "HH:MM"] */
+  schedule?: [number, string][];
+};
 
 // Starter services per business type, so setup takes minutes. Prices in EUR.
 export const SERVICE_TEMPLATES: Record<BusinessType, TemplateService[]> = {
@@ -45,6 +54,12 @@ export const SERVICE_TEMPLATES: Record<BusinessType, TemplateService[]> = {
     { me: "Kontrolni pregled", en: "Follow-up visit", minutes: 20, price: null },
     { me: "Ultrazvuk", en: "Ultrasound", minutes: 30, price: null },
   ],
+  fitness: [
+    { me: "Joga", en: "Yoga", minutes: 60, price: 8, capacity: 12, schedule: [[1, "18:00"], [3, "18:00"], [6, "10:00"]] },
+    { me: "Pilates", en: "Pilates", minutes: 55, price: 10, capacity: 8, schedule: [[2, "09:00"], [2, "19:00"], [4, "19:00"]] },
+    { me: "Funkcionalni trening", en: "Functional training", minutes: 45, price: 7, capacity: 15, schedule: [[1, "07:30"], [3, "07:30"], [5, "07:30"]] },
+    { me: "Personalni trening", en: "Personal training", minutes: 60, price: 25 },
+  ],
   court: [
     { me: "Teren 60 min", en: "Court 60 min", minutes: 60, price: 20 },
     { me: "Teren 90 min", en: "Court 90 min", minutes: 90, price: 28 },
@@ -73,12 +88,27 @@ export function templateServices(type: BusinessType, locale: Locale) {
     name: s[locale],
     durationMinutes: s.minutes,
     priceCents: s.price === null ? null : s.price * 100,
+    capacity: s.capacity ?? 1,
     sortOrder: i,
   }));
 }
 
+/** Weekly class times for a template service, in minutes after midnight. */
+export function templateSchedule(type: BusinessType, index: number): { weekday: number; startMinute: number }[] {
+  return (SERVICE_TEMPLATES[type][index]?.schedule ?? []).map(([weekday, hhmm]) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    return { weekday, startMinute: h * 60 + m };
+  });
+}
+
 /** Default week: Mon–Fri 09:00–20:00, Sat 09:00–15:00 (clinics: Mon–Fri 08:00–16:00). */
 export function defaultHours(type: BusinessType) {
+  // Studios: early mornings and evenings, Saturday morning
+  if (type === "fitness")
+    return [
+      ...Array.from({ length: 5 }, (_, i) => ({ weekday: i + 1, startMinute: 7 * 60, endMinute: 21 * 60 })),
+      { weekday: 6, startMinute: 9 * 60, endMinute: 13 * 60 },
+    ];
   // Courts and rentals are open every day, courts into the evening
   if (type === "court") return Array.from({ length: 7 }, (_, i) => ({ weekday: i + 1, startMinute: 8 * 60, endMinute: 23 * 60 }));
   if (type === "rental") return Array.from({ length: 7 }, (_, i) => ({ weekday: i + 1, startMinute: 9 * 60, endMinute: 20 * 60 }));
