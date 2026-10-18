@@ -307,7 +307,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                 <button key={s.id} type="button" onClick={() => setStaffId(s.id)} className="group shrink-0 w-[76px] flex flex-col items-center gap-2 cursor-pointer">
                   <span
                     className={`grid place-items-center size-14 rounded-full text-[15px] font-bold transition ${
-                      active ? "bg-accent text-accent-ink ring-4 ring-accent/20" : "bg-surface text-ink group-hover:bg-accent-soft"
+                      active ? "bg-accent text-accent-ink ring-4 ring-accent/20" : "bg-glass-strong border border-[var(--glass-border)] text-ink group-hover:bg-accent-soft"
                     }`}
                   >
                     {s.id === "any" ? <Sparkles className="size-5" /> : initials(s.name)}
@@ -340,7 +340,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                     selected
                       ? "bg-ink border-ink text-bg shadow-lift"
                       : open && !full
-                        ? "border-line bg-surface hover:border-ink/40"
+                        ? "border-[var(--glass-border)] bg-glass-strong backdrop-blur-md hover:border-ink/30"
                         : "border-transparent text-muted/40"
                   }`}
                 >
@@ -380,7 +380,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                           className={`${service.capacity > 1 ? "h-14" : "h-11"} rounded-xl border text-[15px] font-semibold tabular-nums transition active:scale-95 cursor-pointer flex flex-col items-center justify-center leading-tight ${
                             slot === s
                               ? "bg-accent border-accent text-accent-ink shadow-[0_8px_20px_-8px_var(--accent)]"
-                              : "border-line bg-surface hover:border-accent hover:text-accent"
+                              : "border-[var(--glass-border)] bg-glass-strong backdrop-blur-md hover:border-accent hover:text-accent"
                           }`}
                         >
                           {timeFmt.format(new Date(s))}
@@ -452,7 +452,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
 function FloatingPill({ children }: { children: React.ReactNode }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pointer-events-none">
-      <div className="pointer-events-auto mx-auto max-w-xl rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)] shadow-lift p-2 pl-6 animate-sheet">{children}</div>
+      <div className="pointer-events-auto mx-auto max-w-xl rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)] backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-lift p-2 pl-6 animate-sheet">{children}</div>
     </div>
   );
 }

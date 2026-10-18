@@ -173,7 +173,7 @@ function Screen({ mode, labels }: { mode: Mode; labels: Props["labels"] }) {
         </div>
       )}
 
-      <div className="absolute inset-x-2.5 bottom-2.5 rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)] p-1.5 pl-4 flex items-center gap-2 text-left">
+      <div className="absolute inset-x-2.5 bottom-2.5 rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)] backdrop-blur-xl border border-white/10 p-1.5 pl-4 flex items-center gap-2 text-left">
         <div className="flex-1 min-w-0 leading-tight">
           <div className="text-[9px] font-bold uppercase tracking-[0.14em] opacity-80">{labels.nextFree}</div>
           <div className="text-[11px] opacity-90 truncate">{pill.day}</div>

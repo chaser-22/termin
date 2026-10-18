@@ -49,7 +49,7 @@ async function StaffList() {
         });
         return (
           <section key={m.id} className={`card ${m.active ? "" : "opacity-60"}`}>
-            <form action={saveStaff} className="flex items-center gap-2 p-4 border-b border-line">
+            <form action={saveStaff} className="flex items-center gap-2 p-4 border-b border-line/50">
               <input type="hidden" name="id" value={m.id} />
               <span className="grid place-items-center size-10 shrink-0 rounded-full bg-surface text-muted" title={m.kind === "resource" ? t.dash.resource : t.dash.person}>
                 {m.kind === "resource" ? <Box className="size-4" /> : <User className="size-4" />}

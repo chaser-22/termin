@@ -8,8 +8,13 @@
   --bg-top: #d6dfda;
   --surface: #fbfcfb;
   --surface-2: #e4eae6;
-  --glass: rgb(255 255 255 / 0.78);
-  --glass-border: rgb(255 255 255 / 0.9);
+  --glass: rgb(255 255 255 / 0.58);
+  /* Denser glass for fields and bars that hold a lot of text */
+  --glass-strong: rgb(255 255 255 / 0.74);
+  --glass-border: rgb(255 255 255 / 0.75);
+  /* Soft brand-colored light behind the glass */
+  --glow-a: color-mix(in srgb, var(--accent) 30%, transparent);
+  --glow-b: color-mix(in srgb, var(--accent) 16%, rgb(150 190 255 / 0.22));
   --ink: #15201c;
   --muted: #47544f;
   --line: #cfd8d3;
@@ -26,7 +31,7 @@
   --warn-soft: #fbf1d8;
   --shadow-color: 29 42 38;
   /* The floating pill is the inverse of the page */
-  --pill-bg: var(--ink);
+  --pill-bg: color-mix(in srgb, var(--ink) 84%, transparent);
   --pill-fg: var(--bg);
   --pill-time: color-mix(in srgb, var(--accent) 40%, white);
   --pill-error: #ffb4a6;
@@ -38,8 +43,11 @@
     --bg-top: #16211d;
     --surface: #161e1b;
     --surface-2: #1d2724;
-    --glass: rgb(255 255 255 / 0.06);
+    --glass: rgb(255 255 255 / 0.05);
+    --glass-strong: rgb(255 255 255 / 0.08);
     --glass-border: rgb(255 255 255 / 0.1);
+    --glow-a: color-mix(in srgb, var(--accent) 26%, transparent);
+    --glow-b: color-mix(in srgb, var(--accent) 12%, rgb(90 120 200 / 0.18));
     --ink: #f0f4f2;
     --muted: #aebbb6;
     --line: #2c3833;
@@ -65,6 +73,7 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
@@ -81,7 +90,7 @@
   --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-display-face);
-  --shadow-soft: 0 1px 0 rgb(255 255 255 / 0.5) inset, 0 12px 28px -20px rgb(var(--shadow-color) / 0.35);
+  --shadow-soft: 0 1px 0 rgb(255 255 255 / 0.55) inset, 0 0 0 0.5px rgb(var(--shadow-color) / 0.04), 0 14px 32px -22px rgb(var(--shadow-color) / 0.4);
   --shadow-lift: 0 2px 6px rgb(var(--shadow-color) / 0.06), 0 28px 56px -24px rgb(var(--shadow-color) / 0.38);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -114,6 +123,28 @@ body::before {
     radial-gradient(70% 45% at 50% 0%, var(--bg-top), transparent 70%);
   animation: contour-drift 60s linear infinite alternate;
 }
+/* Two soft glows in the business's color: what the glass picks up and tints */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 32% at 18% 22%, var(--glow-a), transparent 70%),
+    radial-gradient(34% 30% at 84% 68%, var(--glow-b), transparent 70%),
+    radial-gradient(30% 26% at 60% 8%, var(--glow-b), transparent 70%);
+  filter: blur(20px);
+  animation: glow-drift 40s ease-in-out infinite alternate;
+}
+@keyframes glow-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, -2%, 0) scale(1.06);
+  }
+}
 @keyframes contour-drift {
   from {
     transform: translate3d(0, 0, 0) rotate(0deg);
@@ -140,7 +171,7 @@ body::before {
   @apply btn bg-ink text-bg hover:opacity-90;
 }
 @utility btn-secondary {
-  @apply btn bg-glass text-ink border border-[var(--glass-border)] backdrop-blur-md hover:bg-surface;
+  @apply btn bg-glass-strong text-ink border border-[var(--glass-border)] backdrop-blur-xl backdrop-saturate-150 shadow-soft hover:bg-surface;
 }
 @utility btn-ghost {
   @apply btn text-muted hover:text-ink hover:bg-glass;
@@ -149,14 +180,18 @@ body::before {
   @apply h-9 px-3.5 text-sm;
 }
 @utility input {
-  @apply w-full h-12 rounded-2xl border border-line bg-surface px-4 text-[15px] text-ink placeholder:text-muted/70 outline-none hover:border-muted/50 focus:border-accent focus:ring-4 focus:ring-accent/15 transition-[border-color,box-shadow,background-color] duration-200;
+  @apply w-full h-12 rounded-2xl border border-[var(--glass-border)] bg-glass-strong backdrop-blur-xl px-4 text-[15px] text-ink placeholder:text-muted/70 outline-none shadow-[inset_0_1px_2px_rgb(var(--shadow-color)/0.06)] hover:bg-surface focus:bg-surface focus:border-accent focus:ring-4 focus:ring-accent/15 transition-[border-color,box-shadow,background-color] duration-200;
 }
 @utility label {
   @apply block text-[13px] font-medium text-muted mb-1.5 tracking-wide;
 }
 /* Frosted glass panel: the main surface of Magla */
 @utility card {
-  @apply rounded-[26px] border border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft transition-[box-shadow,transform,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)];
+  @apply rounded-[26px] border border-[var(--glass-border)] bg-glass backdrop-blur-2xl backdrop-saturate-150 shadow-soft transition-[box-shadow,transform,border-color,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)];
+}
+/* A translucent bar pinned to the top or bottom of the screen */
+@utility glass-bar {
+  @apply bg-glass-strong backdrop-blur-2xl backdrop-saturate-150 border-[var(--glass-border)];
 }
 /* A card you can click: lifts on hover, presses on tap */
 @utility card-interactive {
@@ -360,7 +395,8 @@ input[type="radio"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body::before {
+  body::before,
+  body::after {
     animation: none;
   }
   ::view-transition-old(*),
