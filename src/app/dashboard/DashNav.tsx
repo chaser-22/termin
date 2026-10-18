@@ -21,7 +21,7 @@ export function DashNav({ items, className = "" }: { items: { href: string; labe
             {/* The active pill is one shared element, so it glides to the new tab */}
             {active && (
               <ViewTransition name="nav-active">
-                <span aria-hidden className="absolute inset-0 -z-10 rounded-full bg-ink" />
+                <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-ink" />
               </ViewTransition>
             )}
             {item.label}

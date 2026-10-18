@@ -43,7 +43,7 @@ async function Landing({ params }: { params: Promise<{ vertical: string }> }) {
       </header>
 
       <section className="relative mx-auto w-full max-w-3xl px-5 pt-8 pb-12 flex flex-col items-center text-center">
-        <div aria-hidden className="absolute -top-40 right-[-20%] size-[640px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
+        <div aria-hidden className="pointer-events-none absolute -top-40 right-[-20%] size-[640px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
         <h1 className="relative display text-[38px] sm:text-[54px] leading-[1.05] animate-rise">{v.headline[locale]}</h1>
         <p className="relative mt-4 max-w-md text-lg text-muted leading-relaxed animate-rise [animation-delay:60ms]">{v.sub[locale]}</p>
         <Link href={v.demo} className="relative mt-7 btn-primary h-13 px-8 text-base animate-rise [animation-delay:120ms]">

@@ -33,7 +33,7 @@ async function Landing() {
       </header>
 
       <main className="relative mx-auto w-full max-w-7xl flex-1 px-5 pt-6 pb-20 grid gap-14 lg:gap-10 lg:grid-cols-[0.85fr_1.25fr] lg:items-center">
-        <div aria-hidden className="absolute -top-32 right-[-10%] size-[620px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
+        <div aria-hidden className="pointer-events-none absolute -top-32 right-[-10%] size-[620px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
 
         {/* Left: what it is, and pick your business */}
         <div className="relative text-center lg:text-left">
