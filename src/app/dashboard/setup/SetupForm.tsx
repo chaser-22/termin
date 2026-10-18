@@ -89,7 +89,7 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
           <input id="city" name="city" className="input" placeholder="Podgorica" />
         </div>
       </div>
-      {state?.error === "invalid" && <p className="text-sm text-danger">{t.common.error}</p>}
+      {state?.error === "invalid" && <p className="text-sm text-danger animate-pop-in">{t.common.error}</p>}
       <button className="btn-primary w-full h-12" disabled={pending || !!state?.ok}>
         {pending ? t.common.loading : t.dash.setupSubmit}
       </button>

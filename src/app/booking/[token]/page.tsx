@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import Link from "next/link";
 import { CalendarPlus, MapPin, Phone, RotateCcw } from "lucide-react";
 import { getDict } from "@/i18n/server";
@@ -12,11 +13,13 @@ import { ShareButton } from "./ShareButton";
 
 export default function BookingPage({ params }: PageProps<"/booking/[token]">) {
   return (
-    <main className="flex-1 mx-auto w-full max-w-md px-4 py-8 sm:py-14">
-      <Suspense fallback={<div className="h-[560px] rounded-3xl bg-surface-2 animate-pulse" />}>
-        <BookingDetails params={params} />
-      </Suspense>
-    </main>
+    <PageTransition>
+      <main className="flex-1 mx-auto w-full max-w-md px-4 py-8 sm:py-14">
+        <Suspense fallback={<div className="h-[560px] rounded-3xl bg-surface-2 animate-pulse" />}>
+          <BookingDetails params={params} />
+        </Suspense>
+      </main>
+    </PageTransition>
   );
 }
 

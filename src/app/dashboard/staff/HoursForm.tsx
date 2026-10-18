@@ -59,8 +59,8 @@ export function HoursForm({ staffId, days, t }: { staffId: string; days: DayHour
       })}
       <div className="flex items-center gap-3 pt-2">
         <button className="btn-primary btn-sm" disabled={pending}>{pending ? t.common.loading : t.common.save}</button>
-        {state?.ok && <span className="text-sm text-ok">{t.common.saved}</span>}
-        {state?.error && <span className="text-sm text-danger">{t.dash.invalidHours}</span>}
+        {state?.ok && <span className="text-sm text-ok animate-pop-in">{t.common.saved}</span>}
+        {state?.error && <span className="text-sm text-danger animate-pop-in">{t.dash.invalidHours}</span>}
       </div>
     </form>
   );

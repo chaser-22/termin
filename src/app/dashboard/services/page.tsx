@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { classTimes, serviceStaff, services, staff } from "@/db/schema";
 import { getDict } from "@/i18n/server";
@@ -9,9 +10,11 @@ import { formatMinutes } from "@/lib/time";
 
 export default function ServicesPage() {
   return (
-    <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
-      <Services />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
+        <Services />
+      </Suspense>
+    </PageTransition>
   );
 }
 
@@ -28,7 +31,7 @@ async function Services() {
   const staffName = (id: string) => members.find((m) => m.id === id)?.name ?? "";
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl stagger">
       <h1 className="display text-[40px] mb-5">{t.dash.services}</h1>
       <div className="card divide-y divide-line">
         <div className="hidden sm:grid grid-cols-[1fr_96px_88px_80px_168px] gap-3 px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide">

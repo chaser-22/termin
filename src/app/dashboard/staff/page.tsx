@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { asc, eq, inArray } from "drizzle-orm";
 import { staff, workingHours } from "@/db/schema";
 import { getDict } from "@/i18n/server";
@@ -11,9 +12,11 @@ import { Box, User } from "lucide-react";
 
 export default function StaffPage() {
   return (
-    <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
-      <StaffList />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
+        <StaffList />
+      </Suspense>
+    </PageTransition>
   );
 }
 
@@ -25,7 +28,7 @@ async function StaffList() {
   const hours = members.length ? await d.select().from(workingHours).where(inArray(workingHours.staffId, members.map((m) => m.id))) : [];
 
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="max-w-3xl space-y-5 stagger">
       <div>
         <h1 className="display text-[40px]">{t.dash.staffAndResources}</h1>
         <p className="mt-2 text-sm text-muted">{t.dash.kindHint}</p>

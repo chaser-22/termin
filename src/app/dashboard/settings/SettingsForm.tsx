@@ -94,8 +94,8 @@ export function SettingsForm({ host, business: b, locale, t }: { host: string; b
       </div>
       <div className="flex items-center gap-3">
         <button className="btn-primary" disabled={pending}>{pending ? t.common.loading : t.common.save}</button>
-        {state?.ok && <span className="text-sm text-ok">{t.common.saved}</span>}
-        {state?.error === "invalid" && <span className="text-sm text-danger">{t.common.error}</span>}
+        {state?.ok && <span className="text-sm text-ok animate-pop-in">{t.common.saved}</span>}
+        {state?.error === "invalid" && <span className="text-sm text-danger animate-pop-in">{t.common.error}</span>}
       </div>
     </form>
   );

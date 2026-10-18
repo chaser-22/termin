@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, ViewTransition } from "react";
 import { setLanguage } from "@/app/actions";
 import type { Locale } from "@/i18n/dict";
 
@@ -15,11 +15,16 @@ export function LanguageSwitch({ current }: { current: Locale }) {
           key={l}
           type="button"
           onClick={() => start(() => setLanguage(l))}
-          className={`rounded-md px-2.5 py-1 transition-colors cursor-pointer ${
-            l === current ? "bg-ink text-bg" : "text-muted hover:text-ink"
+          className={`relative isolate rounded-md px-2.5 py-1 transition-colors duration-300 cursor-pointer ${
+            l === current ? "text-bg" : "text-muted hover:text-ink"
           }`}
           aria-pressed={l === current}
         >
+          {l === current && (
+            <ViewTransition name="lang-active">
+              <span aria-hidden className="absolute inset-0 -z-10 rounded-md bg-ink" />
+            </ViewTransition>
+          )}
           {LABELS[l]}
         </button>
       ))}

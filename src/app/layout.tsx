@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Hanken_Grotesk, Syne } from "next/font/google";
+import { Bricolage_Grotesque, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-// Magla type: Syne for display, Hanken Grotesk for everything else
-const body = Hanken_Grotesk({
+// Magla type: Bricolage Grotesque for display (optical sizing), Plus Jakarta Sans for text
+const body = Plus_Jakarta_Sans({
   variable: "--font-body",
   subsets: ["latin", "latin-ext"],
 });
 
-const display = Syne({
+const display = Bricolage_Grotesque({
   variable: "--font-display-face",
   subsets: ["latin", "latin-ext"],
-  weight: ["600", "700", "800"],
+  axes: ["opsz", "wdth"],
 });
 
 const geistMono = Geist_Mono({

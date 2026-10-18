@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { businesses, loginTokens, sessions, users } from "@/db/schema";
 import { randomToken, sha256 } from "./crypto";
+import { readCookie } from "./cookies";
 import { db } from "./db";
 
 const SESSION_COOKIE = "session";
@@ -50,7 +51,7 @@ export async function consumeLoginToken(token: string): Promise<boolean> {
 }
 
 export async function getCurrentUser() {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const token = await readCookie(SESSION_COOKIE);
   if (!token) return null;
   const d = await db();
   const [row] = await d

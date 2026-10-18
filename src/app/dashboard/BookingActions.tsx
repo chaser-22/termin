@@ -34,7 +34,7 @@ export function BookingActions({ id, status, labels }: { id: string; status: Boo
           </button>
         </div>
       )}
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm text-danger animate-pop-in">{error}</p>}
     </div>
   );
 }

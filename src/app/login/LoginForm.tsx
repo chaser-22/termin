@@ -32,7 +32,7 @@ export function LoginForm({ t }: { t: Pick<Dict, "auth" | "common"> }) {
         <label htmlFor="email" className="label">{t.auth.email}</label>
         <input id="email" name="email" type="email" required autoComplete="email" className="input" placeholder="ime@salon.me" />
       </div>
-      {state.status === "error" && <p className="text-sm text-danger">{t.common.error}</p>}
+      {state.status === "error" && <p className="text-sm text-danger animate-pop-in">{t.common.error}</p>}
       <button className="btn-primary w-full" disabled={pending}>
         {pending ? t.common.loading : t.auth.sendLink}
       </button>

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import QRCode from "qrcode";
 import { getDict } from "@/i18n/server";
 import { requireBusiness } from "@/lib/server/auth";
@@ -8,9 +9,11 @@ import { SettingsForm } from "./SettingsForm";
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
-      <Settings />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
+        <Settings />
+      </Suspense>
+    </PageTransition>
   );
 }
 
@@ -23,7 +26,7 @@ async function Settings() {
   const qrHref = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrSvg)}`;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_300px] items-start max-w-5xl">
+    <div className="grid gap-5 lg:grid-cols-[1fr_300px] items-start max-w-5xl stagger">
       <div>
         <h1 className="display text-[40px] mb-5">{t.dash.settings}</h1>
         <SettingsForm

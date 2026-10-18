@@ -255,7 +255,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                     if (s.staffIds.length && staffId !== "any" && !s.staffIds.includes(staffId)) setStaffId("any");
                   }}
                   style={{ animationDelay: `${260 + i * 45}ms` }}
-                  className="group card w-full h-full min-h-[112px] p-4 flex flex-col justify-between gap-5 text-left animate-rise hover:-translate-y-0.5 hover:shadow-lift active:scale-[0.98] transition-[transform,box-shadow] duration-200 cursor-pointer"
+                  className="group card-interactive w-full h-full min-h-[112px] p-4 flex flex-col justify-between gap-5 text-left animate-rise"
                 >
                   <span>
                     <span className="block text-[15px] font-semibold leading-snug">{s.name}</span>
@@ -344,9 +344,9 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                         : "border-transparent text-muted/40"
                   }`}
                 >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider opacity-70 truncate px-1">{dayLabel(d)}</span>
+                  <span className="block text-[11px] font-bold uppercase tracking-wide opacity-80 truncate px-1">{dayLabel(d)}</span>
                   <span className="block text-[22px] font-semibold leading-tight tabular-nums">{d.day}</span>
-                  <span className="block text-[10px] opacity-60">{t.months[d.month - 1]}</span>
+                  <span className="block text-[11px] opacity-75">{t.months[d.month - 1]}</span>
                   {known && known.length > 0 && (
                     <span className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 size-1 rounded-full ${selected ? "bg-bg" : "bg-accent"}`} />
                   )}
@@ -368,7 +368,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                 {groups.map((g) => (
                   <div key={g.label}>
                     <p className="eyebrow mb-2">{g.label}</p>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-2 stagger">
                       {g.items.map((s) => (
                         <button
                           key={s}
@@ -385,7 +385,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                         >
                           {timeFmt.format(new Date(s))}
                           {service.capacity > 1 && left[s] !== undefined && (
-                            <span className={`text-[10.5px] font-medium ${slot === s ? "opacity-80" : left[s] === 1 ? "text-danger" : "text-muted"}`}>
+                            <span className={`text-[11px] font-semibold ${slot === s ? "opacity-90" : left[s] === 1 ? "text-danger" : "text-muted"}`}>
                               {left[s] === 1 ? t.book.lastPlace : `${left[s]} ${t.book.placesLeft}`}
                             </span>
                           )}
@@ -425,15 +425,15 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
           }}
         />
       )}
-      {error && !slot && <p className="text-danger text-sm text-center">{error}</p>}
+      {error && !slot && <p className="text-danger text-sm text-center animate-pop-in">{error}</p>}
 
       {/* Floating pill: always the next step, until a time is chosen */}
       {!slot && nextFree && (
         <FloatingPill key={`${nextFree.serviceId}|${nextFree.iso}`}>
           <button type="button" onClick={takeNextFree} className="group flex w-full items-center gap-3 text-left cursor-pointer" aria-label={`${t.book.nextFree}: ${dayPhrase(nextFree.day)} ${timeFmt.format(new Date(nextFree.iso))}`}>
             <span className="min-w-0 flex-1 leading-tight">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60">{t.book.nextFree}</span>
-              <span className="block text-[13px] opacity-80 truncate">
+              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] opacity-80">{t.book.nextFree}</span>
+              <span className="block text-[13px] opacity-90 truncate">
                 {dayPhrase(nextFree.day)}
                 {!service && ` · ${services.find((s) => s.id === nextFree.serviceId)?.name ?? ""}`}
               </span>
@@ -542,7 +542,7 @@ function DetailsStep({
       <FloatingPill>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1 leading-tight">
-            <div className="text-[12px] opacity-70 truncate">{summary}</div>
+            <div className="text-[12.5px] opacity-85 truncate">{summary}</div>
             <Odometer value={time} className="display mt-1 text-[28px] text-[var(--pill-time)]" />
             {error && <div className="text-[12px] text-[var(--pill-error)] mt-1">{error}</div>}
           </div>

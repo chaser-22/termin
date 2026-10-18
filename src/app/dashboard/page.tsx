@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import Link from "next/link";
 import { and, asc, eq, gt, inArray, lt } from "drizzle-orm";
 import { bookings, customers, services, staff, workingHours, type BookingStatus } from "@/db/schema";
@@ -11,15 +12,18 @@ import { addDays, formatMinutes, formatTime, isDateKey, isoWeekday, localToInsta
 import { appOrigin } from "@/lib/server/url";
 import { BookingActions } from "./BookingActions";
 import { NewBookingForm } from "./NewBookingForm";
+import { Odometer } from "@/components/Odometer";
 import { CopyLink } from "./CopyLink";
 
 const PX_PER_MIN = 1.2;
 
 export default function CalendarPage({ searchParams }: PageProps<"/dashboard">) {
   return (
-    <Suspense fallback={<div className="h-[70vh] rounded-2xl bg-surface-2 animate-pulse" />}>
-      <Calendar searchParams={searchParams} />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<div className="h-[70vh] rounded-2xl bg-surface-2 animate-pulse" />}>
+        <Calendar searchParams={searchParams} />
+      </Suspense>
+    </PageTransition>
   );
 }
 
@@ -85,7 +89,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 stagger">
       {/* Day header */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1">
@@ -96,10 +100,10 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
         <h1 className="display text-[30px]">{formatDateLong(date, t, locale)}</h1>
         <div className="ml-auto flex items-center gap-4 text-sm text-muted">
           <span>
-            <b className="text-ink tabular-nums">{active.length}</b> {t.dash.bookingsToday}
+            <Odometer value={String(active.length)} className="font-bold text-ink" /> {t.dash.bookingsToday}
           </span>
           <span>
-            {t.dash.expectedCash} <b className="text-ink tabular-nums">{formatPrice(expected, "0 €")}</b>
+            {t.dash.expectedCash} <Odometer value={formatPrice(expected, "0 €")} className="font-bold text-ink" />
           </span>
         </div>
       </div>
@@ -151,7 +155,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
                               key={booking.id}
                               href={hrefFor({ b: booking.id })}
                               scroll={false}
-                              className={`absolute inset-x-1 rounded-lg border px-2 py-1 text-xs leading-tight overflow-hidden hover:shadow-md transition-shadow ${STATUS_STYLE[booking.status]} ${
+                              className={`absolute inset-x-1 rounded-lg border px-2 py-1 text-xs leading-tight overflow-hidden animate-pop-in hover:shadow-md hover:-translate-y-px transition-[box-shadow,transform] duration-200 ${STATUS_STYLE[booking.status]} ${
                                 booking.id === selectedId || inSelectedClass ? "ring-2 ring-accent" : ""
                               }`}
                               style={{ top: top + 1, height: h }}
@@ -225,6 +229,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
           )}
           {selected && (
             <SelectedBooking
+              key={selected.booking.id}
               data={selected}
               serviceName={serviceById.get(selected.booking.serviceId)?.name ?? ""}
               staffName={staffRows.find((s) => s.id === selected.booking.staffId)?.name ?? ""}
@@ -280,7 +285,7 @@ function SelectedBooking({
   const time = formatTime(booking.startsAt, tz);
   const reminder = encodeURIComponent(`${businessName}: ${serviceName}, ${time}.`);
   return (
-    <div className="card p-4 space-y-3">
+    <div className="card p-4 space-y-3 animate-sheet">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="display text-[22px]">{customer.name}</p>

@@ -29,7 +29,7 @@ async function TopBar() {
   const d = await db();
   const business = await d.query.businesses.findFirst({ where: eq(businesses.ownerId, user.id) });
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-surface/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b border-line bg-surface/85 backdrop-blur-xl" style={{ viewTransitionName: "app-header" }}>
       {business && <style>{brandCss(business.brandColor)}</style>}
       <div className="mx-auto max-w-6xl px-4 py-2 sm:py-0 sm:h-14 flex flex-wrap items-center gap-x-4 gap-y-1.5">
         <Link href="/dashboard" className="display text-[18px] truncate max-w-64 h-10 sm:h-auto flex items-center">

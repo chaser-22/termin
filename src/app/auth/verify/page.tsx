@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { confirmLogin } from "@/app/actions";
 import { getDict } from "@/i18n/server";
 
@@ -8,11 +9,13 @@ export const metadata = { title: "Prijava", robots: { index: false } };
 // scanners that open links automatically don't use up the one-time token.
 export default function VerifyPage({ searchParams }: PageProps<"/auth/verify">) {
   return (
-    <main className="flex-1 grid place-items-center px-4 py-12">
-      <Suspense fallback={<div className="w-full max-w-sm h-48 rounded-2xl bg-surface-2 animate-pulse" />}>
-        <Verify searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <PageTransition>
+      <main className="flex-1 grid place-items-center px-4 py-12">
+        <Suspense fallback={<div className="w-full max-w-sm h-48 rounded-2xl bg-surface-2 animate-pulse" />}>
+          <Verify searchParams={searchParams} />
+        </Suspense>
+      </main>
+    </PageTransition>
   );
 }
 

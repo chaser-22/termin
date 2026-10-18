@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { businesses } from "@/db/schema";
@@ -10,9 +11,11 @@ import { SetupForm } from "./SetupForm";
 
 export default function SetupPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-lg h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
-      <Setup />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<div className="mx-auto max-w-lg h-96 rounded-2xl bg-surface-2 animate-pulse" />}>
+        <Setup />
+      </Suspense>
+    </PageTransition>
   );
 }
 

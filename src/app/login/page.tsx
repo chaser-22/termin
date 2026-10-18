@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import Link from "next/link";
 import { getDict } from "@/i18n/server";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
@@ -8,11 +9,13 @@ export const metadata = { title: "Prijava" };
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
-    <main className="flex-1 grid place-items-center px-4 py-12">
-      <Suspense fallback={<div className="w-full max-w-sm h-80 rounded-2xl bg-surface-2 animate-pulse" />}>
-        <Login searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <PageTransition>
+      <main className="flex-1 grid place-items-center px-4 py-12">
+        <Suspense fallback={<div className="w-full max-w-sm h-80 rounded-2xl bg-surface-2 animate-pulse" />}>
+          <Login searchParams={searchParams} />
+        </Suspense>
+      </main>
+    </PageTransition>
   );
 }
 

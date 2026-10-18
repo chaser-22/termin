@@ -8,12 +8,12 @@
   --bg-top: #d6dfda;
   --surface: #fbfcfb;
   --surface-2: #e4eae6;
-  --glass: rgb(255 255 255 / 0.62);
-  --glass-border: rgb(255 255 255 / 0.75);
-  --ink: #1d2a26;
-  --muted: #5d6c66;
-  --line: #d6ded9;
-  --contour: rgb(29 42 38 / 0.065);
+  --glass: rgb(255 255 255 / 0.78);
+  --glass-border: rgb(255 255 255 / 0.9);
+  --ink: #15201c;
+  --muted: #47544f;
+  --line: #cfd8d3;
+  --contour: rgb(29 42 38 / 0.05);
   --accent: #0e5a63;
   --accent-hover: #0a474e;
   --accent-soft: #dbe9e7;
@@ -38,12 +38,12 @@
     --bg-top: #16211d;
     --surface: #161e1b;
     --surface-2: #1d2724;
-    --glass: rgb(255 255 255 / 0.045);
-    --glass-border: rgb(255 255 255 / 0.08);
-    --ink: #e6ece9;
-    --muted: #96a49f;
-    --line: #26312d;
-    --contour: rgb(230 236 233 / 0.04);
+    --glass: rgb(255 255 255 / 0.06);
+    --glass-border: rgb(255 255 255 / 0.1);
+    --ink: #f0f4f2;
+    --muted: #aebbb6;
+    --line: #2c3833;
+    --contour: rgb(230 236 233 / 0.035);
     --accent: #6fc0c7;
     --accent-hover: #8ed1d6;
     --accent-soft: #16343a;
@@ -95,6 +95,9 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
   position: relative;
   isolation: isolate;
 }
@@ -128,7 +131,7 @@ body::before {
 /* ------------------------------------------------------------ components */
 
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 h-11 text-[15px] font-semibold tracking-[-0.01em] transition-[background-color,transform,box-shadow,color,opacity] duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 h-11 text-[15px] font-semibold tracking-[-0.01em] transition-[background-color,transform,box-shadow,color,opacity,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px active:translate-y-0 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none;
 }
 @utility btn-primary {
   @apply btn bg-accent text-accent-ink hover:bg-accent-hover shadow-[0_1px_0_rgb(255_255_255/0.18)_inset,0_10px_24px_-10px_var(--accent)];
@@ -146,23 +149,29 @@ body::before {
   @apply h-9 px-3.5 text-sm;
 }
 @utility input {
-  @apply w-full h-12 rounded-2xl border border-line bg-surface px-4 text-[15px] text-ink placeholder:text-muted/60 outline-none focus:border-accent focus:ring-4 focus:ring-accent/12 transition;
+  @apply w-full h-12 rounded-2xl border border-line bg-surface px-4 text-[15px] text-ink placeholder:text-muted/70 outline-none hover:border-muted/50 focus:border-accent focus:ring-4 focus:ring-accent/15 transition-[border-color,box-shadow,background-color] duration-200;
 }
 @utility label {
   @apply block text-[13px] font-medium text-muted mb-1.5 tracking-wide;
 }
 /* Frosted glass panel: the main surface of Magla */
 @utility card {
-  @apply rounded-[26px] border border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft;
+  @apply rounded-[26px] border border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft transition-[box-shadow,transform,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)];
+}
+/* A card you can click: lifts on hover, presses on tap */
+@utility card-interactive {
+  @apply card cursor-pointer hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0 active:scale-[0.985];
 }
 @utility chip {
   @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
 }
 @utility eyebrow {
-  @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-muted;
+  @apply text-[12px] font-bold uppercase tracking-[0.16em] text-muted;
 }
+/* Bricolage Grotesque with optical sizing: large sizes get the tighter display cut */
 @utility display {
-  @apply font-display font-extrabold tracking-[-0.035em] leading-[0.98];
+  @apply font-display font-bold tracking-[-0.03em] leading-[1];
+  font-optical-sizing: auto;
 }
 
 /* ------------------------------------------------------------ motion */
@@ -243,6 +252,94 @@ body::before {
   }
 }
 
+/* Focus: a soft ring that grows in, for keyboard users */
+:where(a, button, [role="button"], input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  transition: outline-offset 0.15s var(--ease-out-soft);
+}
+/* Native controls follow the brand color */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+/* Children enter one after another: put .stagger on a list or page */
+.stagger > * {
+  animation: focus-in 0.55s var(--ease-out-soft) both;
+}
+.stagger > :nth-child(1) { animation-delay: 0ms; }
+.stagger > :nth-child(2) { animation-delay: 50ms; }
+.stagger > :nth-child(3) { animation-delay: 100ms; }
+.stagger > :nth-child(4) { animation-delay: 150ms; }
+.stagger > :nth-child(5) { animation-delay: 200ms; }
+.stagger > :nth-child(6) { animation-delay: 250ms; }
+.stagger > :nth-child(n + 7) { animation-delay: 300ms; }
+
+/* Small things that appear in place (saved messages, errors, badges) */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-pop-in {
+  animation: pop-in 0.3s var(--ease-out-soft) both;
+}
+
+/* ------------------------------------------------------------ page transitions
+   Pages glide in on navigation (React <ViewTransition>, see PageTransition).
+   Old content leaves fast; new content arrives a little slower. */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.page-out) {
+  animation: 140ms ease-in both vt-fade-out;
+}
+::view-transition-new(.page-in) {
+  animation:
+    260ms var(--ease-out-soft) 100ms both vt-fade-in,
+    420ms var(--ease-out-soft) both vt-rise;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+@keyframes vt-rise {
+  from {
+    transform: translateY(12px);
+  }
+}
+/* Headers stay put while the page beneath changes */
+::view-transition-group(app-header) {
+  animation: none;
+  z-index: 50;
+}
+::view-transition-old(app-header) {
+  display: none;
+}
+::view-transition-new(app-header) {
+  animation: none;
+}
+/* Sliding indicators (active nav tab, language pill) */
+::view-transition-group(nav-active),
+::view-transition-group(lang-active) {
+  animation-duration: 380ms;
+  animation-timing-function: var(--ease-out-soft);
+}
+
 /* Kept as "rise" so existing screens pick up the new entrance */
 @utility animate-rise {
   animation: focus-in 0.6s var(--ease-out-soft) both;
@@ -265,6 +362,12 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   body::before {
     animation: none;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
   *,
   *::before,

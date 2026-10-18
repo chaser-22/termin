@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -26,9 +27,11 @@ import { StartLink } from "./StartLink";
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="flex-1" />}>
-      <Landing />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<div className="flex-1" />}>
+        <Landing />
+      </Suspense>
+    </PageTransition>
   );
 }
 
@@ -58,7 +61,7 @@ async function Landing() {
 
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
-      <header className="mx-auto w-full max-w-6xl px-5 py-5 flex items-center justify-between">
+      <header className="mx-auto w-full max-w-6xl px-5 py-5 flex items-center justify-between" style={{ viewTransitionName: "app-header" }}>
         <span className="display text-[24px]">{t.appName}</span>
         <div className="flex items-center gap-3">
           <LanguageSwitch current={locale} />

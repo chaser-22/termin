@@ -1,5 +1,6 @@
 "use client";
 
+import { ViewTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -13,10 +14,16 @@ export function DashNav({ items, className = "" }: { items: { href: string; labe
           <Link
             key={item.href}
             href={item.href}
-            className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
-              active ? "bg-ink text-bg" : "text-muted hover:text-ink hover:bg-surface-2"
+            className={`relative isolate whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors duration-300 ${
+              active ? "text-bg" : "text-muted hover:text-ink hover:bg-surface-2"
             }`}
           >
+            {/* The active pill is one shared element, so it glides to the new tab */}
+            {active && (
+              <ViewTransition name="nav-active">
+                <span aria-hidden className="absolute inset-0 -z-10 rounded-full bg-ink" />
+              </ViewTransition>
+            )}
             {item.label}
           </Link>
         );

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { MapPin, Phone } from "lucide-react";
 import { businesses, serviceStaff, services, staff, workingHours } from "@/db/schema";
@@ -14,9 +15,11 @@ import { BookingFlow } from "./BookingFlow";
 
 export default function BusinessPage({ params }: PageProps<"/[slug]">) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
-      <BusinessBooking params={params} />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<PageSkeleton />}>
+        <BusinessBooking params={params} />
+      </Suspense>
+    </PageTransition>
   );
 }
 

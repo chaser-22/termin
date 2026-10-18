@@ -67,8 +67,8 @@ export function NewBookingForm({ date, services, staff, defaultTime, t }: Props)
       <input name="name" className="input" required placeholder={t.book.name} autoComplete="off" />
       <input name="phone" className="input" required type="tel" placeholder={t.book.phone} autoComplete="off" />
       <input name="note" className="input" placeholder={t.book.note} />
-      {errorText && <p className="text-sm text-danger">{errorText}</p>}
-      {state?.ok && <p className="text-sm text-ok">{t.common.saved}</p>}
+      {errorText && <p className="text-sm text-danger animate-pop-in">{errorText}</p>}
+      {state?.ok && <p className="text-sm text-ok animate-pop-in">{t.common.saved}</p>}
       <button className="btn-primary w-full" disabled={pending || services.length === 0}>
         {pending ? t.common.loading : t.dash.create}
       </button>
