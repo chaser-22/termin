@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { and, asc, eq, inArray } from "drizzle-orm";
-import { MapPin, Phone } from "lucide-react";
 import { businesses, serviceStaff, services, staff, workingHours } from "@/db/schema";
 import { getDict } from "@/i18n/server";
 import type { Dict } from "@/i18n/dict";
@@ -54,9 +53,6 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
     const { m, d: day } = parseDateKey(key);
     days.push({ key, weekday: isoWeekday(key), day, month: m });
   }
-  const mapUrl = business.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([business.name, business.address, business.city].filter(Boolean).join(", "))}`
-    : null;
 
   return (
     <div className="flex-1 overflow-x-clip">
@@ -86,20 +82,6 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
         <div className="mt-4 flex justify-center animate-rise [animation-delay:160ms]">
           <StatusPill status={status} t={t} />
         </div>
-        {(business.phone || mapUrl) && (
-          <div className="mt-5 flex justify-center gap-2.5 animate-rise [animation-delay:200ms]">
-            {business.phone && (
-              <a href={`tel:${business.phone.replace(/\s/g, "")}`} className="btn-secondary btn-sm">
-                <Phone className="size-4" /> {t.booking.call}
-              </a>
-            )}
-            {mapUrl && (
-              <a href={mapUrl} target="_blank" rel="noreferrer" className="btn-secondary btn-sm min-w-0 max-w-[60%]">
-                <MapPin className="size-4 shrink-0" /> <span className="truncate">{business.address}</span>
-              </a>
-            )}
-          </div>
-        )}
       </header>
 
       <main className="mx-auto w-full max-w-xl px-4 pb-36">
@@ -131,14 +113,6 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
           days={days}
           t={{ book: t.book, common: t.common, weekdaysShort: t.weekdaysShort, months: t.months }}
         />
-        <footer className="mt-12 flex flex-col items-center gap-2 text-xs text-muted">
-          <p>
-            {t.book.payOnSite} · {t.book.noBookingFee}
-          </p>
-          <p className="opacity-70">
-            <span className="display text-[13px]">{t.appName}</span> · {t.tagline}
-          </p>
-        </footer>
       </main>
     </div>
   );

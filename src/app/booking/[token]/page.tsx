@@ -9,7 +9,6 @@ import { formatPrice } from "@/lib/format";
 import { dateKeyOf, formatTime, isPast, isoWeekday, parseDateKey } from "@/lib/time";
 import { Odometer } from "@/components/Odometer";
 import { CancelButton } from "./CancelButton";
-import { ShareButton } from "./ShareButton";
 
 export default function BookingPage({ params }: PageProps<"/booking/[token]">) {
   return (
@@ -110,7 +109,7 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
               <CalendarPlus className="size-[18px]" /> {t.booking.addToCalendar}
             </a>
           )}
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             {business.phone && (
               <a href={`tel:${business.phone.replace(/\s/g, "")}`} className="btn-secondary btn-sm h-11 px-2">
                 <Phone className="size-4" /> {t.booking.call}
@@ -121,17 +120,17 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
                 <MapPin className="size-4" /> {t.book.directions}
               </a>
             )}
-            <ShareButton label={t.booking.share} copiedLabel={t.booking.copied} title={`${business.name} · ${dateLine} ${formatTime(booking.startsAt, tz)}`} />
           </div>
         </div>
       </div>
 
       <div className="mt-6 space-y-3 text-center animate-rise [animation-delay:320ms]">
-        <Link href={`/${business.slug}`} className="btn-ink w-full h-12">
-          <RotateCcw className="size-4" /> {cancelled || past ? t.booking.bookAgain : t.booking.bookNext}
-        </Link>
+        {(cancelled || past) && (
+          <Link href={`/${business.slug}`} className="btn-ink w-full h-12">
+            <RotateCcw className="size-4" /> {t.booking.bookAgain}
+          </Link>
+        )}
         {!cancelled && !past && <CancelButton token={token} label={t.booking.cancelBooking} confirmText={t.booking.cancelConfirm} />}
-        {!cancelled && <p className="text-xs text-muted pt-1">{t.booking.saveLink}</p>}
       </div>
     </div>
   );

@@ -48,7 +48,7 @@ async function Settings() {
           t={{ dash: t.dash, common: t.common, businessTypes: t.businessTypes }}
         />
       </div>
-      <aside className="card p-5 space-y-4 lg:mt-[68px]">
+      <aside className="card p-5 space-y-4 order-first lg:order-none lg:mt-[68px]">
         <p className="text-sm font-medium">{t.dash.bookingLink}</p>
         <CopyLink url={link} copyLabel={t.dash.copy} copiedLabel={t.dash.copied} />
         {/* eslint-disable-next-line @next/next/no-img-element */}

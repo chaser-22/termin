@@ -7,7 +7,7 @@ import { getDict } from "@/i18n/server";
 import type { Dict } from "@/i18n/dict";
 import { requireBusiness } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
-import { formatDateLong, formatPrice } from "@/lib/format";
+import { formatDateLong } from "@/lib/format";
 import { addDays, formatMinutes, formatTime, isDateKey, isoWeekday, localToInstant, minutesOfDay, todayKey } from "@/lib/time";
 import { appOrigin } from "@/lib/server/url";
 import { BookingActions } from "./BookingActions";
@@ -75,7 +75,6 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
   const height = (endMin - startMin) * PX_PER_MIN;
 
   const active = dayBookings.filter(({ booking }) => booking.status === "confirmed" || booking.status === "completed");
-  const expected = active.reduce((sum, { booking }) => sum + (serviceById.get(booking.serviceId)?.priceCents ?? 0), 0);
   const selected = dayBookings.find(({ booking }) => booking.id === selectedId) ?? null;
   const nowMin = date === today ? minutesOfDay(new Date(), tz) : null;
   const link = `${await appOrigin()}/${business.slug}`;
@@ -101,9 +100,6 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
         <div className="ml-auto flex items-center gap-4 text-sm text-muted">
           <span>
             <Odometer value={String(active.length)} className="font-bold text-ink" /> {t.dash.bookingsToday}
-          </span>
-          <span>
-            {t.dash.expectedCash} <Odometer value={formatPrice(expected, "0 €")} className="font-bold text-ink" />
           </span>
         </div>
       </div>
@@ -185,9 +181,9 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
           )}
         </div>
         {cancelled.length > 0 && (
-          <div className="card px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted mb-1.5">{t.dash.cancelledList} ({cancelled.length})</p>
-            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <details className="px-1" open={cancelled.some(({ booking }) => booking.id === selectedId)}>
+            <summary className="cursor-pointer text-sm text-muted list-none hover:text-ink">{t.dash.cancelledList} ({cancelled.length})</summary>
+            <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {cancelled.map(({ booking, customer }) => (
                 <li key={booking.id}>
                   <Link href={hrefFor({ b: booking.id })} scroll={false} className={`text-muted line-through hover:text-ink ${booking.id === selectedId ? "text-ink font-medium" : ""}`}>
@@ -196,7 +192,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         )}
         </div>
 
@@ -280,7 +276,6 @@ function SelectedBooking({
     no_show: t.dash.statusNoShow,
     completed: t.dash.statusCompleted,
   };
-  const sourceLabel = { online: t.dash.online, walk_in: t.dash.walkIn, phone: t.dash.phoneBooking }[booking.source];
   const digits = customer.phone.replace(/\D/g, "");
   const time = formatTime(booking.startsAt, tz);
   const reminder = encodeURIComponent(`${businessName}: ${serviceName}, ${time}.`);
@@ -297,7 +292,6 @@ function SelectedBooking({
       </div>
       <div className="flex flex-wrap gap-1.5">
         <span className="chip bg-surface-2 text-ink">{statusLabel[booking.status]}</span>
-        <span className="chip bg-surface-2 text-muted">{sourceLabel}</span>
       </div>
       {booking.note && <p className="text-sm rounded-lg bg-warn-soft text-warn px-3 py-2">{booking.note}</p>}
       <div className="grid grid-cols-3 gap-2">

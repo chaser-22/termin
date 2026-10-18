@@ -27,24 +27,9 @@ export function SettingsForm({ host, business: b, locale, t }: { host: string; b
   return (
     <form action={action}
       onSubmit={submitKeepingValues(action)} className="card p-5 space-y-5">
-      <div className="grid sm:grid-cols-2 gap-4">
         <Field label={t.dash.businessName}>
           <input name="name" required defaultValue={b.name} className="input" />
         </Field>
-        <Field label={t.dash.businessType}>
-          <select name="type" defaultValue={b.type} className="input">
-            {BUSINESS_TYPES.map((type) => (
-              <option key={type} value={type}>{t.businessTypes[type]}</option>
-            ))}
-          </select>
-        </Field>
-      </div>
-      <Field label={t.dash.slug} hint={state?.error === "slugTaken" ? t.dash.slugTaken : t.dash.slugHint} error={state?.error === "slug" || state?.error === "slugTaken"}>
-        <div className="flex items-center rounded-xl border border-line bg-surface focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
-          <span className="pl-3.5 text-muted text-[15px] select-none">{host}/</span>
-          <input name="slug" required defaultValue={b.slug} className="flex-1 h-11 bg-transparent pr-3.5 text-[15px] outline-none" />
-        </div>
-      </Field>
       <div className="grid sm:grid-cols-3 gap-4">
         <Field label={t.dash.phone}>
           <input name="phone" type="tel" defaultValue={b.phone} className="input" placeholder="+382 67 123 456" />
@@ -71,6 +56,22 @@ export function SettingsForm({ host, business: b, locale, t }: { host: string; b
           ))}
         </div>
       </div>
+      <details className="group rounded-xl border border-line px-4 py-3">
+        <summary className="cursor-pointer text-sm font-semibold text-muted list-none">{t.dash.moreOptions}</summary>
+        <div className="mt-4 space-y-5">
+        <Field label={t.dash.businessType}>
+          <select name="type" defaultValue={b.type} className="input">
+            {BUSINESS_TYPES.map((type) => (
+              <option key={type} value={type}>{t.businessTypes[type]}</option>
+            ))}
+          </select>
+        </Field>
+      <Field label={t.dash.slug} hint={state?.error === "slugTaken" ? t.dash.slugTaken : t.dash.slugHint} error={state?.error === "slug" || state?.error === "slugTaken"}>
+        <div className="flex items-center rounded-xl border border-line bg-surface focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
+          <span className="pl-3.5 text-muted text-[15px] select-none">{host}/</span>
+          <input name="slug" required defaultValue={b.slug} className="flex-1 h-11 bg-transparent pr-3.5 text-[15px] outline-none" />
+        </div>
+      </Field>
       <Field label={t.dash.description}>
         <textarea name="description" defaultValue={b.description} maxLength={300} rows={2} className="input h-auto py-2.5" />
       </Field>
@@ -92,6 +93,8 @@ export function SettingsForm({ host, business: b, locale, t }: { host: string; b
           </Field>
         </div>
       </div>
+        </div>
+      </details>
       <div className="flex items-center gap-3">
         <button className="btn-primary" disabled={pending}>{pending ? t.common.loading : t.common.save}</button>
         {state?.ok && <span className="text-sm text-ok animate-pop-in">{t.common.saved}</span>}

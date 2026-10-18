@@ -6,7 +6,6 @@ import { businesses } from "@/db/schema";
 import { db } from "@/lib/server/db";
 import { getDict } from "@/i18n/server";
 import { requireUser } from "@/lib/server/auth";
-import { appOrigin } from "@/lib/server/url";
 import { SetupForm } from "./SetupForm";
 
 export default function SetupPage() {
@@ -28,7 +27,7 @@ async function Setup() {
     <div className="mx-auto max-w-lg">
       <h1 className="display text-[44px]">{t.dash.setupTitle}</h1>
       <p className="mt-2 text-muted">{t.dash.setupBody}</p>
-      <SetupForm host={(await appOrigin()).replace(/^https?:\/\//, "")} t={{ dash: t.dash, businessTypes: t.businessTypes, common: t.common }} />
+      <SetupForm t={{ dash: t.dash, businessTypes: t.businessTypes, common: t.common }} />
     </div>
   );
 }

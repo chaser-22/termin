@@ -10,6 +10,7 @@ import { requireBusiness, requireUser } from "@/lib/server/auth";
 import { createBooking } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
 import { createBusinessWithDefaults, isValidSlug } from "@/lib/server/setup";
+import { slugify } from "@/lib/slug";
 import { isBrandKey } from "@/lib/brand";
 import { normalizePhone } from "@/lib/phone";
 import { isDateKey, localToInstant, parseTime } from "@/lib/time";
@@ -28,24 +29,20 @@ export async function setupBusiness(_prev: FormState, fd: FormData): Promise<For
   if (existing) redirect("/dashboard");
 
   const parsed = z
-    .object({
-      name: z.string().min(2).max(80),
-      slug: z.string(),
-      type: z.enum(BUSINESS_TYPES),
-      ownerName: z.string().max(60),
-      city: z.string().max(60),
-    })
-    .safeParse({ name: str(fd, "name"), slug: str(fd, "slug").toLowerCase(), type: str(fd, "type"), ownerName: str(fd, "ownerName"), city: str(fd, "city") });
+    .object({ name: z.string().min(2).max(80), type: z.enum(BUSINESS_TYPES), city: z.string().max(60) })
+    .safeParse({ name: str(fd, "name"), type: str(fd, "type"), city: str(fd, "city") });
   if (!parsed.success) return { error: "invalid" };
-  if (!isValidSlug(parsed.data.slug)) return { error: "slug" };
-  const taken = await d.query.businesses.findFirst({ where: eq(businesses.slug, parsed.data.slug) });
-  if (taken) return { error: "slugTaken" };
+
+  // The address comes from the name; a number is added if it is taken. It can be changed in Settings.
+  const base = slugify(parsed.data.name).slice(0, 34).replace(/-+$/, "") || "salon";
+  let slug = isValidSlug(base) ? base : `${base}-1`;
+  for (let n = 2; await d.query.businesses.findFirst({ where: eq(businesses.slug, slug) }); n++) slug = `${base}-${n}`;
 
   await createBusinessWithDefaults(d, {
     ownerId: user.id,
-    ownerName: parsed.data.ownerName || parsed.data.name,
+    ownerName: user.name || parsed.data.name,
     name: parsed.data.name,
-    slug: parsed.data.slug,
+    slug,
     type: parsed.data.type,
     city: optional(parsed.data.city),
     locale: await getLocale(),

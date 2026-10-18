@@ -36,7 +36,7 @@ export const VERTICALS: Vertical[] = [
     setupType: "barber",
     demo: "/marko",
     tile: {
-      title: { me: "Berbernice i saloni", en: "Barbers & salons" },
+      title: { me: "Berbernice", en: "Barbers" },
       line: { me: "Frizeri, nokti, kozmetika", en: "Hair, nails, beauty" },
     },
     headline: { me: "Online zakazivanje za vašu berbernicu ili salon.", en: "Online booking for your barbershop or salon." },
@@ -78,7 +78,7 @@ export const VERTICALS: Vertical[] = [
     setupType: "dentist",
     demo: "/demo-stomatolog",
     tile: {
-      title: { me: "Stomatolozi i ordinacije", en: "Dentists & clinics" },
+      title: { me: "Stomatolozi", en: "Dentists" },
       line: { me: "Pregledi, kontrole, terapije", en: "Check-ups, follow-ups, treatments" },
     },
     headline: { me: "Online zakazivanje pregleda za vašu ordinaciju.", en: "Online appointment booking for your practice." },
@@ -120,7 +120,7 @@ export const VERTICALS: Vertical[] = [
     setupType: "massage",
     demo: "/demo-masaza",
     tile: {
-      title: { me: "Masaža i wellness", en: "Massage & wellness" },
+      title: { me: "Masaža", en: "Massage" },
       line: { me: "Tretmani, spa, saune", en: "Treatments, spa, saunas" },
     },
     headline: { me: "Online zakazivanje za masažu i wellness.", en: "Online booking for massage and wellness." },
@@ -162,7 +162,7 @@ export const VERTICALS: Vertical[] = [
     setupType: "fitness",
     demo: "/demo-joga",
     tile: {
-      title: { me: "Fitness i joga", en: "Fitness & yoga" },
+      title: { me: "Fitness", en: "Fitness" },
       line: { me: "Grupni časovi, treninzi", en: "Group classes, training" },
     },
     headline: { me: "Online prijave za vaše časove i treninge.", en: "Online sign-ups for your classes and training." },

@@ -39,65 +39,45 @@ async function Landing({ params }: { params: Promise<{ vertical: string }> }) {
         </Link>
         <div className="flex items-center gap-3">
           <LanguageSwitch current={locale} />
-          <Link href="/login" className="btn-secondary btn-sm">
-            {t.auth.signIn}
-          </Link>
         </div>
       </header>
 
-      <section className="relative mx-auto w-full max-w-3xl px-5 pt-10 pb-20 flex flex-col items-center gap-12 text-center">
+      <section className="relative mx-auto w-full max-w-3xl px-5 pt-8 pb-12 flex flex-col items-center text-center">
         <div aria-hidden className="absolute -top-40 right-[-20%] size-[640px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
-        <div className="relative">
-          <p className="eyebrow animate-rise">{v.tile.title[locale]}</p>
-          <h1 className="display text-[38px] sm:text-[54px] mt-4 animate-rise [animation-delay:60ms]">{v.headline[locale]}</h1>
-          <p className="mt-6 mx-auto max-w-xl text-lg text-muted leading-relaxed animate-rise [animation-delay:120ms]">{v.sub[locale]}</p>
-          <div className="mt-9 flex flex-wrap justify-center gap-3 animate-rise [animation-delay:180ms]">
-            <StartLink type={v.setupType} className="btn-primary h-13 px-7 text-base">
-              {h.startSelf} <ArrowRight className="size-4" />
-            </StartLink>
-            <Link href={v.demo} className="btn-secondary h-13 px-7 text-base">
-              {h.seeDemo}
-            </Link>
+        <h1 className="relative display text-[38px] sm:text-[54px] leading-[1.05] animate-rise">{v.headline[locale]}</h1>
+        <p className="relative mt-4 max-w-md text-lg text-muted leading-relaxed animate-rise [animation-delay:60ms]">{v.sub[locale]}</p>
+        <Link href={v.demo} className="relative mt-7 btn-primary h-13 px-8 text-base animate-rise [animation-delay:120ms]">
+          {h.seeDemo} <ArrowRight className="size-4" />
+        </Link>
+        <StartLink type={v.setupType} className="relative mt-4 text-sm text-muted underline underline-offset-4 hover:text-ink">
+          {h.startSelf}
+        </StartLink>
+        <div className="relative mt-6 h-[400px] sm:h-[460px] flex justify-center animate-rise [animation-delay:180ms]">
+          <div className="origin-top scale-[0.72] sm:scale-[0.82]">
+            <PhoneMock
+              mock={v.mock}
+              locale={locale}
+              labels={{
+                nextFree: t.book.nextFree,
+                openUntil: `${t.book.openNow} · ${t.book.until} 20:00`,
+                chooseResource: t.book.chooseResource,
+                anyResource: t.book.anyResource,
+                groupClass: t.book.groupClass,
+                placesLeft: t.book.placesLeft,
+                lastPlace: t.book.lastPlace,
+              }}
+            />
           </div>
         </div>
-        <div className="relative flex flex-col items-center gap-4 animate-rise [animation-delay:200ms]">
-          <PhoneMock
-            mock={v.mock}
-            locale={locale}
-            labels={{
-              nextFree: t.book.nextFree,
-              openUntil: `${t.book.openNow} · ${t.book.until} 20:00`,
-              chooseResource: t.book.chooseResource,
-              anyResource: t.book.anyResource,
-              groupClass: t.book.groupClass,
-              placesLeft: t.book.placesLeft,
-              lastPlace: t.book.lastPlace,
-            }}
-          />
-          <p className="text-sm text-muted">{h.demoCaption}</p>
-        </div>
       </section>
 
-      <section className="mx-auto w-full max-w-3xl px-5 pb-20 text-center">
-        <h2 className="display text-[30px] sm:text-[42px]">{h.problemsTitle}</h2>
-        <div className="mt-8 grid gap-3 stagger">
-          {v.pains.map((p) => (
-            <div key={p.title.en} className="card p-7">
-              <h3 className="text-lg font-bold tracking-tight">{p.title[locale]}</h3>
-              <p className="mt-2 text-muted leading-relaxed">{p.body[locale]}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-3xl px-5 pb-20 text-center">
-        <h2 className="display text-[30px] sm:text-[42px]">{h.stepsTitle}</h2>
-        <ol className="mt-8 grid gap-8 sm:grid-cols-3">
-          {h.steps.map(([title, body], i) => (
-            <li key={title} className="flex flex-col items-center">
-              <span className="grid place-items-center size-11 rounded-full bg-accent text-accent-ink display text-lg">{i + 1}</span>
-              <h3 className="mt-4 text-lg font-bold tracking-tight">{title}</h3>
-              <p className="mt-1.5 text-muted leading-relaxed">{body}</p>
+      <section className="mx-auto w-full max-w-3xl px-5 pb-16 text-center">
+        <h2 className="display text-[28px] sm:text-[36px]">{h.stepsTitle}</h2>
+        <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+          {h.steps.map((step, i) => (
+            <li key={step} className="card p-5 flex flex-col items-center gap-3">
+              <span className="grid place-items-center size-10 rounded-full bg-accent text-accent-ink display text-lg">{i + 1}</span>
+              <span className="font-semibold">{step}</span>
             </li>
           ))}
         </ol>

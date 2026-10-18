@@ -30,16 +30,12 @@ async function Landing() {
         <span className="display text-[24px]">{t.appName}</span>
         <div className="flex items-center gap-3">
           <LanguageSwitch current={locale} />
-          <Link href="/login" className="btn-secondary btn-sm">
-            {t.auth.signIn}
-          </Link>
         </div>
       </header>
 
       <section className="relative mx-auto w-full max-w-3xl px-5 pt-8 pb-6 text-center">
         <div aria-hidden className="absolute -top-40 right-[-20%] size-[640px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
         <div className="relative">
-          <p className="eyebrow animate-rise">{h.eyebrow}</p>
           <h1 className="display text-[44px] sm:text-[64px] leading-[1.02] mt-3 animate-rise [animation-delay:60ms]">{h.heroTitle}</h1>
           <p className="mt-4 mx-auto max-w-md text-lg text-muted leading-relaxed animate-rise [animation-delay:120ms]">{h.heroBody}</p>
           <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-sm font-medium animate-rise [animation-delay:180ms]">
@@ -70,7 +66,7 @@ async function Landing() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-3xl px-5 pb-20">
+      <section className="mx-auto w-full max-w-3xl px-5 pb-16">
         <h2 className="display text-center text-[26px] sm:text-[34px]">{h.pickTitle}</h2>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 stagger">
           {VERTICALS.map((v) => (
@@ -79,8 +75,7 @@ async function Landing() {
                 <VerticalIcon icon={v.icon} className="size-5" />
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-lg font-bold tracking-tight">{v.tile.title[locale]}</span>
-                <span className="block text-sm text-muted">{v.tile.line[locale]}</span>
+                <span className="block text-lg font-bold tracking-tight truncate">{v.tile.title[locale]}</span>
               </span>
               <ArrowRight className="size-4 text-muted transition group-hover:translate-x-0.5 group-hover:text-ink" />
             </Link>
@@ -92,7 +87,9 @@ async function Landing() {
 
       <footer className="mx-auto w-full max-w-3xl px-5 pb-10 flex items-center justify-between text-sm text-muted">
         <span className="display text-xl text-ink">{t.appName}</span>
-        <span>© 2026</span>
+        <Link href="/login" className="hover:text-ink">
+          {t.auth.signIn}
+        </Link>
       </footer>
     </div>
   );

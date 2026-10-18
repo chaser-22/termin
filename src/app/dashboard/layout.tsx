@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { businesses } from "@/db/schema";
+import { businesses, staff } from "@/db/schema";
 import { getDict } from "@/i18n/server";
 import { logout } from "@/app/actions";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
@@ -28,6 +28,8 @@ async function TopBar() {
   const { locale, t } = await getDict();
   const d = await db();
   const business = await d.query.businesses.findFirst({ where: eq(businesses.ownerId, user.id) });
+  // A one-person business only needs its hours there, so the tab is named that way
+  const team = business ? await d.select({ id: staff.id }).from(staff).where(eq(staff.businessId, business.id)) : [];
   return (
     <header className="sticky top-0 z-20 border-b glass-bar" style={{ viewTransitionName: "app-header" }}>
       {business && <style>{brandCss(business.brandColor)}</style>}
@@ -41,7 +43,7 @@ async function TopBar() {
             items={[
               { href: "/dashboard", label: t.dash.calendar },
               { href: "/dashboard/services", label: t.dash.services },
-              { href: "/dashboard/staff", label: t.dash.staff },
+              { href: "/dashboard/staff", label: team.length > 1 ? t.dash.staff : t.dash.hours },
               { href: "/dashboard/settings", label: t.dash.settings },
             ]}
           />
