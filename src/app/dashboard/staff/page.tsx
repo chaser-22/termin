@@ -7,6 +7,7 @@ import { db } from "@/lib/server/db";
 import { formatMinutes } from "@/lib/time";
 import { saveStaff, toggleStaff } from "../actions";
 import { HoursForm, type DayHours } from "./HoursForm";
+import { Box, User } from "lucide-react";
 
 export default function StaffPage() {
   return (
@@ -25,7 +26,10 @@ async function StaffList() {
 
   return (
     <div className="max-w-3xl space-y-5">
-      <h1 className="display text-[40px]">{t.dash.staff} · {t.dash.hours}</h1>
+      <div>
+        <h1 className="display text-[40px]">{t.dash.staffAndResources}</h1>
+        <p className="mt-2 text-sm text-muted">{t.dash.kindHint}</p>
+      </div>
       {members.map((m) => {
         const days: DayHours[] = Array.from({ length: 7 }, (_, i) => {
           const ranges = hours.filter((h) => h.staffId === m.id && h.weekday === i + 1).sort((a, b) => a.startMinute - b.startMinute);
@@ -44,6 +48,9 @@ async function StaffList() {
           <section key={m.id} className={`card ${m.active ? "" : "opacity-60"}`}>
             <form action={saveStaff} className="flex items-center gap-2 p-4 border-b border-line">
               <input type="hidden" name="id" value={m.id} />
+              <span className="grid place-items-center size-10 shrink-0 rounded-full bg-surface text-muted" title={m.kind === "resource" ? t.dash.resource : t.dash.person}>
+                {m.kind === "resource" ? <Box className="size-4" /> : <User className="size-4" />}
+              </span>
               <input name="name" defaultValue={m.name} required className="input max-w-xs font-medium" aria-label={t.dash.staffName} />
               <button className="btn-secondary btn-sm">{t.common.save}</button>
               {!m.active && <span className="chip bg-surface-2 text-muted">{t.dash.hiddenHint}</span>}
@@ -55,8 +62,12 @@ async function StaffList() {
           </section>
         );
       })}
-      <form action={saveStaff} className="card p-4 flex gap-2">
-        <input name="name" required placeholder={t.dash.staffName} className="input max-w-xs" />
+      <form action={saveStaff} className="card p-4 flex flex-wrap gap-2">
+        <select name="kind" defaultValue="person" className="input w-auto" aria-label={t.dash.resource}>
+          <option value="person">{t.dash.person}</option>
+          <option value="resource">{t.dash.resource}</option>
+        </select>
+        <input name="name" required placeholder={t.dash.staffName} className="input max-w-xs flex-1" />
         <button className="btn-primary">{t.dash.addStaff}</button>
       </form>
     </div>

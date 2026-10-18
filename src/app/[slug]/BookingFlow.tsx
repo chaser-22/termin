@@ -8,8 +8,8 @@ import type { Dict } from "@/i18n/dict";
 import { Odometer } from "@/components/Odometer";
 import { formatDuration, formatPrice } from "@/lib/format";
 
-type ServiceOption = { id: string; name: string; durationMinutes: number; priceCents: number | null };
-type StaffOption = { id: string; name: string; weekdays: number[] };
+type ServiceOption = { id: string; name: string; durationMinutes: number; priceCents: number | null; staffIds: string[] };
+type StaffOption = { id: string; name: string; kind: "person" | "resource"; weekdays: number[] };
 type DayOption = { key: string; weekday: number; day: number; month: number };
 type T = Pick<Dict, "book" | "common" | "weekdaysShort" | "months">;
 type FirstFree = { serviceId: string; iso: string; day: string; time: string };
@@ -81,9 +81,9 @@ const initials = (name: string) =>
 
 // ------------------------------------------------------------ flow
 
-export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, services, staff, days, t }: Props) {
+export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, services, staff: allStaff, days, t }: Props) {
   const [serviceId, setServiceId] = useState<string | null>(services.length === 1 ? services[0].id : null);
-  const [staffId, setStaffId] = useState<string>(staff.length === 1 ? staff[0].id : "any");
+  const [staffId, setStaffId] = useState<string>(allStaff.length === 1 ? allStaff[0].id : "any");
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   // Free times keyed by service|staff|chunk start, each a map of day → ISO starts
   const [cache, setCache] = useState<Record<string, Record<string, string[]>>>({});
@@ -91,6 +91,12 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
   const [error, setError] = useState<string | null>(null);
 
   const service = services.find((s) => s.id === serviceId) ?? null;
+  // Only the people/resources that do the chosen service
+  const staff = useMemo(
+    () => (service && service.staffIds.length ? allStaff.filter((s) => service.staffIds.includes(s.id)) : allStaff),
+    [service, allStaff],
+  );
+  const byResource = staff.length > 0 && staff.every((s) => s.kind === "resource");
   const chosenStaff = staff.find((s) => s.id === staffId) ?? null;
 
   const savedName = parse<Details>(useStored(DETAILS_KEY))?.name?.split(" ")[0] ?? "";
@@ -239,7 +245,10 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
               <li key={s.id} className={services.length % 2 === 1 && i === services.length - 1 ? "col-span-2" : ""}>
                 <button
                   type="button"
-                  onClick={() => setServiceId(s.id)}
+                  onClick={() => {
+                    setServiceId(s.id);
+                    if (s.staffIds.length && staffId !== "any" && !s.staffIds.includes(staffId)) setStaffId("any");
+                  }}
                   style={{ animationDelay: `${260 + i * 45}ms` }}
                   className="group card w-full h-full min-h-[112px] p-4 flex flex-col justify-between gap-5 text-left animate-rise hover:-translate-y-0.5 hover:shadow-lift active:scale-[0.98] transition-[transform,box-shadow] duration-200 cursor-pointer"
                 >
@@ -278,9 +287,9 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
       {/* 2. Staff */}
       {service && staff.length > 1 && (
         <section className="card animate-rise">
-          <StepHeader n={n.staff} title={t.book.chooseStaff} done />
+          <StepHeader n={n.staff} title={byResource ? t.book.chooseResource : t.book.chooseStaff} done />
           <div className="px-5 pb-5 flex gap-3 overflow-x-auto [scrollbar-width:none]">
-            {[{ id: "any", name: t.book.anyStaff }, ...staff].map((s) => {
+            {[{ id: "any", name: byResource ? t.book.anyResource : t.book.anyStaff }, ...staff].map((s) => {
               const active = staffId === s.id;
               return (
                 <button key={s.id} type="button" onClick={() => setStaffId(s.id)} className="group shrink-0 w-[76px] flex flex-col items-center gap-2 cursor-pointer">

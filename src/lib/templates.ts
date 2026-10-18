@@ -45,8 +45,28 @@ export const SERVICE_TEMPLATES: Record<BusinessType, TemplateService[]> = {
     { me: "Kontrolni pregled", en: "Follow-up visit", minutes: 20, price: null },
     { me: "Ultrazvuk", en: "Ultrasound", minutes: 30, price: null },
   ],
+  court: [
+    { me: "Teren 60 min", en: "Court 60 min", minutes: 60, price: 20 },
+    { me: "Teren 90 min", en: "Court 90 min", minutes: 90, price: 28 },
+    { me: "Teren 120 min", en: "Court 120 min", minutes: 120, price: 36 },
+  ],
+  rental: [
+    { me: "Iznajmljivanje 1 sat", en: "Rental 1 hour", minutes: 60, price: 10 },
+    { me: "Pola dana (4 sata)", en: "Half day (4 hours)", minutes: 240, price: 30 },
+    { me: "Cijeli dan (8 sati)", en: "Full day (8 hours)", minutes: 480, price: 50 },
+  ],
   other: [{ me: "Termin", en: "Appointment", minutes: 30, price: null }],
 };
+
+/** Business types booked by resource (court, boat, bike) rather than by person. */
+export const RESOURCE_TYPES: BusinessType[] = ["court", "rental"];
+
+/** Starter resources for resource-based types, e.g. "Teren 1", "Teren 2". */
+export function templateResources(type: BusinessType, locale: Locale): string[] {
+  if (type === "court") return locale === "me" ? ["Teren 1", "Teren 2"] : ["Court 1", "Court 2"];
+  if (type === "rental") return locale === "me" ? ["Br. 1", "Br. 2"] : ["No. 1", "No. 2"];
+  return [];
+}
 
 export function templateServices(type: BusinessType, locale: Locale) {
   return SERVICE_TEMPLATES[type].map((s, i) => ({
@@ -59,6 +79,9 @@ export function templateServices(type: BusinessType, locale: Locale) {
 
 /** Default week: Mon–Fri 09:00–20:00, Sat 09:00–15:00 (clinics: Mon–Fri 08:00–16:00). */
 export function defaultHours(type: BusinessType) {
+  // Courts and rentals are open every day, courts into the evening
+  if (type === "court") return Array.from({ length: 7 }, (_, i) => ({ weekday: i + 1, startMinute: 8 * 60, endMinute: 23 * 60 }));
+  if (type === "rental") return Array.from({ length: 7 }, (_, i) => ({ weekday: i + 1, startMinute: 9 * 60, endMinute: 20 * 60 }));
   const medical = type === "dentist" || type === "clinic";
   const rows: { weekday: number; startMinute: number; endMinute: number }[] = [];
   for (let weekday = 1; weekday <= 5; weekday++) {

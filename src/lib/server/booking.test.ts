@@ -36,6 +36,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
+  await db.delete(schema.serviceStaff);
   await db.delete(schema.bookings);
   await db.delete(schema.customers);
   await db.delete(schema.workingHours);
@@ -164,6 +165,23 @@ describe("getSlotsRange", () => {
     expect(first).not.toBeNull();
     expect(first!.start.getTime()).toBeGreaterThan(Date.now());
     expect(first!.serviceId).toBe(haircut.id);
+  });
+});
+
+describe("service links", () => {
+  it("only offers people or resources linked to the service", async () => {
+    await db.insert(schema.serviceStaff).values({ serviceId: haircut.id, staffId: ivo.id });
+    const res = await book({ staffId: null });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    const row = await db.query.bookings.findFirst({ where: eq(schema.bookings.id, res.bookingId) });
+    expect(row?.staffId).toBe(ivo.id);
+    expect(await book({ staffId: ana.id, phone: "+38267111111", startsAt: at(600) })).toEqual({ ok: false, error: "slot_taken" });
+  });
+
+  it("lets the business book anyone from the dashboard", async () => {
+    await db.insert(schema.serviceStaff).values({ serviceId: haircut.id, staffId: ivo.id });
+    expect((await book({ staffId: ana.id, source: "phone" })).ok).toBe(true);
   });
 });
 

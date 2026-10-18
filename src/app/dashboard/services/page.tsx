@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { asc, eq } from "drizzle-orm";
-import { services } from "@/db/schema";
+import { and, asc, eq, inArray } from "drizzle-orm";
+import { serviceStaff, services, staff } from "@/db/schema";
 import { getDict } from "@/i18n/server";
 import { requireBusiness } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
-import { saveService, toggleService } from "../actions";
+import { saveService, setServiceStaff, toggleService } from "../actions";
 
 export default function ServicesPage() {
   return (
@@ -19,6 +19,8 @@ async function Services() {
   const { t } = await getDict();
   const d = await db();
   const rows = await d.select().from(services).where(eq(services.businessId, business.id)).orderBy(asc(services.sortOrder), asc(services.createdAt));
+  const members = await d.select().from(staff).where(and(eq(staff.businessId, business.id), eq(staff.active, true))).orderBy(asc(staff.sortOrder), asc(staff.createdAt));
+  const links = rows.length ? await d.select().from(serviceStaff).where(inArray(serviceStaff.serviceId, rows.map((r) => r.id))) : [];
 
   return (
     <div className="max-w-3xl">
@@ -30,8 +32,12 @@ async function Services() {
           <span>{t.dash.price}</span>
           <span />
         </div>
-        {rows.map((s) => (
-          <form key={s.id} action={saveService} className={`grid grid-cols-2 sm:grid-cols-[1fr_110px_100px_180px] gap-3 px-4 py-3 items-center ${s.active ? "" : "opacity-55"}`}>
+        {rows.map((s) => {
+          const linked = links.filter((l) => l.serviceId === s.id).map((l) => l.staffId);
+          const everyone = linked.length === 0;
+          return (
+          <div key={s.id}>
+          <form action={saveService} className={`grid grid-cols-2 sm:grid-cols-[1fr_110px_100px_180px] gap-3 px-4 py-3 items-center ${s.active ? "" : "opacity-55"}`}>
             <input type="hidden" name="id" value={s.id} />
             {!s.active && <span className="col-span-2 sm:col-span-4 chip bg-surface-2 text-muted w-fit">{t.dash.hiddenHint}</span>}
             <input name="name" defaultValue={s.name} required className="input col-span-2 sm:col-span-1" aria-label={t.dash.name} />
@@ -44,7 +50,30 @@ async function Services() {
               </button>
             </div>
           </form>
-        ))}
+          {members.length > 1 && (
+            <form className="flex flex-wrap items-center gap-1.5 px-4 pb-3 -mt-1">
+              <span className="text-xs text-muted mr-1">
+                {t.dash.whoDoes}
+                {everyone ? ` · ${t.dash.everyone}` : ""}:
+              </span>
+              {members.map((m) => {
+                const on = everyone || linked.includes(m.id);
+                return (
+                  <button
+                    key={m.id}
+                    formAction={setServiceStaff.bind(null, s.id, m.id, !on)}
+                    aria-pressed={on}
+                    className={`chip h-7 px-3 border transition-colors cursor-pointer ${on ? "bg-accent text-accent-ink border-accent" : "border-line text-muted hover:text-ink"}`}
+                  >
+                    {m.name}
+                  </button>
+                );
+              })}
+            </form>
+          )}
+          </div>
+          );
+        })}
         <form action={saveService} className="grid grid-cols-2 sm:grid-cols-[1fr_110px_100px_180px] gap-3 px-4 py-3 items-center bg-surface-2/50 rounded-b-2xl">
           <input name="name" required placeholder={t.dash.addService} className="input col-span-2 sm:col-span-1" />
           <input name="duration" type="number" min={5} max={600} step={5} defaultValue={30} required className="input tabular-nums" />

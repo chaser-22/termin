@@ -4,7 +4,7 @@ import { and, eq, gt, lt, ne } from "drizzle-orm";
 import { refresh, revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { BOOKING_STATUSES, BUSINESS_TYPES, bookings, businesses, services, staff, workingHours } from "@/db/schema";
+import { BOOKING_STATUSES, BUSINESS_TYPES, bookings, businesses, serviceStaff, services, staff, workingHours } from "@/db/schema";
 import { getLocale } from "@/i18n/server";
 import { requireBusiness, requireUser } from "@/lib/server/auth";
 import { createBooking } from "@/lib/server/booking";
@@ -32,7 +32,7 @@ export async function setupBusiness(_prev: FormState, fd: FormData): Promise<For
       name: z.string().min(2).max(80),
       slug: z.string(),
       type: z.enum(BUSINESS_TYPES),
-      ownerName: z.string().min(1).max(60),
+      ownerName: z.string().max(60),
       city: z.string().max(60),
     })
     .safeParse({ name: str(fd, "name"), slug: str(fd, "slug").toLowerCase(), type: str(fd, "type"), ownerName: str(fd, "ownerName"), city: str(fd, "city") });
@@ -43,7 +43,7 @@ export async function setupBusiness(_prev: FormState, fd: FormData): Promise<For
 
   await createBusinessWithDefaults(d, {
     ownerId: user.id,
-    ownerName: parsed.data.ownerName,
+    ownerName: parsed.data.ownerName || parsed.data.name,
     name: parsed.data.name,
     slug: parsed.data.slug,
     type: parsed.data.type,
@@ -154,6 +154,7 @@ export async function saveStaff(fd: FormData) {
   const { business } = await requireBusiness();
   const name = str(fd, "name");
   if (!name) return;
+  const kind = str(fd, "kind") === "resource" ? "resource" : "person";
   const d = await db();
   const id = str(fd, "id");
   if (id) {
@@ -161,7 +162,7 @@ export async function saveStaff(fd: FormData) {
   } else {
     const count = await d.$count(staff, eq(staff.businessId, business.id));
     await d.transaction(async (tx) => {
-      const [member] = await tx.insert(staff).values({ businessId: business.id, name, sortOrder: count }).returning();
+      const [member] = await tx.insert(staff).values({ businessId: business.id, name, kind, sortOrder: count }).returning();
       // Copy the owner's (first staff member's) hours as a starting point
       const first = await tx.query.staff.findFirst({ where: and(eq(staff.businessId, business.id)), orderBy: (s, { asc }) => [asc(s.sortOrder), asc(s.createdAt)] });
       if (first && first.id !== member.id) {
@@ -170,6 +171,30 @@ export async function saveStaff(fd: FormData) {
       }
     });
   }
+  refresh();
+}
+
+/**
+ * Turns one person/resource on or off for a service. "No links" means everyone,
+ * so the first change starts from everyone, and getting back to everyone clears the links.
+ */
+export async function setServiceStaff(serviceId: string, staffId: string, enabled: boolean) {
+  const { business } = await requireBusiness();
+  const d = await db();
+  const service = await d.query.services.findFirst({ where: and(eq(services.id, serviceId), eq(services.businessId, business.id)) });
+  if (!service) return;
+  const all = (await d.select({ id: staff.id }).from(staff).where(and(eq(staff.businessId, business.id), eq(staff.active, true)))).map((r) => r.id);
+  if (!all.includes(staffId)) return;
+  const links = (await d.select({ id: serviceStaff.staffId }).from(serviceStaff).where(eq(serviceStaff.serviceId, serviceId))).map((r) => r.id);
+  const current = new Set(links.length ? links : all);
+  if (enabled) current.add(staffId);
+  else current.delete(staffId);
+  if (current.size === 0) return; // a service must stay bookable by someone
+  await d.transaction(async (tx) => {
+    await tx.delete(serviceStaff).where(eq(serviceStaff.serviceId, serviceId));
+    const everyone = all.every((id) => current.has(id));
+    if (!everyone) await tx.insert(serviceStaff).values([...current].map((id) => ({ serviceId, staffId: id })));
+  });
   refresh();
 }
 

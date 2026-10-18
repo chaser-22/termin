@@ -3,7 +3,7 @@
 import type { Db } from "@/db/client";
 import { businesses, services, staff, workingHours, type BusinessType } from "@/db/schema";
 import type { Locale } from "@/i18n/dict";
-import { defaultHours, templateServices } from "@/lib/templates";
+import { RESOURCE_TYPES, defaultHours, templateResources, templateServices } from "@/lib/templates";
 
 export { isValidSlug, slugify } from "@/lib/slug";
 
@@ -33,8 +33,12 @@ export async function createBusinessWithDefaults(db: Db, input: NewBusiness) {
         address: input.address ?? null,
       })
       .returning();
-    const [owner] = await tx.insert(staff).values({ businessId: business.id, name: input.ownerName }).returning();
-    await tx.insert(workingHours).values(defaultHours(input.type).map((h) => ({ ...h, staffId: owner.id })));
+    // People-based businesses start with the owner; courts and rentals with two resources
+    const bookables = RESOURCE_TYPES.includes(input.type)
+      ? templateResources(input.type, input.locale).map((name, i) => ({ businessId: business.id, name, kind: "resource" as const, sortOrder: i }))
+      : [{ businessId: business.id, name: input.ownerName, kind: "person" as const, sortOrder: 0 }];
+    const created = await tx.insert(staff).values(bookables).returning();
+    await tx.insert(workingHours).values(created.flatMap((b) => defaultHours(input.type).map((h) => ({ ...h, staffId: b.id }))));
     await tx.insert(services).values(templateServices(input.type, input.locale).map((s) => ({ ...s, businessId: business.id })));
     return business;
   });

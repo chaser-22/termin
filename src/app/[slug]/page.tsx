@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { MapPin, Phone } from "lucide-react";
-import { businesses, services, staff, workingHours } from "@/db/schema";
+import { businesses, serviceStaff, services, staff, workingHours } from "@/db/schema";
 import { getDict } from "@/i18n/server";
 import type { Dict } from "@/i18n/dict";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
@@ -40,6 +40,7 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
   const hours = staffRows.length
     ? await d.select().from(workingHours).where(inArray(workingHours.staffId, staffRows.map((s) => s.id)))
     : [];
+  const links = serviceRows.length ? await d.select().from(serviceStaff).where(inArray(serviceStaff.serviceId, serviceRows.map((s) => s.id))) : [];
   const status = openStatus(hours, business.timezone);
   const firstFree = await firstFreeSlot(business, 7);
   const tz = business.timezone;
@@ -109,10 +110,18 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
               ? { serviceId: firstFree.serviceId, iso: firstFree.start.toISOString(), day: dateKeyOf(firstFree.start, tz), time: formatTime(firstFree.start, tz) }
               : null
           }
-          services={serviceRows.map((s) => ({ id: s.id, name: s.name, durationMinutes: s.durationMinutes, priceCents: s.priceCents }))}
+          services={serviceRows.map((s) => ({
+            id: s.id,
+            name: s.name,
+            durationMinutes: s.durationMinutes,
+            priceCents: s.priceCents,
+            // Empty means every person/resource does it
+            staffIds: links.filter((l) => l.serviceId === s.id).map((l) => l.staffId),
+          }))}
           staff={staffRows.map((s) => ({
             id: s.id,
             name: s.name,
+            kind: s.kind,
             weekdays: [...new Set(hours.filter((h) => h.staffId === s.id).map((h) => h.weekday))],
           }))}
           days={days}

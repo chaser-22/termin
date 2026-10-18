@@ -2,6 +2,7 @@ import {
   boolean,
   index,
   integer,
+  primaryKey,
   pgTable,
   text,
   timestamp,
@@ -67,11 +68,32 @@ export const staff = pgTable(
       .notNull()
       .references(() => businesses.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    // "person" (barber, therapist) or "resource" (court, room, boat). Both are
+    // booked the same way: own hours, own calendar column, one booking at a time.
+    kind: text("kind").$type<StaffKind>().notNull().default("person"),
     active: boolean("active").notNull().default(true),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: createdAt(),
   },
   (t) => [index("staff_business_idx").on(t.businessId)],
+);
+
+export const STAFF_KINDS = ["person", "resource"] as const;
+export type StaffKind = (typeof STAFF_KINDS)[number];
+
+// Which people/resources can do a service. A service with no rows here can be
+// done by anyone, so businesses that never set this keep working as before.
+export const serviceStaff = pgTable(
+  "service_staff",
+  {
+    serviceId: uuid("service_id")
+      .notNull()
+      .references(() => services.id, { onDelete: "cascade" }),
+    staffId: uuid("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.serviceId, t.staffId] })],
 );
 
 export const services = pgTable(

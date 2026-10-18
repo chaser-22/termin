@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import type { Dict } from "@/i18n/dict";
 import { submitKeepingValues } from "@/lib/form";
 import { BUSINESS_TYPES, slugify } from "@/lib/slug";
+import { RESOURCE_TYPES } from "@/lib/templates";
 import { setupBusiness, type FormState } from "../actions";
 
 export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "businessTypes" | "common"> }) {
@@ -12,6 +13,8 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
   const shownSlug = slugEdited ? slug : slugify(name);
+  const [type, setType] = useState<string>(BUSINESS_TYPES[0]);
+  const byResource = RESOURCE_TYPES.includes(type as (typeof BUSINESS_TYPES)[number]);
 
   useEffect(() => {
     // A full page load on purpose: a client-side push can reuse a /dashboard
@@ -28,7 +31,7 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {BUSINESS_TYPES.map((type, i) => (
             <label key={type} className="flex items-center justify-center text-center rounded-xl border border-line px-2 h-12 text-sm cursor-pointer has-[:checked]:border-accent has-[:checked]:bg-accent-soft has-[:checked]:font-medium">
-              <input type="radio" name="type" value={type} defaultChecked={i === 0} className="sr-only" />
+              <input type="radio" name="type" value={type} defaultChecked={i === 0} className="sr-only" onChange={() => setType(type)} />
               {t.businessTypes[type]}
             </label>
           ))}
@@ -59,10 +62,13 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
         </p>
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="label" htmlFor="ownerName">{t.dash.yourName}</label>
-          <input id="ownerName" name="ownerName" required className="input" />
-        </div>
+        {/* Courts and rentals start with resources, not a person */}
+        {!byResource && (
+          <div>
+            <label className="label" htmlFor="ownerName">{t.dash.yourName}</label>
+            <input id="ownerName" name="ownerName" required className="input" />
+          </div>
+        )}
         <div>
           <label className="label" htmlFor="city">{t.dash.city}</label>
           <input id="city" name="city" className="input" placeholder="Podgorica" />

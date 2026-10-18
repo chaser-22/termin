@@ -1,6 +1,6 @@
 // Safe to import from client components.
 
-export const BUSINESS_TYPES = ["barber", "salon", "nails", "beauty", "massage", "dentist", "clinic", "other"] as const;
+export const BUSINESS_TYPES = ["barber", "salon", "nails", "beauty", "massage", "dentist", "clinic", "court", "rental", "other"] as const;
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
 
 export const RESERVED_SLUGS = new Set([

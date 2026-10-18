@@ -1,6 +1,6 @@
 import "server-only";
 import { and, asc, eq, gt, inArray, lt, ne } from "drizzle-orm";
-import { bookings, businesses, customers, services, staff, workingHours, type Business, type BookingSource } from "@/db/schema";
+import { bookings, businesses, customers, services, serviceStaff, staff, workingHours, type Business, type BookingSource } from "@/db/schema";
 import { availableStarts, mergeStaffSlots, overlaps } from "@/lib/slots";
 import { addDays, dateKeyOf, localToInstant, todayKey, type DateKey } from "@/lib/time";
 import { randomToken } from "./crypto";
@@ -54,13 +54,23 @@ async function startsForStaff(conn: Conn, business: Business, staffIds: string[]
   }));
 }
 
-async function activeStaffIds(conn: Conn, businessId: string, staffId: string | null) {
+/**
+ * Active people/resources of a business in display order, optionally just one.
+ * With `serviceId`, only those linked to that service (or everyone, when the
+ * service has no links).
+ */
+async function activeStaffIds(conn: Conn, businessId: string, staffId: string | null, serviceId?: string) {
   const rows = await conn
     .select({ id: staff.id })
     .from(staff)
     .where(and(eq(staff.businessId, businessId), eq(staff.active, true), staffId ? eq(staff.id, staffId) : undefined))
     .orderBy(asc(staff.sortOrder), asc(staff.createdAt));
-  return rows.map((r) => r.id);
+  const ids = rows.map((r) => r.id);
+  if (!serviceId) return ids;
+  const links = await conn.select({ staffId: serviceStaff.staffId }).from(serviceStaff).where(eq(serviceStaff.serviceId, serviceId));
+  if (links.length === 0) return ids;
+  const allowed = new Set(links.map((l) => l.staffId));
+  return ids.filter((id) => allowed.has(id));
 }
 
 /** Free start times on one day, for one staff member or anyone. */
@@ -73,7 +83,7 @@ export async function getSlots(business: Business, serviceId: string, staffId: s
     where: and(eq(services.id, serviceId), eq(services.businessId, business.id), eq(services.active, true)),
   });
   if (!service) return [];
-  const staffIds = await activeStaffIds(d, business.id, staffId);
+  const staffIds = await activeStaffIds(d, business.id, staffId, service.id);
   const perStaff = await startsForStaff(d, business, staffIds, date, service.durationMinutes, now);
   return mergeStaffSlots(perStaff).map((s) => s.start.toISOString());
 }
@@ -96,7 +106,7 @@ export async function getSlotsRange(business: Business, serviceId: string, staff
     where: and(eq(services.id, serviceId), eq(services.businessId, business.id), eq(services.active, true)),
   });
   if (!service) return result;
-  const staffIds = await activeStaffIds(d, business.id, staffId);
+  const staffIds = await activeStaffIds(d, business.id, staffId, service.id);
   const [hours, busy] = await Promise.all([
     staffIds.length ? d.select().from(workingHours).where(inArray(workingHours.staffId, staffIds)) : [],
     busyFor(d, staffIds, dayBounds(first, business.timezone).start, dayBounds(last, business.timezone).end),
@@ -173,7 +183,9 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
   }
 
   return d.transaction(async (tx) => {
-    const candidates = await activeStaffIds(tx, input.business.id, input.staffId);
+    // Online bookings only go to people/resources that do this service; the
+    // business itself may book anyone from the dashboard.
+    const candidates = await activeStaffIds(tx, input.business.id, input.staffId, input.source === "online" ? service.id : undefined);
     let chosen: string | null = null;
     for (const staffId of candidates) {
       await tx.select({ id: staff.id }).from(staff).where(eq(staff.id, staffId)).for("update");
