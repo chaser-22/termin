@@ -4,7 +4,7 @@ export const BUSINESS_TYPES = ["barber", "salon", "nails", "beauty", "massage", 
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
 
 export const RESERVED_SLUGS = new Set([
-  "api", "dashboard", "login", "logout", "auth", "booking", "b", "admin", "app", "static",
+  "api", "za", "dashboard", "login", "logout", "auth", "booking", "b", "admin", "app", "static",
   "about", "help", "terms", "privacy", "pricing", "settings", "signup", "register", "manifest.webmanifest",
 ]);
 

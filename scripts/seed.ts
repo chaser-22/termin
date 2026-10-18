@@ -61,6 +61,28 @@ export const DEMOS: Demo[] = [
     description: "Električni bicikli i kajaci, na sat ili cijeli dan.",
     brandColor: "gold",
   },
+  {
+    slug: "demo-stomatolog",
+    name: "Stomatologija Kotor",
+    type: "dentist",
+    owner: { email: "demo-stomatolog@example.com", name: "Dr Jelena" },
+    city: "Kotor",
+    address: "Škaljari bb",
+    phone: "+382 69 800 900",
+    description: "Pregledi, popravke i čišćenje kamenca. Hitni slučajevi istog dana.",
+    brandColor: "cobalt",
+  },
+  {
+    slug: "demo-masaza",
+    name: "Wellness Budva",
+    type: "massage",
+    owner: { email: "demo-masaza@example.com", name: "Wellness Budva" },
+    city: "Budva",
+    address: "Mediteranska 8",
+    phone: "+382 68 300 400",
+    description: "Relax i sportska masaža, tretmani za parove.",
+    brandColor: "olive",
+  },
 ];
 
 async function main() {

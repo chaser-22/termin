@@ -27,11 +27,14 @@ async function StaffList() {
   const members = await d.select().from(staff).where(eq(staff.businessId, business.id)).orderBy(asc(staff.sortOrder), asc(staff.createdAt));
   const hours = members.length ? await d.select().from(workingHours).where(inArray(workingHours.staffId, members.map((m) => m.id))) : [];
 
+  // Courts and boats are "resources"; a barber or dentist never needs that choice
+  const showKind = ["court", "rental", "massage", "fitness"].includes(business.type) || members.some((m) => m.kind === "resource");
+
   return (
     <div className="max-w-3xl space-y-5 stagger">
       <div>
         <h1 className="display text-[40px]">{t.dash.staffAndResources}</h1>
-        <p className="mt-2 text-sm text-muted">{t.dash.kindHint}</p>
+        {showKind && <p className="mt-2 text-sm text-muted">{t.dash.kindHint}</p>}
       </div>
       {members.map((m) => {
         const days: DayHours[] = Array.from({ length: 7 }, (_, i) => {
@@ -66,10 +69,14 @@ async function StaffList() {
         );
       })}
       <form action={saveStaff} className="card p-4 flex flex-wrap gap-2">
-        <select name="kind" defaultValue="person" className="input w-auto" aria-label={t.dash.resource}>
-          <option value="person">{t.dash.person}</option>
-          <option value="resource">{t.dash.resource}</option>
-        </select>
+        {showKind ? (
+          <select name="kind" defaultValue="person" className="input w-auto" aria-label={t.dash.resource}>
+            <option value="person">{t.dash.person}</option>
+            <option value="resource">{t.dash.resource}</option>
+          </select>
+        ) : (
+          <input type="hidden" name="kind" value="person" />
+        )}
         <input name="name" required placeholder={t.dash.staffName} className="input max-w-xs flex-1" />
         <button className="btn-primary">{t.dash.addStaff}</button>
       </form>

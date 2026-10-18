@@ -28,17 +28,20 @@ async function Services() {
   const schedule = rows.length
     ? (await d.select().from(classTimes).where(inArray(classTimes.serviceId, rows.map((r) => r.id)))).sort((a, b) => a.weekday - b.weekday || a.startMinute - b.startMinute)
     : [];
+  // Group places only matter for classes; everyone else never sees the column
+  const showPlaces = business.type === "fitness" || rows.some((s) => s.capacity > 1);
+  const cols = showPlaces ? "sm:grid-cols-[1fr_96px_88px_80px_168px]" : "sm:grid-cols-[1fr_96px_88px_168px]";
   const staffName = (id: string) => members.find((m) => m.id === id)?.name ?? "";
 
   return (
     <div className="max-w-3xl stagger">
       <h1 className="display text-[40px] mb-5">{t.dash.services}</h1>
       <div className="card divide-y divide-line/50">
-        <div className="hidden sm:grid grid-cols-[1fr_96px_88px_80px_168px] gap-3 px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide">
+        <div className={`hidden sm:grid ${cols} gap-3 px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide`}>
           <span>{t.dash.name}</span>
           <span>{t.dash.duration}</span>
           <span>{t.dash.price}</span>
-          <span title={t.dash.placesHint}>{t.dash.places}</span>
+          {showPlaces && <span title={t.dash.placesHint}>{t.dash.places}</span>}
           <span />
         </div>
         {rows.map((s) => {
@@ -46,13 +49,17 @@ async function Services() {
           const everyone = linked.length === 0;
           return (
           <div key={s.id}>
-          <form action={saveService} className={`grid grid-cols-2 sm:grid-cols-[1fr_96px_88px_80px_168px] gap-3 px-4 py-3 items-center ${s.active ? "" : "opacity-55"}`}>
+          <form action={saveService} className={`grid grid-cols-2 ${cols} gap-3 px-4 py-3 items-center ${s.active ? "" : "opacity-55"}`}>
             <input type="hidden" name="id" value={s.id} />
-            {!s.active && <span className="col-span-2 sm:col-span-5 chip bg-surface-2 text-muted w-fit">{t.dash.hiddenHint}</span>}
+            {!s.active && <span className={`col-span-2 ${showPlaces ? "sm:col-span-5" : "sm:col-span-4"} chip bg-surface-2 text-muted w-fit`}>{t.dash.hiddenHint}</span>}
             <input name="name" defaultValue={s.name} required className="input col-span-2 sm:col-span-1" aria-label={t.dash.name} />
             <input name="duration" type="number" min={5} max={600} step={5} defaultValue={s.durationMinutes} required className="input tabular-nums" aria-label={t.dash.duration} />
             <input name="price" inputMode="decimal" defaultValue={s.priceCents === null ? "" : String(s.priceCents / 100)} placeholder="—" className="input tabular-nums" aria-label={t.dash.price} />
-            <input name="capacity" type="number" min={1} max={200} defaultValue={s.capacity} className="input tabular-nums" aria-label={t.dash.places} title={t.dash.placesHint} />
+            {showPlaces ? (
+              <input name="capacity" type="number" min={1} max={200} defaultValue={s.capacity} className="input tabular-nums" aria-label={t.dash.places} title={t.dash.placesHint} />
+            ) : (
+              <input type="hidden" name="capacity" value={s.capacity} />
+            )}
             <div className="col-span-2 sm:col-span-1 flex gap-2 justify-end">
               <button className="btn-secondary btn-sm">{t.common.save}</button>
               <button formAction={toggleService.bind(null, s.id, !s.active)} formNoValidate className="btn-ghost btn-sm">
@@ -119,11 +126,15 @@ async function Services() {
           </div>
           );
         })}
-        <form action={saveService} className="grid grid-cols-2 sm:grid-cols-[1fr_96px_88px_80px_168px] gap-3 px-4 py-3 items-center bg-surface-2/50 rounded-b-2xl">
+        <form action={saveService} className={`grid grid-cols-2 ${cols} gap-3 px-4 py-3 items-center bg-surface-2/50 rounded-b-2xl`}>
           <input name="name" required placeholder={t.dash.addService} className="input col-span-2 sm:col-span-1" />
           <input name="duration" type="number" min={5} max={600} step={5} defaultValue={30} required className="input tabular-nums" />
           <input name="price" inputMode="decimal" placeholder="—" className="input tabular-nums" />
-          <input name="capacity" type="number" min={1} max={200} defaultValue={1} className="input tabular-nums" aria-label={t.dash.places} title={t.dash.placesHint} />
+          {showPlaces ? (
+            <input name="capacity" type="number" min={1} max={200} defaultValue={1} className="input tabular-nums" aria-label={t.dash.places} title={t.dash.placesHint} />
+          ) : (
+            <input type="hidden" name="capacity" value={1} />
+          )}
           <div className="col-span-2 sm:col-span-1 flex justify-end">
             <button className="btn-primary btn-sm">{t.common.add}</button>
           </div>
