@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
+import { SETUP_TYPE_KEY } from "@/app/StartLink";
 import type { Dict } from "@/i18n/dict";
 import { submitKeepingValues } from "@/lib/form";
 import { BUSINESS_TYPES, slugify } from "@/lib/slug";
@@ -13,7 +14,21 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
   const shownSlug = slugEdited ? slug : slugify(name);
-  const [type, setType] = useState<string>(BUSINESS_TYPES[0]);
+  // The type picked on the homepage (remembered in this browser) is the default
+  const stored = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return localStorage.getItem(SETUP_TYPE_KEY);
+      } catch {
+        return null;
+      }
+    },
+    () => null,
+  );
+  const [picked, setPicked] = useState<string | null>(null);
+  const type = picked ?? (stored && (BUSINESS_TYPES as readonly string[]).includes(stored) ? stored : BUSINESS_TYPES[0]);
+  const selected = type;
   const byResource = RESOURCE_TYPES.includes(type as (typeof BUSINESS_TYPES)[number]);
 
   useEffect(() => {
@@ -29,9 +44,9 @@ export function SetupForm({ host, t }: { host: string; t: Pick<Dict, "dash" | "b
       <div>
         <label className="label" htmlFor="type">{t.dash.businessType}</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {BUSINESS_TYPES.map((type, i) => (
+          {BUSINESS_TYPES.map((type) => (
             <label key={type} className="flex items-center justify-center text-center rounded-xl border border-line px-2 h-12 text-sm cursor-pointer has-[:checked]:border-accent has-[:checked]:bg-accent-soft has-[:checked]:font-medium">
-              <input type="radio" name="type" value={type} defaultChecked={i === 0} className="sr-only" onChange={() => setType(type)} />
+              <input type="radio" name="type" value={type} checked={selected === type} className="sr-only" onChange={() => setPicked(type)} />
               {t.businessTypes[type]}
             </label>
           ))}

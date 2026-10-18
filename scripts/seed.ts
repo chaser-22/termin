@@ -1,42 +1,116 @@
-// Adds a demo barbershop at /marko owned by demo@example.com.
+// Adds the demo businesses the homepage links to. Safe to run again: existing
+// demos are left alone. Each demo has its own owner (one business per owner).
 // Stop the dev server first when using the local database (it allows one process).
 import { eq } from "drizzle-orm";
 import { getDbClient } from "@/db/client";
-import { businesses, staff, users, workingHours } from "@/db/schema";
+import { businesses, staff, users, workingHours, type BusinessType } from "@/db/schema";
 import { createBusinessWithDefaults } from "@/lib/server/setup";
 
-async function main() {
-  const db = await getDbClient();
-  const existing = await db.query.businesses.findFirst({ where: eq(businesses.slug, "marko") });
-  if (existing) {
-    console.log("seed: demo business already exists at /marko");
-    return;
-  }
-  const [user] = await db
-    .insert(users)
-    .values({ email: "demo@example.com", name: "Marko" })
-    .onConflictDoUpdate({ target: users.email, set: { name: "Marko" } })
-    .returning();
-  const business = await createBusinessWithDefaults(db, {
-    ownerId: user.id,
-    ownerName: "Marko",
-    name: "Berbernica Marko",
+type Demo = {
+  slug: string;
+  name: string;
+  type: BusinessType;
+  owner: { email: string; name: string };
+  city: string;
+  address: string;
+  phone: string;
+  description?: string;
+  brandColor?: string;
+};
+
+export const DEMOS: Demo[] = [
+  {
     slug: "marko",
+    name: "Berbernica Marko",
     type: "barber",
+    owner: { email: "demo@example.com", name: "Marko" },
     city: "Podgorica",
     address: "Njegoševa 12",
     phone: "+382 67 123 456",
-    locale: "me",
-  });
-  const [second] = await db.insert(staff).values({ businessId: business.id, name: "Luka", sortOrder: 1 }).returning();
-  // Luka: Tue–Sat 10:00–14:00 and 15:00–19:00 (lunch break)
-  const rows = [];
-  for (let weekday = 2; weekday <= 6; weekday++) {
-    rows.push({ staffId: second.id, weekday, startMinute: 600, endMinute: 840 });
-    rows.push({ staffId: second.id, weekday, startMinute: 900, endMinute: 1140 });
+  },
+  {
+    slug: "demo-padel",
+    name: "Padel Budva",
+    type: "court",
+    owner: { email: "demo-padel@example.com", name: "Padel Budva" },
+    city: "Budva",
+    address: "Jadranski put bb",
+    phone: "+382 68 200 300",
+    description: "Dva natkrivena padel terena, reketi za iznajmljivanje na recepciji.",
+    brandColor: "cobalt",
+  },
+  {
+    slug: "demo-joga",
+    name: "Joga Kotor",
+    type: "fitness",
+    owner: { email: "demo-joga@example.com", name: "Ana" },
+    city: "Kotor",
+    address: "Stari grad 341",
+    phone: "+382 69 400 500",
+    description: "Joga i pilates u malim grupama, sa pogledom na zaliv.",
+    brandColor: "olive",
+  },
+  {
+    slug: "demo-rent",
+    name: "Bike & Kayak Tivat",
+    type: "rental",
+    owner: { email: "demo-rent@example.com", name: "Tivat Rent" },
+    city: "Tivat",
+    address: "Porto Montenegro, Obala bb",
+    phone: "+382 67 600 700",
+    description: "Električni bicikli i kajaci, na sat ili cijeli dan.",
+    brandColor: "gold",
+  },
+];
+
+async function main() {
+  const db = await getDbClient();
+  for (const demo of DEMOS) {
+    const existing = await db.query.businesses.findFirst({ where: eq(businesses.slug, demo.slug) });
+    if (existing) {
+      console.log(`seed: /${demo.slug} already exists`);
+      continue;
+    }
+    const [user] = await db
+      .insert(users)
+      .values({ email: demo.owner.email, name: demo.owner.name })
+      .onConflictDoUpdate({ target: users.email, set: { name: demo.owner.name } })
+      .returning();
+    const business = await createBusinessWithDefaults(db, {
+      ownerId: user.id,
+      ownerName: demo.owner.name,
+      name: demo.name,
+      slug: demo.slug,
+      type: demo.type,
+      city: demo.city,
+      address: demo.address,
+      phone: demo.phone,
+      locale: "me",
+    });
+    if (demo.description || demo.brandColor) {
+      await db
+        .update(businesses)
+        .set({ description: demo.description ?? null, ...(demo.brandColor ? { brandColor: demo.brandColor } : {}) })
+        .where(eq(businesses.id, business.id));
+    }
+    if (demo.slug === "marko") {
+      // A second barber: Tue–Sat 10:00–14:00 and 15:00–19:00 (lunch break)
+      const [second] = await db.insert(staff).values({ businessId: business.id, name: "Luka", sortOrder: 1 }).returning();
+      const rows = [];
+      for (let weekday = 2; weekday <= 6; weekday++) {
+        rows.push({ staffId: second.id, weekday, startMinute: 600, endMinute: 840 });
+        rows.push({ staffId: second.id, weekday, startMinute: 900, endMinute: 1140 });
+      }
+      await db.insert(workingHours).values(rows);
+    }
+    if (demo.slug === "demo-rent") {
+      // Name the rental items like a real shop
+      const items = await db.select().from(staff).where(eq(staff.businessId, business.id));
+      const names = ["E-bike 1", "Kajak 1"];
+      for (const [i, item] of items.entries()) await db.update(staff).set({ name: names[i] ?? item.name }).where(eq(staff.id, item.id));
+    }
+    console.log(`seed: created /${demo.slug} (owner ${demo.owner.email})`);
   }
-  await db.insert(workingHours).values(rows);
-  console.log("seed: created demo business at /marko (owner demo@example.com)");
 }
 
 main()
