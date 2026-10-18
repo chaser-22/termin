@@ -162,7 +162,8 @@ describe("getSlotsRange", () => {
   it("finds the first free time", async () => {
     const first = await firstFreeSlot(business, 14);
     expect(first).not.toBeNull();
-    expect(first!.getTime()).toBeGreaterThan(Date.now());
+    expect(first!.start.getTime()).toBeGreaterThan(Date.now());
+    expect(first!.serviceId).toBe(haircut.id);
   });
 });
 

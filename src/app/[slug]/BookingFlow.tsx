@@ -2,22 +2,24 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Clock, RotateCcw, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Check, Clock, RotateCcw, Sparkles } from "lucide-react";
 import { bookAppointment } from "@/app/actions";
 import type { Dict } from "@/i18n/dict";
+import { Odometer } from "@/components/Odometer";
 import { formatDuration, formatPrice } from "@/lib/format";
 
 type ServiceOption = { id: string; name: string; durationMinutes: number; priceCents: number | null };
 type StaffOption = { id: string; name: string; weekdays: number[] };
 type DayOption = { key: string; weekday: number; day: number; month: number };
 type T = Pick<Dict, "book" | "common" | "weekdaysShort" | "months">;
+type FirstFree = { serviceId: string; iso: string; day: string; time: string };
 
 type Props = {
   slug: string;
   timeZone: string;
   today: string;
   tomorrow: string;
-  firstFree: { day: string; time: string } | null;
+  firstFree: FirstFree | null;
   services: ServiceOption[];
   staff: StaffOption[];
   days: DayOption[];
@@ -106,7 +108,8 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
     const i = days.findIndex((d) => d.key === date);
     return days[Math.max(0, Math.floor(i / CHUNK_DAYS) * CHUNK_DAYS)]?.key ?? date;
   };
-  const cacheKey = (date: string) => `${serviceId}|${staffId}|${chunkStartOf(date)}`;
+  const keyFor = (svc: string | null, st: string, date: string) => `${svc}|${st}|${chunkStartOf(date)}`;
+  const cacheKey = (date: string) => keyFor(serviceId, staffId, date);
   /** Free times on a day, or undefined while not loaded. */
   const slotsOn = (date: string): string[] | undefined => {
     const chunk = cache[cacheKey(date)];
@@ -160,21 +163,45 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
   }, [slots, timeFmt, t]);
 
   const dayLabel = (d: DayOption) => (d.key === today ? t.common.today : d.key === tomorrow ? t.common.tomorrow : t.weekdaysShort[d.weekday - 1]);
-  const firstFreeDay = firstFree ? days.find((x) => x.key === firstFree.day) : undefined;
-  const firstFreeLabel =
-    firstFree && firstFreeDay
-      ? `${firstFree.day === today || firstFree.day === tomorrow ? dayLabel(firstFreeDay).toLowerCase() : `${dayLabel(firstFreeDay)} ${firstFreeDay.day}.`} ${firstFree.time}`
-      : null;
+  const dayPhrase = (key: string) => {
+    const d = days.find((x) => x.key === key);
+    if (!d) return "";
+    return key === today || key === tomorrow ? dayLabel(d) : `${dayLabel(d)} ${d.day}. ${t.months[d.month - 1]}`;
+  };
+
+  /** The next step the floating pill offers: the earliest free time for the current choice. */
+  const nextFree: { day: string; iso: string; serviceId: string; staffId: string } | null = (() => {
+    if (!service) {
+      return firstFree ? { day: firstFree.day, iso: firstFree.iso, serviceId: firstFree.serviceId, staffId: "any" } : null;
+    }
+    const from = date ?? today;
+    for (const d of openDays) {
+      if (d.key < from) continue;
+      const s = slotsOn(d.key);
+      if (s === undefined) return null; // still loading
+      if (s.length) return { day: d.key, iso: s[0], serviceId: service.id, staffId };
+    }
+    return null;
+  })();
+
+  function takeNextFree() {
+    if (!nextFree) return;
+    setError(null);
+    setServiceId(nextFree.serviceId);
+    setStaffId(nextFree.staffId);
+    setPickedDate(nextFree.day);
+    setSelection({ key: `${keyFor(nextFree.serviceId, nextFree.staffId, nextFree.day)}|${nextFree.day}`, slot: nextFree.iso });
+  }
 
   if (services.length === 0) {
-    return <p className="card p-6 text-muted">{t.book.noServices}</p>;
+    return <p className="card p-6 text-muted text-center">{t.book.noServices}</p>;
   }
 
   const n = { service: 1, staff: 2, time: staff.length > 1 ? 3 : 2, details: staff.length > 1 ? 4 : 3 };
 
   return (
-    <div className={`space-y-4 ${slot ? "pb-36" : ""}`}>
-      {/* Returning customer: one tap to book the same thing */}
+    <div className="space-y-4">
+      {/* Returning client: one tap to book the same thing */}
       {lastService && !service && (
         <button
           type="button"
@@ -182,9 +209,9 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
             setServiceId(lastService.id);
             setStaffId(lastStaff ? lastStaff.id : "any");
           }}
-          className="group w-full text-left card p-4 pr-3 flex items-center gap-4 border-accent/30 bg-gradient-to-br from-accent-soft to-surface hover:shadow-lift transition-shadow animate-rise cursor-pointer"
+          className="group w-full text-left card p-4 pr-3 flex items-center gap-4 hover:shadow-lift transition-shadow animate-rise cursor-pointer"
         >
-          <span className="grid place-items-center size-11 shrink-0 rounded-2xl bg-accent text-accent-ink">
+          <span className="grid place-items-center size-11 shrink-0 rounded-full bg-accent text-accent-ink">
             <RotateCcw className="size-5" />
           </span>
           <span className="min-w-0 flex-1">
@@ -192,7 +219,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
               {t.book.welcomeBack}
               {savedName && `, ${savedName}`}
             </span>
-            <span className="block font-medium truncate">
+            <span className="block font-semibold truncate">
               {lastService.name}
               {lastStaff ? ` · ${lastStaff.name}` : ""}
             </span>
@@ -203,57 +230,50 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
         </button>
       )}
 
-      {/* 1. Service */}
-      <section className="card overflow-hidden animate-rise [animation-delay:150ms]">
-        <StepHeader
-          n={n.service}
-          title={t.book.chooseService}
-          done={!!service}
-          onChange={services.length > 1 && service ? () => setServiceId(null) : undefined}
-          changeLabel={t.book.change}
-        />
-        {!service && firstFreeLabel && (
-          <p className="mx-5 -mt-1 mb-2 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-            <Zap className="size-3.5" />
-            {t.book.nextFree}: {firstFreeLabel}
-          </p>
-        )}
-        {service ? (
-          <div className="px-5 pb-5 flex items-baseline justify-between gap-4">
-            <span className="text-[17px] font-medium">{service.name}</span>
-            <span className="text-sm text-muted whitespace-nowrap">
-              {formatDuration(service.durationMinutes, t.common.minutes)} ·{" "}
-              <span className="text-ink font-medium">{formatPrice(service.priceCents, t.common.priceOnRequest)}</span>
-            </span>
-          </div>
-        ) : (
-          <ul className="px-2 pb-2">
-            {services.map((s) => (
-              <li key={s.id}>
+      {/* 1. Service: a grid of frosted tiles */}
+      {!service ? (
+        <section className="animate-rise [animation-delay:220ms]">
+          <h2 className="display text-[22px] text-center mb-4">{t.book.chooseService}</h2>
+          <ul className="grid grid-cols-2 gap-3">
+            {services.map((s, i) => (
+              <li key={s.id} className={services.length % 2 === 1 && i === services.length - 1 ? "col-span-2" : ""}>
                 <button
                   type="button"
                   onClick={() => setServiceId(s.id)}
-                  className="group w-full flex items-center justify-between gap-4 rounded-2xl px-3.5 py-3.5 text-left hover:bg-surface-2 active:scale-[0.99] transition cursor-pointer"
+                  style={{ animationDelay: `${260 + i * 45}ms` }}
+                  className="group card w-full h-full min-h-[112px] p-4 flex flex-col justify-between gap-5 text-left animate-rise hover:-translate-y-0.5 hover:shadow-lift active:scale-[0.98] transition-[transform,box-shadow] duration-200 cursor-pointer"
                 >
-                  <span className="min-w-0">
-                    <span className="block text-[16px] font-medium">{s.name}</span>
-                    <span className="mt-0.5 flex items-center gap-1 text-[13px] text-muted">
+                  <span className="text-[15px] font-semibold leading-snug">{s.name}</span>
+                  <span className="flex items-end justify-between gap-2">
+                    <span className="flex items-center gap-1 text-[12.5px] text-muted">
                       <Clock className="size-3.5" />
                       {formatDuration(s.durationMinutes, t.common.minutes)}
                     </span>
-                  </span>
-                  <span className="flex items-center gap-3 shrink-0">
-                    <span className="font-medium tabular-nums">{formatPrice(s.priceCents, t.common.priceOnRequest)}</span>
-                    <span className="grid place-items-center size-8 rounded-full border border-line text-muted group-hover:bg-accent group-hover:border-accent group-hover:text-accent-ink transition-colors">
-                      <ArrowRight className="size-4" />
-                    </span>
+                    <span className="text-[15px] font-bold tabular-nums">{formatPrice(s.priceCents, t.common.priceOnRequest)}</span>
                   </span>
                 </button>
               </li>
             ))}
           </ul>
-        )}
-      </section>
+        </section>
+      ) : (
+        <section className="card p-4 pl-5 flex items-center gap-3 animate-rise">
+          <span className="grid place-items-center size-7 shrink-0 rounded-full bg-accent text-accent-ink">
+            <Check className="size-3.5" strokeWidth={3} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold truncate">{service.name}</span>
+            <span className="block text-[13px] text-muted">
+              {formatDuration(service.durationMinutes, t.common.minutes)} · {formatPrice(service.priceCents, t.common.priceOnRequest)}
+            </span>
+          </span>
+          {services.length > 1 && (
+            <button type="button" onClick={() => setServiceId(null)} className="btn-ghost btn-sm text-accent">
+              {t.book.change}
+            </button>
+          )}
+        </section>
+      )}
 
       {/* 2. Staff */}
       {service && staff.length > 1 && (
@@ -265,8 +285,8 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
               return (
                 <button key={s.id} type="button" onClick={() => setStaffId(s.id)} className="group shrink-0 w-[76px] flex flex-col items-center gap-2 cursor-pointer">
                   <span
-                    className={`grid place-items-center size-14 rounded-full text-[15px] font-semibold transition ${
-                      active ? "bg-accent text-accent-ink ring-4 ring-accent/20" : "bg-surface-2 text-ink group-hover:bg-accent-soft"
+                    className={`grid place-items-center size-14 rounded-full text-[15px] font-bold transition ${
+                      active ? "bg-accent text-accent-ink ring-4 ring-accent/20" : "bg-surface text-ink group-hover:bg-accent-soft"
                     }`}
                   >
                     {s.id === "any" ? <Sparkles className="size-5" /> : initials(s.name)}
@@ -286,7 +306,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
           <div className="flex gap-2 overflow-x-auto px-5 pb-4 snap-x [scrollbar-width:none]">
             {days.map((d) => {
               const open = openDays.includes(d);
-              const known = open ? slotsOn(d.key) : [];
+              const known = open ? slotsOn(d.key) : NONE;
               const full = known !== undefined && known.length === 0;
               const selected = d.key === date;
               return (
@@ -303,8 +323,8 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                         : "border-transparent text-muted/40"
                   }`}
                 >
-                  <span className="block text-[10px] font-semibold uppercase tracking-wider opacity-70 truncate px-1">{dayLabel(d)}</span>
-                  <span className="block text-[22px] font-medium leading-tight tabular-nums">{d.day}</span>
+                  <span className="block text-[10px] font-bold uppercase tracking-wider opacity-70 truncate px-1">{dayLabel(d)}</span>
+                  <span className="block text-[22px] font-semibold leading-tight tabular-nums">{d.day}</span>
                   <span className="block text-[10px] opacity-60">{t.months[d.month - 1]}</span>
                   {known && known.length > 0 && (
                     <span className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 size-1 rounded-full ${selected ? "bg-bg" : "bg-accent"}`} />
@@ -336,7 +356,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
                             setError(null);
                             if (key && date) setSelection({ key: `${key}|${date}`, slot: s });
                           }}
-                          className={`h-11 rounded-xl border text-[15px] font-medium tabular-nums transition active:scale-95 cursor-pointer ${
+                          className={`h-11 rounded-xl border text-[15px] font-semibold tabular-nums transition active:scale-95 cursor-pointer ${
                             slot === s
                               ? "bg-accent border-accent text-accent-ink shadow-[0_8px_20px_-8px_var(--accent)]"
                               : "border-line bg-surface hover:border-accent hover:text-accent"
@@ -354,7 +374,7 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
         </section>
       )}
 
-      {/* 4. Details + confirm bar */}
+      {/* 4. Details, with the pill turning into the confirm button */}
       {service && slot && key && date && (
         <DetailsStep
           n={n.details}
@@ -362,11 +382,10 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
           serviceId={service.id}
           staffId={staffId === "any" ? null : staffId}
           slot={slot}
-          summary={{
-            title: service.name,
-            line: `${selectedDay ? `${dayLabel(selectedDay)}, ${selectedDay.day}. ${t.months[selectedDay.month - 1]} · ` : ""}${timeFmt.format(new Date(slot))}${chosenStaff ? ` · ${chosenStaff.name}` : ""}`,
-            price: formatPrice(service.priceCents, t.common.priceOnRequest),
-          }}
+          time={timeFmt.format(new Date(slot))}
+          summary={[selectedDay ? dayPhrase(selectedDay.key) : "", formatPrice(service.priceCents, t.common.priceOnRequest), chosenStaff?.name ?? ""]
+            .filter(Boolean)
+            .join(" · ")}
           t={t}
           onSlotTaken={() => {
             setError(t.book.slotTaken);
@@ -381,6 +400,33 @@ export function BookingFlow({ slug, timeZone, today, tomorrow, firstFree, servic
         />
       )}
       {error && !slot && <p className="text-danger text-sm text-center">{error}</p>}
+
+      {/* Floating pill: always the next step, until a time is chosen */}
+      {!slot && nextFree && (
+        <FloatingPill key={`${nextFree.serviceId}|${nextFree.iso}`}>
+          <button type="button" onClick={takeNextFree} className="group flex w-full items-center gap-3 text-left cursor-pointer" aria-label={`${t.book.nextFree}: ${dayPhrase(nextFree.day)} ${timeFmt.format(new Date(nextFree.iso))}`}>
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60">{t.book.nextFree}</span>
+              <span className="block text-[13px] opacity-80 truncate">
+                {dayPhrase(nextFree.day)}
+                {!service && ` · ${services.find((s) => s.id === nextFree.serviceId)?.name ?? ""}`}
+              </span>
+            </span>
+            <Odometer value={timeFmt.format(new Date(nextFree.iso))} className="display text-[30px] text-[var(--pill-time)]" />
+            <span className="grid place-items-center size-12 shrink-0 rounded-full bg-accent text-accent-ink transition-transform group-hover:translate-x-0.5 group-active:scale-95">
+              <ArrowRight className="size-5" />
+            </span>
+          </button>
+        </FloatingPill>
+      )}
+    </div>
+  );
+}
+
+function FloatingPill({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pointer-events-none">
+      <div className="pointer-events-auto mx-auto max-w-xl rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)] shadow-lift p-2 pl-6 animate-sheet">{children}</div>
     </div>
   );
 }
@@ -393,6 +439,7 @@ function DetailsStep({
   serviceId,
   staffId,
   slot,
+  time,
   summary,
   t,
   onSlotTaken,
@@ -402,7 +449,8 @@ function DetailsStep({
   serviceId: string;
   staffId: string | null;
   slot: string;
-  summary: { title: string; line: string; price: string };
+  time: string;
+  summary: string;
   t: T;
   onSlotTaken: () => void;
 }) {
@@ -465,59 +513,39 @@ function DetailsStep({
         </form>
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pointer-events-none">
-        <div className="pointer-events-auto mx-auto max-w-xl rounded-[28px] bg-ink text-bg shadow-lift p-2 pl-5 flex items-center gap-3 animate-rise">
-          <div className="min-w-0 flex-1 py-1.5 leading-tight">
-            <div className="flex items-baseline gap-2">
-              <span className="font-medium truncate">{summary.title}</span>
-              <span className="text-sm opacity-70 tabular-nums shrink-0">{summary.price}</span>
-            </div>
-            <div className="text-[13px] opacity-70 truncate">{summary.line}</div>
-            {error && <div className="text-[13px] text-[#ff9b8a] mt-0.5">{error}</div>}
+      <FloatingPill>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="text-[12px] opacity-70 truncate">{summary}</div>
+            <Odometer value={time} className="display mt-1 text-[28px] text-[var(--pill-time)]" />
+            {error && <div className="text-[12px] text-[var(--pill-error)] mt-1">{error}</div>}
           </div>
           <button form="book-form" type="submit" className="btn-primary h-12 px-5 shrink-0" disabled={submitting}>
             {submitting ? (
               t.book.confirming
             ) : (
               <>
-                {t.book.confirm} <Check className="size-4" />
+                {t.book.confirm.split(" ")[0]} <Check className="size-4" />
               </>
             )}
           </button>
         </div>
-      </div>
+      </FloatingPill>
     </>
   );
 }
 
-function StepHeader({
-  n,
-  title,
-  done,
-  onChange,
-  changeLabel,
-}: {
-  n: number;
-  title: string;
-  done: boolean;
-  onChange?: () => void;
-  changeLabel?: string;
-}) {
+function StepHeader({ n, title, done }: { n: number; title: string; done: boolean }) {
   return (
     <div className="flex items-center gap-3 px-5 pt-5 pb-3">
       <span
-        className={`grid place-items-center size-7 rounded-full text-xs font-semibold transition-colors ${
+        className={`grid place-items-center size-7 rounded-full text-xs font-bold transition-colors ${
           done ? "bg-accent text-accent-ink" : "border border-line text-muted"
         }`}
       >
         {done ? <Check className="size-3.5" strokeWidth={3} /> : n}
       </span>
-      <h2 className="display text-[24px] flex-1">{title}</h2>
-      {onChange && (
-        <button type="button" onClick={onChange} className="text-sm text-accent font-medium cursor-pointer hover:underline underline-offset-4">
-          {changeLabel}
-        </button>
-      )}
+      <h2 className="display text-[20px] flex-1">{title}</h2>
     </div>
   );
 }

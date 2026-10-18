@@ -42,6 +42,7 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
     : [];
   const status = openStatus(hours, business.timezone);
   const firstFree = await firstFreeSlot(business, 7);
+  const tz = business.timezone;
 
   const range = bookableRange(business);
   const days = [];
@@ -54,73 +55,58 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
     : null;
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 overflow-x-clip">
       <style>{brandCss(business.brandColor)}</style>
 
-      {/* Hero */}
-      <header className="relative overflow-hidden">
+      <div className="mx-auto max-w-xl px-4 pt-4 flex justify-end">
+        <LanguageSwitch current={locale} />
+      </div>
+
+      {/* Hero: a clearing in the fog */}
+      <header className="relative mx-auto max-w-xl px-5 pt-4 pb-8 text-center">
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.16] dark:opacity-[0.22]"
-          style={{
-            background:
-              "radial-gradient(120% 90% at 0% 0%, var(--accent) 0%, transparent 55%), radial-gradient(90% 80% at 100% 10%, var(--accent) 0%, transparent 50%)",
-          }}
+          className="absolute left-1/2 top-6 -z-10 h-48 w-[34rem] max-w-full -translate-x-1/2 rounded-full bg-white/70 blur-3xl dark:bg-white/[0.04]"
         />
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-bg" />
-        <div className="relative mx-auto max-w-xl px-5 pt-5 pb-8">
-          <div className="flex items-center justify-between">
-            <span className="eyebrow truncate">
-              {t.businessTypes[business.type]}
-              {business.city ? ` · ${business.city}` : ""}
-            </span>
-            <LanguageSwitch current={locale} />
-          </div>
-
-          <div className="mt-8 flex items-end gap-4 animate-rise">
-            <div className="grid place-items-center size-[72px] shrink-0 rounded-[22px] bg-accent text-accent-ink display text-[40px] shadow-lift">
-              {business.name.slice(0, 1).toUpperCase()}
-            </div>
-            <div className="min-w-0 pb-1">
-              <h1 className="display text-[38px] sm:text-[44px] break-words">{business.name}</h1>
-            </div>
-          </div>
-
-          {business.description && <p className="mt-4 text-[15px] text-muted leading-relaxed animate-rise [animation-delay:60ms]">{business.description}</p>}
-
-          <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm animate-rise [animation-delay:90ms]">
-            <StatusPill status={status} t={t} />
-          </div>
-
-          {(business.phone || mapUrl) && (
-            <div className="mt-5 flex gap-2.5 animate-rise [animation-delay:120ms]">
-              {business.phone && (
-                <a href={`tel:${business.phone.replace(/\s/g, "")}`} className="btn-secondary btn-sm">
-                  <Phone className="size-4" /> {t.booking.call}
-                </a>
-              )}
-              {mapUrl && (
-                <a href={mapUrl} target="_blank" rel="noreferrer" className="btn-secondary btn-sm min-w-0">
-                  <MapPin className="size-4 shrink-0" /> <span className="truncate">{business.address}</span>
-                </a>
-              )}
-            </div>
-          )}
+        <div className="mx-auto grid place-items-center size-[76px] rounded-full bg-accent text-accent-ink display text-[34px] shadow-[0_0_0_7px_var(--glass),0_18px_36px_-16px_var(--accent)] animate-pop">
+          {business.name.slice(0, 1).toUpperCase()}
         </div>
+        <p className="eyebrow mt-6 animate-rise [animation-delay:60ms]">
+          {t.businessTypes[business.type]}
+          {business.city ? ` · ${business.city}` : ""}
+        </p>
+        <h1 className="display mt-2.5 text-balance animate-rise [animation-delay:100ms]" style={{ fontSize: nameSize(business.name) }}>
+          {business.name}
+        </h1>
+        {business.description && <p className="mx-auto mt-3 max-w-md text-[15px] text-muted leading-relaxed animate-rise [animation-delay:140ms]">{business.description}</p>}
+        <div className="mt-4 flex justify-center animate-rise [animation-delay:160ms]">
+          <StatusPill status={status} t={t} />
+        </div>
+        {(business.phone || mapUrl) && (
+          <div className="mt-5 flex justify-center gap-2.5 animate-rise [animation-delay:200ms]">
+            {business.phone && (
+              <a href={`tel:${business.phone.replace(/\s/g, "")}`} className="btn-secondary btn-sm">
+                <Phone className="size-4" /> {t.booking.call}
+              </a>
+            )}
+            {mapUrl && (
+              <a href={mapUrl} target="_blank" rel="noreferrer" className="btn-secondary btn-sm min-w-0 max-w-[60%]">
+                <MapPin className="size-4 shrink-0" /> <span className="truncate">{business.address}</span>
+              </a>
+            )}
+          </div>
+        )}
       </header>
 
-      <main className="mx-auto w-full max-w-xl px-4 pb-10">
+      <main className="mx-auto w-full max-w-xl px-4 pb-36">
         <BookingFlow
           slug={business.slug}
-          timeZone={business.timezone}
-          today={todayKey(business.timezone)}
-          tomorrow={addDays(todayKey(business.timezone), 1)}
+          timeZone={tz}
+          today={todayKey(tz)}
+          tomorrow={addDays(todayKey(tz), 1)}
           firstFree={
             firstFree
-              ? {
-                  day: dateKeyOf(firstFree, business.timezone),
-                  time: formatTime(firstFree, business.timezone),
-                }
+              ? { serviceId: firstFree.serviceId, iso: firstFree.start.toISOString(), day: dateKeyOf(firstFree.start, tz), time: formatTime(firstFree.start, tz) }
               : null
           }
           services={serviceRows.map((s) => ({ id: s.id, name: s.name, durationMinutes: s.durationMinutes, priceCents: s.priceCents }))}
@@ -132,12 +118,12 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
           days={days}
           t={{ book: t.book, common: t.common, weekdaysShort: t.weekdaysShort, months: t.months }}
         />
-        <footer className="mt-10 flex flex-col items-center gap-2 text-xs text-muted">
+        <footer className="mt-12 flex flex-col items-center gap-2 text-xs text-muted">
           <p>
             {t.book.payOnSite} · {t.book.noBookingFee}
           </p>
           <p className="opacity-70">
-            {t.appName} — <span className="display text-sm">{t.tagline}</span>
+            <span className="display text-[13px]">{t.appName}</span> · {t.tagline}
           </p>
         </footer>
       </main>
@@ -145,10 +131,16 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
   );
 }
 
+/** Fit the longest word of the name on one line: Syne is wide, so long words get smaller type. */
+function nameSize(name: string): string {
+  const longest = Math.max(...name.split(/\s+/).map((w) => w.length), 1);
+  return `min(48px, calc((min(100vw, 576px) - 48px) / ${(longest * 0.9).toFixed(2)}))`;
+}
+
 function StatusPill({ status, t }: { status: OpenStatus; t: Dict }) {
   if (status.open) {
     return (
-      <span className="inline-flex items-center gap-2 rounded-full bg-ok-soft px-3 py-1 font-medium text-ok">
+      <span className="inline-flex items-center gap-2 rounded-full bg-glass border border-[var(--glass-border)] backdrop-blur-md px-3.5 py-1.5 text-sm font-semibold text-ok">
         <span className="size-1.5 rounded-full bg-ok animate-pulse-dot" />
         {t.book.openNow} · {t.book.until} {formatMinutes(status.until)}
       </span>
@@ -165,7 +157,7 @@ function StatusPill({ status, t }: { status: OpenStatus; t: Dict }) {
           : `${t.book.opensOn} ${t.weekdays[isoWeekday(status.opensDate) - 1].toLowerCase()} ${time}`;
   }
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1 font-medium text-muted">
+    <span className="inline-flex items-center gap-2 rounded-full bg-glass border border-[var(--glass-border)] backdrop-blur-md px-3.5 py-1.5 text-sm font-medium text-muted">
       <span className="size-1.5 rounded-full bg-muted/60" />
       {t.book.closedNow}
       {when && ` · ${when}`}
@@ -175,13 +167,15 @@ function StatusPill({ status, t }: { status: OpenStatus; t: Dict }) {
 
 function PageSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-xl px-5 pt-16 animate-pulse space-y-6">
-      <div className="flex items-end gap-4">
-        <div className="size-[72px] rounded-[22px] bg-surface-2" />
-        <div className="h-10 w-56 rounded-xl bg-surface-2" />
+    <div className="mx-auto w-full max-w-xl px-5 pt-16 animate-pulse flex flex-col items-center gap-5">
+      <div className="size-[76px] rounded-full bg-surface-2" />
+      <div className="h-10 w-60 rounded-xl bg-surface-2" />
+      <div className="h-8 w-44 rounded-full bg-surface-2" />
+      <div className="mt-4 grid w-full grid-cols-2 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-28 rounded-3xl bg-surface-2" />
+        ))}
       </div>
-      <div className="h-7 w-44 rounded-full bg-surface-2" />
-      <div className="h-80 rounded-3xl bg-surface-2" />
     </div>
   );
 }

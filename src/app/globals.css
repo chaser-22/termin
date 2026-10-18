@@ -1,46 +1,62 @@
 @import "tailwindcss";
 
-/* Warm ivory and ink, with one brand accent. Public pages override the
-   accent per business (see src/lib/brand.ts). */
+/* Magla: fog over Lovćen. Grey-green fog, frosted glass, faint contour lines,
+   with one brand accent. Public pages override the accent per business
+   (see src/lib/brand.ts). */
 :root {
-  --bg: #f5f1ea;
-  --surface: #fffdf9;
-  --surface-2: #eee8de;
-  --ink: #16140f;
-  --muted: #6e675b;
-  --line: #e4ddd1;
+  --bg: #e9eeeb;
+  --bg-top: #d6dfda;
+  --surface: #fbfcfb;
+  --surface-2: #e4eae6;
+  --glass: rgb(255 255 255 / 0.62);
+  --glass-border: rgb(255 255 255 / 0.75);
+  --ink: #1d2a26;
+  --muted: #5d6c66;
+  --line: #d6ded9;
+  --contour: rgb(29 42 38 / 0.065);
   --accent: #0e5a63;
   --accent-hover: #0a474e;
-  --accent-soft: #e2eeee;
+  --accent-soft: #dbe9e7;
   --accent-ink: #ffffff;
   --danger: #b42318;
   --danger-soft: #fbeae7;
-  --ok: #187a3e;
-  --ok-soft: #e4f3e8;
+  --ok: #1d7a49;
+  --ok-soft: #dff1e6;
   --warn: #8f6200;
   --warn-soft: #fbf1d8;
-  --shadow-color: 32 26 15;
+  --shadow-color: 29 42 38;
+  /* The floating pill is the inverse of the page */
+  --pill-bg: var(--ink);
+  --pill-fg: var(--bg);
+  --pill-time: color-mix(in srgb, var(--accent) 40%, white);
+  --pill-error: #ffb4a6;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e0d0b;
-    --surface: #181613;
-    --surface-2: #221f1a;
-    --ink: #f3eee5;
-    --muted: #a39a8b;
-    --line: #2d2922;
+    --bg: #0e1412;
+    --bg-top: #16211d;
+    --surface: #161e1b;
+    --surface-2: #1d2724;
+    --glass: rgb(255 255 255 / 0.045);
+    --glass-border: rgb(255 255 255 / 0.08);
+    --ink: #e6ece9;
+    --muted: #96a49f;
+    --line: #26312d;
+    --contour: rgb(230 236 233 / 0.04);
     --accent: #6fc0c7;
     --accent-hover: #8ed1d6;
     --accent-soft: #16343a;
     --accent-ink: #08191b;
     --danger: #f4806f;
     --danger-soft: #3a1712;
-    --ok: #5fd38b;
-    --ok-soft: #12301d;
+    --ok: #6fd39a;
+    --ok-soft: #12301f;
     --warn: #f0c060;
     --warn-soft: #33270b;
     --shadow-color: 0 0 0;
+    --pill-time: color-mix(in srgb, var(--accent) 65%, black);
+    --pill-error: #b42318;
   }
 }
 
@@ -48,6 +64,7 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-glass: var(--glass);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
@@ -61,11 +78,11 @@
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-display-serif);
-  --shadow-soft: 0 1px 2px rgb(var(--shadow-color) / 0.04), 0 8px 24px -12px rgb(var(--shadow-color) / 0.12);
-  --shadow-lift: 0 2px 4px rgb(var(--shadow-color) / 0.05), 0 24px 48px -20px rgb(var(--shadow-color) / 0.28);
+  --font-display: var(--font-display-face);
+  --shadow-soft: 0 1px 0 rgb(255 255 255 / 0.5) inset, 0 12px 28px -20px rgb(var(--shadow-color) / 0.35);
+  --shadow-lift: 0 2px 6px rgb(var(--shadow-color) / 0.06), 0 28px 56px -24px rgb(var(--shadow-color) / 0.38);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -77,8 +94,30 @@ html {
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-feature-settings: "ss01", "cv11";
+  font-family: var(--font-body), system-ui, sans-serif;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Fog and contour lines behind every page; fixed so they stay put while content scrolls */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(ellipse at 78% 12%, transparent 0 22px, var(--contour) 22px 23px),
+    radial-gradient(70% 45% at 50% 0%, var(--bg-top), transparent 70%);
+  animation: contour-drift 60s linear infinite alternate;
+}
+@keyframes contour-drift {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(-4%, 3%, 0) rotate(3deg);
+  }
 }
 
 ::selection {
@@ -89,19 +128,19 @@ body {
 /* ------------------------------------------------------------ components */
 
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 h-11 text-[15px] font-medium tracking-[-0.01em] transition-[background-color,transform,box-shadow,color] duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 h-11 text-[15px] font-semibold tracking-[-0.01em] transition-[background-color,transform,box-shadow,color,opacity] duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none;
 }
 @utility btn-primary {
-  @apply btn bg-accent text-accent-ink hover:bg-accent-hover shadow-[0_1px_0_rgb(255_255_255/0.15)_inset,0_8px_20px_-8px_var(--accent)];
+  @apply btn bg-accent text-accent-ink hover:bg-accent-hover shadow-[0_1px_0_rgb(255_255_255/0.18)_inset,0_10px_24px_-10px_var(--accent)];
 }
 @utility btn-ink {
   @apply btn bg-ink text-bg hover:opacity-90;
 }
 @utility btn-secondary {
-  @apply btn bg-surface text-ink border border-line hover:bg-surface-2;
+  @apply btn bg-glass text-ink border border-[var(--glass-border)] backdrop-blur-md hover:bg-surface;
 }
 @utility btn-ghost {
-  @apply btn text-muted hover:text-ink hover:bg-surface-2;
+  @apply btn text-muted hover:text-ink hover:bg-glass;
 }
 @utility btn-sm {
   @apply h-9 px-3.5 text-sm;
@@ -112,38 +151,42 @@ body {
 @utility label {
   @apply block text-[13px] font-medium text-muted mb-1.5 tracking-wide;
 }
+/* Frosted glass panel: the main surface of Magla */
 @utility card {
-  @apply rounded-3xl border border-line bg-surface shadow-soft;
+  @apply rounded-[26px] border border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft;
 }
 @utility chip {
   @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
 }
 @utility eyebrow {
-  @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-muted;
+  @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-muted;
 }
 @utility display {
-  @apply font-display font-normal tracking-[-0.02em] leading-[1.02];
+  @apply font-display font-extrabold tracking-[-0.035em] leading-[0.98];
 }
 
 /* ------------------------------------------------------------ motion */
 
-@keyframes rise {
+/* Things come into focus out of the fog */
+@keyframes focus-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    filter: blur(8px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
+    filter: none;
     transform: none;
   }
 }
 @keyframes pop {
   0% {
-    transform: scale(0.6);
+    transform: scale(0.7);
     opacity: 0;
   }
   60% {
-    transform: scale(1.08);
+    transform: scale(1.06);
     opacity: 1;
   }
   100% {
@@ -156,17 +199,39 @@ body {
   }
 }
 @keyframes pulse-dot {
-  0%,
-  100% {
+  0% {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 45%, transparent);
   }
-  50% {
-    box-shadow: 0 0 0 5px transparent;
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
+/* Odometer columns roll up from 0 on first render; "backwards" fill hands
+   over to the inline transform afterwards, so later changes transition. */
+@keyframes odometer-in {
+  from {
+    transform: translateY(0);
+  }
+}
+.odometer-col {
+  animation: odometer-in 0.9s var(--ease-out-soft) backwards;
+}
+
+/* Kept as "rise" so existing screens pick up the new entrance */
 @utility animate-rise {
-  animation: rise 0.55s var(--ease-out-soft) both;
+  animation: focus-in 0.6s var(--ease-out-soft) both;
 }
 @utility animate-pop {
   animation: pop 0.5s var(--ease-out-soft) both;
@@ -177,10 +242,16 @@ body {
   animation: draw 0.5s 0.25s var(--ease-out-soft) forwards;
 }
 @utility animate-pulse-dot {
-  animation: pulse-dot 2s ease-in-out infinite;
+  animation: pulse-dot 2.4s ease-out infinite;
+}
+@utility animate-sheet {
+  animation: sheet-up 0.5s var(--ease-out-soft) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
   *,
   *::before,
   *::after {

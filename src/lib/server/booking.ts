@@ -120,7 +120,7 @@ export async function getSlotsRange(business: Business, serviceId: string, staff
   return result;
 }
 
-/** The earliest free time in the next `days` days for the shortest active service, if any. */
+/** The earliest free time in the next `days` days for the shortest active service, and that service. */
 export async function firstFreeSlot(business: Business, days = 7) {
   const d = await db();
   const shortest = await d.query.services.findFirst({
@@ -130,7 +130,7 @@ export async function firstFreeSlot(business: Business, days = 7) {
   if (!shortest) return null;
   const range = await getSlotsRange(business, shortest.id, null, todayKey(business.timezone), days);
   for (const date of Object.keys(range).sort()) {
-    if (range[date].length) return new Date(range[date][0]);
+    if (range[date].length) return { serviceId: shortest.id, start: new Date(range[date][0]) };
   }
   return null;
 }

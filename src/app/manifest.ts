@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Online zakazivanje za salone, berbernice i ordinacije.",
     start_url: "/dashboard",
     display: "standalone",
-    background_color: "#f7f6f3",
+    background_color: "#e9eeeb",
     theme_color: "#0e5a63",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },

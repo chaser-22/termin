@@ -6,6 +6,7 @@ import { brandCss } from "@/lib/brand";
 import { getBookingByToken } from "@/lib/server/booking";
 import { formatPrice } from "@/lib/format";
 import { dateKeyOf, formatTime, isPast, isoWeekday, parseDateKey } from "@/lib/time";
+import { Odometer } from "@/components/Odometer";
 import { CancelButton } from "./CancelButton";
 import { ShareButton } from "./ShareButton";
 
@@ -58,12 +59,14 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
 
       {/* Ticket */}
       <div className="card overflow-hidden shadow-lift animate-rise [animation-delay:240ms]">
-        <div className="relative px-6 pt-6 pb-7 bg-gradient-to-br from-accent-soft via-surface to-surface">
+        <div className="relative px-6 pt-6 pb-7">
           <p className="eyebrow">{t.booking.yourBooking}</p>
-          <p className={`display text-[30px] mt-2 ${cancelled ? "line-through text-muted" : ""}`}>{dateLine}</p>
-          <p className={`mt-1 text-[40px] font-medium tracking-tight tabular-nums leading-none ${cancelled ? "line-through text-muted" : ""}`}>
-            {formatTime(booking.startsAt, tz)}
-            <span className="text-muted text-[22px] font-normal"> – {formatTime(booking.endsAt, tz)}</span>
+          <p className={`display text-[26px] mt-2.5 ${cancelled ? "line-through text-muted" : ""}`}>{dateLine}</p>
+          <p className={`mt-3 flex flex-col gap-1.5 ${cancelled ? "line-through text-muted opacity-60" : ""}`}>
+            <Odometer value={formatTime(booking.startsAt, tz)} className={`display text-[clamp(44px,15vw,60px)] ${cancelled ? "" : "text-accent"}`} />
+            <span className="text-muted text-[15px] font-medium tabular-nums">
+              {formatTime(booking.startsAt, tz)} – {formatTime(booking.endsAt, tz)}
+            </span>
           </p>
         </div>
 

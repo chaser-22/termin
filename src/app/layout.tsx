@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist_Mono, Hanken_Grotesk, Syne } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Magla type: Syne for display, Hanken Grotesk for everything else
+const body = Hanken_Grotesk({
+  variable: "--font-body",
   subsets: ["latin", "latin-ext"],
 });
 
-const displaySerif = Instrument_Serif({
-  variable: "--font-display-serif",
+const display = Syne({
+  variable: "--font-display-face",
   subsets: ["latin", "latin-ext"],
-  weight: "400",
-  style: ["normal", "italic"],
+  weight: ["600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f5f1ea" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e0d0b" },
+    { media: "(prefers-color-scheme: light)", color: "#d6dfda" },
+    { media: "(prefers-color-scheme: dark)", color: "#16211d" },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="sr-Latn-ME" className={`${geistSans.variable} ${geistMono.variable} ${displaySerif.variable} h-full antialiased`}>
+    <html lang="sr-Latn-ME" className={`${body.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
