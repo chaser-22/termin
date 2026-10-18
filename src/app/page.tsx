@@ -9,6 +9,7 @@ import { getDict } from "@/i18n/server";
 import { VERTICALS } from "@/lib/verticals";
 import { ContinueChip } from "./VerticalMemory";
 import { HeroPhone } from "./HeroPhone";
+import { LaptopMock } from "./LaptopMock";
 
 export default function Home() {
   return (
@@ -26,69 +27,73 @@ async function Landing() {
   const titles = Object.fromEntries(VERTICALS.map((v) => [v.slug, v.tile.title[locale]]));
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
-      <header className="mx-auto w-full max-w-3xl px-5 py-5 flex items-center justify-between" style={{ viewTransitionName: "app-header" }}>
+      <header className="mx-auto w-full max-w-6xl px-5 py-5 flex items-center justify-between" style={{ viewTransitionName: "app-header" }}>
         <span className="display text-[24px]">{t.appName}</span>
-        <div className="flex items-center gap-3">
-          <LanguageSwitch current={locale} />
-        </div>
+        <LanguageSwitch current={locale} />
       </header>
 
-      <section className="relative mx-auto w-full max-w-3xl px-5 pt-8 pb-6 text-center">
-        <div aria-hidden className="absolute -top-40 right-[-20%] size-[640px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
-        <div className="relative">
-          <h1 className="display text-[44px] sm:text-[64px] leading-[1.02] mt-3 animate-rise [animation-delay:60ms]">{h.heroTitle}</h1>
-          <p className="mt-4 mx-auto max-w-md text-lg text-muted leading-relaxed animate-rise [animation-delay:120ms]">{h.heroBody}</p>
-          <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-sm font-medium animate-rise [animation-delay:180ms]">
+      <main className="relative mx-auto w-full max-w-6xl flex-1 px-5 pt-6 pb-16 grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+        <div aria-hidden className="absolute -top-32 right-[-10%] size-[620px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
+
+        {/* Left: what it is, and pick your business */}
+        <div className="relative text-center lg:text-left">
+          <h1 className="display text-[44px] sm:text-[60px] leading-[1.02] animate-rise">{h.heroTitle}</h1>
+          <p className="mt-4 text-lg text-muted animate-rise [animation-delay:60ms]">{h.heroBody}</p>
+          <ul className="mt-4 flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1 text-sm font-medium animate-rise [animation-delay:120ms]">
             {h.trust.map((x) => (
               <li key={x} className="flex items-center gap-1.5">
                 <Check className="size-4 text-accent" /> {x}
               </li>
             ))}
           </ul>
-          <div className="mt-4 min-h-9 flex justify-center">
+
+          <p className="mt-10 text-sm font-semibold text-muted animate-rise [animation-delay:160ms]">{h.pickTitle}</p>
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5 stagger">
+            {VERTICALS.map((v) => (
+              <Link key={v.slug} href={`/za/${v.slug}`} className="card card-interactive group px-3 py-4 flex flex-col items-center gap-2.5">
+                <span className="grid place-items-center size-11 rounded-2xl bg-accent-soft text-accent transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                  <VerticalIcon icon={v.icon} className="size-5" />
+                </span>
+                <span className="font-semibold text-[15px]">{v.tile.title[locale]}</span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-5 min-h-9 flex justify-center lg:justify-start">
             <ContinueChip label={h.continueAs} titles={titles} />
           </div>
-          <div className="mt-2 animate-rise [animation-delay:240ms]">
-            <HeroPhone
-              mocks={VERTICALS.map((v) => v.mock)}
-              locale={locale}
-              labels={{
-                nextFree: t.book.nextFree,
-                openUntil: `${t.book.openNow} · ${t.book.until} 20:00`,
-                chooseResource: t.book.chooseResource,
-                anyResource: t.book.anyResource,
-                groupClass: t.book.groupClass,
-                placesLeft: t.book.placesLeft,
-                lastPlace: t.book.lastPlace,
-              }}
-            />
+        </div>
+
+        {/* Right: what the owner sees, and what clients see */}
+        <div className="relative flex justify-center lg:justify-end pb-6 animate-rise [animation-delay:200ms]">
+          <div className="w-full max-w-[600px] pl-[24%] sm:pl-[26%]">
+            <LaptopMock locale={locale} labels={{ today: t.common.today, newBooking: t.dash.newBooking, people: ["Marko", "Ana"] }} />
+          </div>
+          <div className="absolute left-0 lg:left-[2%] -bottom-2 w-[150px] sm:w-[180px] h-[300px] sm:h-[360px] animate-float">
+            <div className="origin-top-left scale-[0.5] sm:scale-[0.56]">
+              <HeroPhone
+                mocks={VERTICALS.map((v) => v.mock)}
+                locale={locale}
+                labels={{
+                  nextFree: t.book.nextFree,
+                  openUntil: `${t.book.openNow} · ${t.book.until} 20:00`,
+                  chooseResource: t.book.chooseResource,
+                  anyResource: t.book.anyResource,
+                  groupClass: t.book.groupClass,
+                  placesLeft: t.book.placesLeft,
+                  lastPlace: t.book.lastPlace,
+                }}
+              />
+            </div>
           </div>
         </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-3xl px-5 pb-16">
-        <h2 className="display text-center text-[26px] sm:text-[34px]">{h.pickTitle}</h2>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 stagger">
-          {VERTICALS.map((v) => (
-            <Link key={v.slug} href={`/za/${v.slug}`} className="card card-interactive group p-6 flex items-center gap-4">
-              <span className="grid place-items-center size-12 shrink-0 rounded-2xl bg-accent-soft text-accent">
-                <VerticalIcon icon={v.icon} className="size-5" />
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="block text-lg font-bold tracking-tight truncate">{v.tile.title[locale]}</span>
-              </span>
-              <ArrowRight className="size-4 text-muted transition group-hover:translate-x-0.5 group-hover:text-ink" />
-            </Link>
-          ))}
-        </div>
-      </section>
+      </main>
 
       <ContactBlock t={t} />
 
-      <footer className="mx-auto w-full max-w-3xl px-5 pb-10 flex items-center justify-between text-sm text-muted">
+      <footer className="mx-auto w-full max-w-6xl px-5 pb-10 flex items-center justify-between text-sm text-muted">
         <span className="display text-xl text-ink">{t.appName}</span>
         <Link href="/login" className="hover:text-ink">
-          {t.auth.signIn}
+          {t.auth.signIn} <ArrowRight className="inline size-3.5" />
         </Link>
       </footer>
     </div>

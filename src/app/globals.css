@@ -413,3 +413,16 @@ input[type="radio"] {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* A gentle up-and-down drift, for the phone in the homepage picture */
+@keyframes float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@utility animate-float {
+  animation: float 5s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
