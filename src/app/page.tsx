@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { VerticalIcon } from "@/components/VerticalIcon";
@@ -8,6 +8,7 @@ import { ContactBlock } from "@/components/ContactBlock";
 import { getDict } from "@/i18n/server";
 import { VERTICALS } from "@/lib/verticals";
 import { ContinueChip } from "./VerticalMemory";
+import { HeroPhone } from "./HeroPhone";
 
 export default function Home() {
   return (
@@ -35,14 +36,36 @@ async function Landing() {
         </div>
       </header>
 
-      <section className="relative mx-auto w-full max-w-3xl px-5 pt-12 pb-10 text-center">
+      <section className="relative mx-auto w-full max-w-3xl px-5 pt-8 pb-6 text-center">
         <div aria-hidden className="absolute -top-40 right-[-20%] size-[640px] max-w-[100vw] rounded-full opacity-25 blur-3xl" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
         <div className="relative">
           <p className="eyebrow animate-rise">{h.eyebrow}</p>
-          <h1 className="display text-[38px] sm:text-[56px] mt-4 animate-rise [animation-delay:60ms]">{h.heroTitle}</h1>
-          <p className="mt-5 text-lg text-muted leading-relaxed animate-rise [animation-delay:120ms]">{h.heroBody}</p>
-          <div className="mt-6 min-h-9 flex justify-center">
+          <h1 className="display text-[44px] sm:text-[64px] leading-[1.02] mt-3 animate-rise [animation-delay:60ms]">{h.heroTitle}</h1>
+          <p className="mt-4 mx-auto max-w-md text-lg text-muted leading-relaxed animate-rise [animation-delay:120ms]">{h.heroBody}</p>
+          <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-sm font-medium animate-rise [animation-delay:180ms]">
+            {h.trust.map((x) => (
+              <li key={x} className="flex items-center gap-1.5">
+                <Check className="size-4 text-accent" /> {x}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 min-h-9 flex justify-center">
             <ContinueChip label={h.continueAs} titles={titles} />
+          </div>
+          <div className="mt-2 animate-rise [animation-delay:240ms]">
+            <HeroPhone
+              mocks={VERTICALS.map((v) => v.mock)}
+              locale={locale}
+              labels={{
+                nextFree: t.book.nextFree,
+                openUntil: `${t.book.openNow} · ${t.book.until} 20:00`,
+                chooseResource: t.book.chooseResource,
+                anyResource: t.book.anyResource,
+                groupClass: t.book.groupClass,
+                placesLeft: t.book.placesLeft,
+                lastPlace: t.book.lastPlace,
+              }}
+            />
           </div>
         </div>
       </section>

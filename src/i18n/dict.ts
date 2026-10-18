@@ -40,8 +40,9 @@ const me = {
   },
   home: {
     eyebrow: "Online zakazivanje u Crnoj Gori",
-    heroTitle: "Klijenti zakazuju sami. Vi imate jedan kalendar.",
-    heroBody: "Za sve koji rade po terminu. Bez provizije, bez SMS troškova, bez aplikacije za preuzimanje.",
+    heroTitle: "Klijenti zakazuju sami.",
+    heroBody: "Vi imate jedan uredan kalendar. Za sve koji rade po terminu.",
+    trust: ["Bez provizije", "Bez aplikacije", "Podešavanje besplatno"],
     pickTitle: "Čime se bavite?",
     continueAs: "Nastavi",
     seeDemo: "Pogledajte primjer",
@@ -268,8 +269,9 @@ const en: Dict = {
   },
   home: {
     eyebrow: "Online booking in Montenegro",
-    heroTitle: "Clients book themselves. You get one calendar.",
-    heroBody: "For anyone who works by appointment. No commission, no SMS fees, no app to download.",
+    heroTitle: "Clients book themselves.",
+    heroBody: "You get one tidy calendar. For anyone who works by appointment.",
+    trust: ["No commission", "No app to download", "Free setup"],
     pickTitle: "What's your business?",
     continueAs: "Continue",
     seeDemo: "See an example",
