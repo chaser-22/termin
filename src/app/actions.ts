@@ -6,10 +6,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
-import { businesses } from "@/db/schema";
+import { BUSINESS_TYPES, businesses, invites } from "@/db/schema";
 import { DICTS, isLocale } from "@/i18n/dict";
 import { getDict } from "@/i18n/server";
-import { consumeLoginToken, createLoginToken, signOut } from "@/lib/server/auth";
+import { consumeLoginToken, createLoginToken, signOut, type Activation } from "@/lib/server/auth";
+import { createBusinessWithDefaults, trialEnd, uniqueSlug } from "@/lib/server/setup";
 import { cancelByToken, createBooking } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
 import { emailEnabled, sendEmail } from "@/lib/server/email";
@@ -97,26 +98,78 @@ export type LoginState = { status: "idle" } | { status: "sent"; email: string; d
 export async function requestLoginLink(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const email = z.email().max(120).safeParse(String(formData.get("email") ?? "").trim().toLowerCase());
   if (!email.success) return { status: "error" };
-  const token = await createLoginToken(email.data);
+  return sendLoginLink(email.data);
+}
+
+async function sendLoginLink(email: string, activation?: Activation): Promise<LoginState> {
+  const token = await createLoginToken(email, activation);
   const link = `${await appOrigin()}/auth/verify?token=${token}`;
   const { locale } = await getDict();
   const t = DICTS[locale];
   const sent = await sendEmail({
-    to: email.data,
+    to: email,
     subject: `${t.appName}: ${t.auth.loginTitle}`,
     text: `${t.auth.loginBody}\n\n${link}\n`,
   });
   // Without an email provider in development, show the link on screen.
   const devLink = !sent && !emailEnabled() && process.env.NODE_ENV !== "production" ? link : undefined;
-  return { status: "sent", email: email.data, devLink };
+  return { status: "sent", email: email, devLink };
 }
 
 /** Second step of email sign-in: a button press, so link scanners can't spend the token. */
 export async function confirmLogin(token: string) {
-  const ok = await consumeLoginToken(token);
+  const session = await consumeLoginToken(token);
+  if (session?.activation) await activateBusiness(session.userId, session.activation);
+  const ok = !!session;
   // Pages fetched while signed out (e.g. a /dashboard that redirects to /login) are stale now
   if (ok) revalidatePath("/", "layout");
   redirect(ok ? "/dashboard" : "/login?error=1");
+}
+
+/** First sign-in from /start: create the business (from the invite, if any) and start the trial. */
+async function activateBusiness(userId: string, a: Activation) {
+  const d = await db();
+  if (await d.query.businesses.findFirst({ where: eq(businesses.ownerId, userId) })) return;
+  const { locale } = await getDict();
+  const business = await createBusinessWithDefaults(d, {
+    ownerId: userId,
+    ownerName: a.name,
+    name: a.name,
+    slug: await uniqueSlug(d, a.name),
+    type: a.type,
+    locale,
+    trialEndsAt: trialEnd(),
+  });
+  if (a.invite) await d.update(invites).set({ usedAt: new Date(), businessId: business.id }).where(eq(invites.code, a.invite));
+}
+
+const startSchema = z.object({
+  email: z.email().max(120),
+  invite: z.string().max(40).optional(),
+  name: z.string().trim().min(2).max(80).optional(),
+  type: z.enum(BUSINESS_TYPES).optional(),
+});
+
+/** /start: one form that sends the sign-in link and remembers what to create. */
+export async function startTrial(_prev: LoginState, fd: FormData): Promise<LoginState> {
+  const val = (k: string) => {
+    const v = String(fd.get(k) ?? "").trim();
+    return v === "" ? undefined : v;
+  };
+  const parsed = startSchema.safeParse({ email: val("email")?.toLowerCase(), invite: val("invite"), name: val("name"), type: val("type") });
+  if (!parsed.success) return { status: "error" };
+  const { email, invite: code } = parsed.data;
+  let activation: Activation;
+  if (code) {
+    const d = await db();
+    const invite = await d.query.invites.findFirst({ where: eq(invites.code, code) });
+    if (!invite || invite.usedAt) return { status: "error" };
+    activation = { name: invite.businessName, type: invite.type, invite: code };
+  } else {
+    if (!parsed.data.name || !parsed.data.type) return { status: "error" };
+    activation = { name: parsed.data.name, type: parsed.data.type };
+  }
+  return sendLoginLink(email, activation);
 }
 
 export async function logout() {

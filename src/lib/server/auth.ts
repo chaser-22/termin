@@ -11,25 +11,28 @@ const SESSION_COOKIE = "session";
 const SESSION_DAYS = 60;
 const LOGIN_TOKEN_MINUTES = 20;
 
-export async function createLoginToken(email: string): Promise<string> {
+export type Activation = NonNullable<typeof loginTokens.$inferSelect.activation>;
+
+export async function createLoginToken(email: string, activation?: Activation): Promise<string> {
   const token = randomToken();
   const d = await db();
   await d.insert(loginTokens).values({
     tokenHash: sha256(token),
     email,
     expiresAt: new Date(Date.now() + LOGIN_TOKEN_MINUTES * 60_000),
+    activation: activation ?? null,
   });
   return token;
 }
 
-/** Spends a sign-in token. Returns false when it is unknown or expired. */
-export async function consumeLoginToken(token: string): Promise<boolean> {
+/** Spends a sign-in token. Returns null when it is unknown or expired. */
+export async function consumeLoginToken(token: string): Promise<{ userId: string; activation: Activation | null } | null> {
   const d = await db();
   const [row] = await d
     .delete(loginTokens)
     .where(and(eq(loginTokens.tokenHash, sha256(token)), gt(loginTokens.expiresAt, new Date())))
     .returning();
-  if (!row) return false;
+  if (!row) return null;
 
   const [user] = await d
     .insert(users)
@@ -47,7 +50,7 @@ export async function consumeLoginToken(token: string): Promise<boolean> {
     path: "/",
     expires: expiresAt,
   });
-  return true;
+  return { userId: user.id, activation: row.activation };
 }
 
 export async function getCurrentUser() {

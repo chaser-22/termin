@@ -13,7 +13,7 @@ import { appOrigin } from "@/lib/server/url";
 import { BookingActions } from "./BookingActions";
 import { NewBookingForm } from "./NewBookingForm";
 import { Odometer } from "@/components/Odometer";
-import { CopyLink } from "./CopyLink";
+import { Welcome } from "./Welcome";
 
 const PX_PER_MIN = 1.2;
 
@@ -78,6 +78,17 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
   const selected = dayBookings.find(({ booking }) => booking.id === selectedId) ?? null;
   const nowMin = date === today ? minutesOfDay(new Date(), tz) : null;
   const link = `${await appOrigin()}/${business.slug}`;
+  const [[anyBooking], [nextRow]] = await Promise.all([
+    d.select({ id: bookings.id }).from(bookings).where(eq(bookings.businessId, business.id)).limit(1),
+    d
+      .select({ startsAt: bookings.startsAt, customer: customers.name, service: services.name })
+      .from(bookings)
+      .innerJoin(customers, eq(customers.id, bookings.customerId))
+      .innerJoin(services, eq(services.id, bookings.serviceId))
+      .where(and(eq(bookings.businessId, business.id), eq(bookings.status, "confirmed"), gt(bookings.startsAt, new Date())))
+      .orderBy(asc(bookings.startsAt))
+      .limit(1),
+  ]);
   const hrefFor = (params: { date?: string; b?: string }) => {
     const q = new URLSearchParams();
     const dd = params.date ?? date;
@@ -89,6 +100,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
 
   return (
     <div className="space-y-5 stagger">
+      <Welcome business={business} link={link} hasBookings={!!anyBooking} next={nextRow ?? null} now={new Date()} t={t} locale={locale} />
       {/* Day header */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1">
@@ -242,10 +254,6 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
             defaultTime={nowMin !== null ? formatMinutes(Math.ceil(nowMin / 15) * 15 % 1440) : "09:00"}
             t={{ dash: t.dash, book: t.book, common: t.common }}
           />
-          <div className="card p-4">
-            <p className="text-sm font-medium mb-2">{t.dash.bookingLink}</p>
-            <CopyLink url={link} copyLabel={t.dash.copy} copiedLabel={t.dash.copied} />
-          </div>
         </aside>
       </div>
     </div>

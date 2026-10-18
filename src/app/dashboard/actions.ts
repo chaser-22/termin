@@ -9,8 +9,7 @@ import { getLocale } from "@/i18n/server";
 import { requireBusiness, requireUser } from "@/lib/server/auth";
 import { createBooking } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
-import { createBusinessWithDefaults, isValidSlug } from "@/lib/server/setup";
-import { slugify } from "@/lib/slug";
+import { createBusinessWithDefaults, isValidSlug, trialEnd, uniqueSlug } from "@/lib/server/setup";
 import { isBrandKey } from "@/lib/brand";
 import { normalizePhone } from "@/lib/phone";
 import { isDateKey, localToInstant, parseTime } from "@/lib/time";
@@ -33,10 +32,7 @@ export async function setupBusiness(_prev: FormState, fd: FormData): Promise<For
     .safeParse({ name: str(fd, "name"), type: str(fd, "type"), city: str(fd, "city") });
   if (!parsed.success) return { error: "invalid" };
 
-  // The address comes from the name; a number is added if it is taken. It can be changed in Settings.
-  const base = slugify(parsed.data.name).slice(0, 34).replace(/-+$/, "") || "salon";
-  let slug = isValidSlug(base) ? base : `${base}-1`;
-  for (let n = 2; await d.query.businesses.findFirst({ where: eq(businesses.slug, slug) }); n++) slug = `${base}-${n}`;
+  const slug = await uniqueSlug(d, parsed.data.name);
 
   await createBusinessWithDefaults(d, {
     ownerId: user.id,
@@ -44,6 +40,7 @@ export async function setupBusiness(_prev: FormState, fd: FormData): Promise<For
     name: parsed.data.name,
     slug,
     type: parsed.data.type,
+    trialEndsAt: trialEnd(),
     city: optional(parsed.data.city),
     locale: await getLocale(),
   });
@@ -301,4 +298,24 @@ export async function saveSettings(_prev: FormState, fd: FormData): Promise<Form
     .where(eq(businesses.id, business.id));
   refresh();
   return { ok: true };
+}
+
+// ---------------------------------------------------------------- first-day checklist and trial
+
+/** Ticks a checklist step the first time it really happens. */
+export async function markOnboarding(step: "services" | "shared") {
+  const { business } = await requireBusiness();
+  const d = await db();
+  const now = new Date();
+  if (step === "services" && !business.servicesSeenAt) await d.update(businesses).set({ servicesSeenAt: now }).where(eq(businesses.id, business.id));
+  if (step === "shared" && !business.linkSharedAt) await d.update(businesses).set({ linkSharedAt: now }).where(eq(businesses.id, business.id));
+  revalidatePath("/dashboard");
+}
+
+/** "Continue with Termin": recorded for a manual follow-up. Nothing is charged. */
+export async function requestContinue() {
+  const { business } = await requireBusiness();
+  const d = await db();
+  if (!business.continueRequestedAt) await d.update(businesses).set({ continueRequestedAt: new Date() }).where(eq(businesses.id, business.id));
+  console.info(`[termin] continue requested: ${business.name} (/${business.slug})`);
 }

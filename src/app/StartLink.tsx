@@ -11,7 +11,7 @@ export const SETUP_TYPE_KEY = "termin:setup-type";
 export function StartLink({ type, className, children }: { type: BusinessType; className?: string; children: ReactNode }) {
   return (
     <Link
-      href="/login"
+      href={`/start?type=${type}`}
       className={className}
       onClick={() => {
         try {

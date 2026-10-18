@@ -14,3 +14,6 @@ export const CONTACT_LINKS = {
   viber: `viber://chat?number=%2B${digits}`,
   whatsapp: `https://wa.me/${digits}`,
 };
+
+/** Monthly price shown on the "Continue" card, e.g. "15 €". Leave null until you decide. */
+export const PRICE_PER_MONTH: string | null = null;

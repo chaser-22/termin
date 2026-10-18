@@ -29,6 +29,13 @@
       "when": 1792322477828,
       "tag": "0003_classes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792362595987,
+      "tag": "0004_trial_invites",
+      "breakpoints": true
     }
   ]
 }

@@ -1,11 +1,13 @@
 // Creating a business with starter data. No Next.js imports, so the seed
 // script can use it too.
+import { eq } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { businesses, classTimes, services, staff, workingHours, type BusinessType } from "@/db/schema";
 import type { Locale } from "@/i18n/dict";
 import { RESOURCE_TYPES, defaultHours, templateResources, templateSchedule, templateServices } from "@/lib/templates";
 
-export { isValidSlug, slugify } from "@/lib/slug";
+import { isValidSlug, slugify } from "@/lib/slug";
+export { isValidSlug, slugify };
 
 export type NewBusiness = {
   ownerId: string;
@@ -17,7 +19,19 @@ export type NewBusiness = {
   phone?: string | null;
   address?: string | null;
   locale: Locale;
+  trialEndsAt?: Date | null;
 };
+
+export const TRIAL_DAYS = 3;
+export const trialEnd = () => new Date(Date.now() + TRIAL_DAYS * 86_400_000);
+
+/** A free web address made from the business name, with a number added if it is taken. */
+export async function uniqueSlug(db: Db, name: string): Promise<string> {
+  const base = slugify(name).slice(0, 34).replace(/-+$/, "") || "salon";
+  let slug = isValidSlug(base) ? base : `${base}-1`;
+  for (let n = 2; await db.query.businesses.findFirst({ where: eq(businesses.slug, slug) }); n++) slug = `${base}-${n}`;
+  return slug;
+}
 
 export async function createBusinessWithDefaults(db: Db, input: NewBusiness) {
   return db.transaction(async (tx) => {
@@ -31,6 +45,7 @@ export async function createBusinessWithDefaults(db: Db, input: NewBusiness) {
         city: input.city ?? null,
         phone: input.phone ?? null,
         address: input.address ?? null,
+        trialEndsAt: input.trialEndsAt ?? null,
       })
       .returning();
     // People-based businesses start with the owner; courts and rentals with two resources

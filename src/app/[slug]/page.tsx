@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { and, asc, eq, inArray } from "drizzle-orm";
-import { businesses, serviceStaff, services, staff, workingHours } from "@/db/schema";
+import { businesses, serviceStaff, services, staff, workingHours, type BusinessType } from "@/db/schema";
 import { getDict } from "@/i18n/server";
 import type { Dict } from "@/i18n/dict";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
@@ -24,7 +24,7 @@ export default function BusinessPage({ params }: PageProps<"/[slug]">) {
 
 async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { locale, t } = await getDict();
+  const { t } = await getDict();
   const d = await db();
   const business = await d.query.businesses.findFirst({ where: eq(businesses.slug, slug) });
   if (!business) {
@@ -35,6 +35,14 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
     );
   }
 
+  return <BookingPage business={business} />;
+}
+
+/** The public booking page for one business. With `displayName` it shows that
+ *  name instead (the invitation preview runs on a demo business). */
+export async function BookingPage({ business, displayName, displayType }: { business: typeof businesses.$inferSelect; displayName?: string; displayType?: BusinessType }) {
+  const { locale, t } = await getDict();
+  const d = await db();
   const [serviceRows, staffRows] = await Promise.all([
     d.select().from(services).where(and(eq(services.businessId, business.id), eq(services.active, true))).orderBy(asc(services.sortOrder), asc(services.createdAt)),
     d.select().from(staff).where(and(eq(staff.businessId, business.id), eq(staff.active, true))).orderBy(asc(staff.sortOrder), asc(staff.createdAt)),
@@ -69,16 +77,16 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
           className="absolute left-1/2 top-6 -z-10 h-48 w-[34rem] max-w-full -translate-x-1/2 rounded-full bg-white/70 blur-3xl dark:bg-white/[0.04]"
         />
         <div className="mx-auto grid place-items-center size-[76px] rounded-full bg-accent text-accent-ink display text-[34px] shadow-[0_0_0_7px_var(--glass),0_18px_36px_-16px_var(--accent)] animate-pop">
-          {business.name.slice(0, 1).toUpperCase()}
+          {(displayName ?? business.name).slice(0, 1).toUpperCase()}
         </div>
         <p className="eyebrow mt-6 animate-rise [animation-delay:60ms]">
-          {t.businessTypes[business.type].split(" (")[0]}
-          {business.city ? ` · ${business.city}` : ""}
+          {t.businessTypes[displayType ?? business.type].split(" (")[0]}
+          {!displayName && business.city ? ` · ${business.city}` : ""}
         </p>
-        <h1 className="display mt-2.5 text-balance animate-rise [animation-delay:100ms]" style={{ fontSize: nameSize(business.name) }}>
-          {business.name}
+        <h1 className="display mt-2.5 text-balance animate-rise [animation-delay:100ms]" style={{ fontSize: nameSize(displayName ?? business.name) }}>
+          {displayName ?? business.name}
         </h1>
-        {business.description && <p className="mx-auto mt-3 max-w-md text-[15px] text-muted leading-relaxed animate-rise [animation-delay:140ms]">{business.description}</p>}
+        {!displayName && business.description && <p className="mx-auto mt-3 max-w-md text-[15px] text-muted leading-relaxed animate-rise [animation-delay:140ms]">{business.description}</p>}
         <div className="mt-4 flex justify-center animate-rise [animation-delay:160ms]">
           <StatusPill status={status} t={t} />
         </div>

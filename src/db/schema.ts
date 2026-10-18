@@ -2,6 +2,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   primaryKey,
   pgTable,
   text,
@@ -24,6 +25,8 @@ export const loginTokens = pgTable("login_tokens", {
   tokenHash: text("token_hash").primaryKey(),
   email: text("email").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  // Set when the link also activates a new business (from /start)
+  activation: jsonb("activation").$type<{ name: string; type: BusinessType; invite?: string }>(),
 });
 
 export const sessions = pgTable("sessions", {
@@ -57,6 +60,23 @@ export const businesses = pgTable("businesses", {
   ownerId: uuid("owner_id")
     .notNull()
     .references(() => users.id),
+  // Free trial. Nothing is locked when it ends: you extend or convert by hand.
+  trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
+  // Owner tapped "Continue with Termin": a manual follow-up for you
+  continueRequestedAt: timestamp("continue_requested_at", { withTimezone: true }),
+  // First-day checklist
+  servicesSeenAt: timestamp("services_seen_at", { withTimezone: true }),
+  linkSharedAt: timestamp("link_shared_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+/** A personal invitation link (/p/<code>) you send to a business owner. */
+export const invites = pgTable("invites", {
+  code: text("code").primaryKey(),
+  businessName: text("business_name").notNull(),
+  type: text("type").$type<BusinessType>().notNull(),
+  businessId: uuid("business_id").references(() => businesses.id, { onDelete: "set null" }),
+  usedAt: timestamp("used_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 
@@ -117,7 +137,7 @@ export const services = pgTable(
 );
 
 // Weekly hours per staff member. Several rows on one weekday model a break.
-// weekday: 1 = Monday … 7 = Sunday (ISO). Minutes are from local midnight.
+// weekday: 1 = Monday â€¦ 7 = Sunday (ISO). Minutes are from local midnight.
 export const workingHours = pgTable(
   "working_hours",
   {

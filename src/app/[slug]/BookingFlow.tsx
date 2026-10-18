@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
+import { useContext, useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Clock, RotateCcw, Sparkles, Users } from "lucide-react";
 import { bookAppointment } from "@/app/actions";
+import { PreviewContext } from "./preview";
 import type { Dict } from "@/i18n/dict";
 import { Odometer } from "@/components/Odometer";
 import { formatDuration, formatPrice } from "@/lib/format";
@@ -486,10 +487,13 @@ function DetailsStep({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, startSubmit] = useTransition();
+  const preview = useContext(PreviewContext);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    // The invitation preview never saves anything
+    if (preview) return preview();
     startSubmit(async () => {
       const res = await bookAppointment({ slug, serviceId, staffId, startsAt: slot, ...details, note });
       if (res.ok) {

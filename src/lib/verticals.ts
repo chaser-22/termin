@@ -282,3 +282,12 @@ export const VERTICALS: Vertical[] = [
 export function verticalBySlug(slug: string): Vertical | undefined {
   return VERTICALS.find((v) => v.slug === slug);
 }
+
+// Business types without a page of their own borrow the closest one's demo
+const DEMO_FALLBACK: Partial<Record<BusinessType, string>> = { salon: "barber", nails: "barber", beauty: "barber", clinic: "dentist", other: "barber" };
+
+/** The demo business slug to preview for a business type. */
+export function demoSlugFor(type: BusinessType): string {
+  const v = VERTICALS.find((x) => x.setupType === type) ?? VERTICALS.find((x) => x.setupType === DEMO_FALLBACK[type]) ?? VERTICALS[0];
+  return v.demo.slice(1);
+}

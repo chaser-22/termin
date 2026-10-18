@@ -6,6 +6,7 @@ import { getDict } from "@/i18n/server";
 import { requireBusiness } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
 import { addClassTime, removeClassTime, saveService, setServiceStaff, toggleService } from "../actions";
+import { MarkServicesSeen } from "../WelcomeActions";
 import { formatMinutes } from "@/lib/time";
 
 export default function ServicesPage() {
@@ -35,6 +36,7 @@ async function Services() {
 
   return (
     <div className="max-w-3xl stagger">
+      <MarkServicesSeen />
       <h1 className="display text-[40px] mb-5">{t.dash.services}</h1>
       <div className="card divide-y divide-line/50">
         <div className={`hidden sm:grid ${cols} gap-3 px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide`}>
