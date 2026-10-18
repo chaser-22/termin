@@ -53,5 +53,7 @@ export function isBrandKey(value: string | null | undefined): value is BrandKey 
 export function brandCss(key: string | null | undefined, selector = ":root"): string {
   const b = BRANDS[isBrandKey(key) ? key : "adriatic"];
   const vars = (s: Shade) => `--accent:${s.accent};--accent-hover:${s.hover};--accent-soft:${s.soft};--accent-ink:${s.ink};`;
-  return `${selector}{${vars(b.light)}}@media (prefers-color-scheme:dark){${selector}{${vars(b.dark)}}}`;
+  // Dark follows the device unless a theme was picked (data-theme on <html>)
+  const on = (root: string) => (selector === ":root" ? root : `${root} ${selector}`);
+  return `${selector}{${vars(b.light)}}@media (prefers-color-scheme:dark){${on(':root:not([data-theme="light"])')}{${vars(b.dark)}}}${on(':root[data-theme="dark"]')}{${vars(b.dark)}}`;
 }

@@ -16,7 +16,7 @@ type Labels = {
 /** A drawn picture of a business's booking page, so owners see what clients see. */
 export function PhoneMock({ mock, locale, labels }: { mock: MockData; locale: Locale; labels: Labels }) {
   return (
-    <div aria-hidden className="relative w-[290px] sm:w-[320px] rounded-[48px] bg-[#0c0d0d] p-3 shadow-lift rotate-[-2deg]">
+    <div aria-hidden className="relative w-[290px] sm:w-[320px] rounded-[48px] bg-gradient-to-b from-[#2b2e2e] to-[#0c0d0d] p-3 shadow-lift ring-1 ring-white/10 rotate-[-2deg]">
       <div className="relative h-[540px] overflow-hidden rounded-[38px] bg-bg">
         <div
           className="absolute inset-0"

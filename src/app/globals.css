@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme="dark"] *) {
+    @slot;
+  }
+}
+
 /* Magla: fog over Lovćen. Grey-green fog, frosted glass, faint contour lines,
    with one brand accent. Public pages override the accent per business
    (see src/lib/brand.ts). */
@@ -37,8 +48,9 @@
   --pill-error: #ffb4a6;
 }
 
+/* Dark follows the device unless the visitor picked a theme (data-theme on <html>) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0e1412;
     --bg-top: #16211d;
     --surface: #161e1b;
@@ -66,6 +78,34 @@
     --pill-time: color-mix(in srgb, var(--accent) 65%, black);
     --pill-error: #b42318;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1412;
+  --bg-top: #16211d;
+  --surface: #161e1b;
+  --surface-2: #1d2724;
+  --glass: rgb(255 255 255 / 0.05);
+  --glass-strong: rgb(255 255 255 / 0.08);
+  --glass-border: rgb(255 255 255 / 0.1);
+  --glow-a: color-mix(in srgb, var(--accent) 26%, transparent);
+  --glow-b: color-mix(in srgb, var(--accent) 12%, rgb(90 120 200 / 0.18));
+  --ink: #f0f4f2;
+  --muted: #aebbb6;
+  --line: #2c3833;
+  --contour: rgb(230 236 233 / 0.035);
+  --accent: #6fc0c7;
+  --accent-hover: #8ed1d6;
+  --accent-soft: #16343a;
+  --accent-ink: #08191b;
+  --danger: #f4806f;
+  --danger-soft: #3a1712;
+  --ok: #6fd39a;
+  --ok-soft: #12301f;
+  --warn: #f0c060;
+  --warn-soft: #33270b;
+  --shadow-color: 0 0 0;
+  --pill-time: color-mix(in srgb, var(--accent) 65%, black);
+  --pill-error: #b42318;
 }
 
 @theme inline {

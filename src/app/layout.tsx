@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+import { THEME_SCRIPT } from "@/lib/theme";
 
 // Magla type: Bricolage Grotesque for display (optical sizing), Plus Jakarta Sans for text
 const body = Plus_Jakarta_Sans({
@@ -35,8 +37,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="sr-Latn-ME" className={`${body.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="sr-Latn-ME" className={`${body.variable} ${geistMono.variable} ${display.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col">
+        <Script id="theme" strategy="beforeInteractive">
+          {THEME_SCRIPT}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }
