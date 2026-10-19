@@ -8,7 +8,7 @@ import { getDict } from "@/i18n/server";
 import { CONTACT, CONTACT_LINKS } from "@/lib/contact";
 import { VERTICALS } from "@/lib/verticals";
 import { ContinueChip } from "./VerticalMemory";
-import { TiltGrid } from "./TiltGrid";
+import { SpotlightGrid } from "./SpotlightGrid";
 
 export default function Home() {
   return (
@@ -63,12 +63,12 @@ async function Landing() {
           <h2 id="pick" className="enter text-center text-[13px] font-semibold uppercase tracking-[0.14em] text-muted" style={delay(280)}>
             {h.pickTitle}
           </h2>
-          <TiltGrid className="industry-grid mt-4 sm:mt-5 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-4 gap-2 min-[380px]:gap-2.5 sm:gap-3.5">
+          <SpotlightGrid className="industry-grid mt-4 sm:mt-5 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-4 gap-2 min-[380px]:gap-2.5 sm:gap-3.5">
             {VERTICALS.map((v, i) => (
               <IndustryCard key={v.slug} href={`/za/${v.slug}`} icon={v.icon} title={v.tile.title[locale]} line={v.tile.line[locale]} index={i} />
             ))}
             <IndustryCard href="/start" icon="more" title={h.other} line={h.otherLine} index={VERTICALS.length} quiet />
-          </TiltGrid>
+          </SpotlightGrid>
 
           <div className="enter mt-5 flex flex-col items-center gap-3" style={delay(560)}>
             <ContinueChip label={h.continueAs} titles={titles} />
@@ -123,7 +123,7 @@ function IndustryCard({
       className={`industry-card enter group rounded-[22px] min-[380px]:rounded-[24px] border p-3.5 min-[380px]:p-4 sm:p-5 grid grid-cols-[auto_1fr_auto] items-center gap-x-3.5 min-h-[76px] min-[380px]:grid-cols-[1fr_auto] min-[380px]:grid-rows-[auto_1fr] min-[380px]:gap-y-5 min-[380px]:min-h-[140px] sm:min-h-[148px] outline-none ${
         quiet
           ? "border-dashed border-line bg-transparent"
-          : "border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--glass-border))]"
+          : "border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft"
       }`}
     >
       <span className="industry-icon grid place-items-center size-11 rounded-2xl bg-accent-soft text-accent ring-1 ring-inset ring-[color-mix(in_srgb,var(--accent)_18%,transparent)] shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] min-[380px]:self-start">
