@@ -38,7 +38,7 @@ async function Landing() {
         initial: v.mock.initial,
         name: v.mock.name,
         typeLabel: v.mock.typeLabel[locale],
-        items: v.mock.items.slice(0, 3).map((it) => ({ name: it.name[locale], meta: it.meta, price: it.price, left: it.left })),
+        items: v.mock.items.slice(0, 4).map((it) => ({ name: it.name[locale], meta: it.meta, price: it.price, left: it.left })),
         nextFree: { day: v.mock.pill.day[locale], time: v.mock.pill.time },
       },
     })),
@@ -59,9 +59,9 @@ async function Landing() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 flex flex-col justify-center py-8 sm:py-10">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 flex flex-col pt-3 sm:pt-6 pb-10">
         <div className="text-center">
-          <h1 className="display mx-auto max-w-[15ch] sm:max-w-[22ch] text-[clamp(2.1rem,8.6vw,4.1rem)] font-semibold leading-[1.02] tracking-[-0.038em]">
+          <h1 className="display mx-auto max-w-[15ch] sm:max-w-none text-[clamp(1.85rem,7.4vw,3.3rem)] font-semibold leading-[1.04] tracking-[-0.038em]">
             {beats.map((b, i) => (
               <Fragment key={b}>
                 {i > 0 && " "}
@@ -71,12 +71,12 @@ async function Landing() {
               </Fragment>
             ))}
           </h1>
-          <p className="enter mx-auto mt-4 sm:mt-5 max-w-[34ch] text-[16.5px] sm:text-lg leading-relaxed text-muted text-balance" style={delay(220)}>
+          <p className="enter mx-auto mt-2.5 sm:mt-3 max-w-[34ch] sm:max-w-none text-[15.5px] sm:text-[17px] leading-relaxed text-muted text-balance" style={delay(220)}>
             {h.heroBody}
           </p>
         </div>
 
-        <section className="mt-9 sm:mt-11" aria-labelledby="pick">
+        <section className="mt-5 sm:mt-7" aria-labelledby="pick">
           <h2 id="pick" className="enter text-center text-[13px] font-semibold uppercase tracking-[0.14em] text-muted" style={delay(280)}>
             {h.pickTitle}
           </h2>

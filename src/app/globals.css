@@ -445,10 +445,11 @@ input[type="radio"] {
 
 /* Swipeable industries. A native scroll-snap track; IndustryCarousel sets each
    item's distance from the centre (--p, 0 = centred) and side (--dir). The
-   centred card is full size; neighbours shrink, fade and their preview slides
-   a little, which reads as depth while swiping. */
+   centred card is the hero of the page: full size, lit in its industry colour,
+   with a coloured shadow. Neighbours shrink, dim and slide their preview a
+   little, which reads as depth while swiping. */
 .swipe-track {
-  --card-w: min(80vw, 330px);
+  --card-w: min(86vw, 360px);
   padding-inline: calc(50% - var(--card-w) / 2);
   scroll-padding-inline: calc(50% - var(--card-w) / 2);
   touch-action: pan-x pan-y;
@@ -456,46 +457,59 @@ input[type="radio"] {
 }
 @media (min-width: 640px) {
   .swipe-track {
-    --card-w: 360px;
+    --card-w: 410px;
     /* fade the far edges on wide screens */
-    -webkit-mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-    mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+}
+@media (min-width: 1024px) {
+  .swipe-track {
+    --card-w: 440px;
   }
 }
 .swipe-item {
   --p: 0;
   --dir: 0;
   width: var(--card-w);
-  padding-inline: 7px;
+  padding-inline: 8px;
 }
 .swipe-card {
-  scale: calc(1 - var(--p) * 0.1);
-  opacity: calc(1 - var(--p) * 0.5);
+  --on: calc(1 - var(--p));
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  border-color: color-mix(in srgb, var(--accent) calc(var(--on) * 38%), var(--glass-border));
+  scale: calc(1 - var(--p) * 0.12);
+  opacity: calc(1 - var(--p) * 0.55);
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.05) inset,
-    0 30px 60px -36px rgb(var(--shadow-color) / calc(0.7 - var(--p) * 0.5));
-  transition:
-    border-color 300ms var(--ease-out-soft),
-    background-color 300ms var(--ease-out-soft);
+    0 1px 0 rgb(255 255 255 / 0.06) inset,
+    0 2px 8px rgb(var(--shadow-color) / 0.08),
+    0 44px 80px -40px color-mix(in srgb, var(--accent) calc(var(--on) * 70%), rgb(var(--shadow-color) / 0.5));
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
-.swipe-preview {
-  translate: calc(var(--dir) * -14px) 0;
+/* The industry colour washes in from the top, strongest on the centred card */
+.swipe-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 55% at 50% -8%, color-mix(in srgb, var(--accent) 32%, transparent), transparent 62%),
+    radial-gradient(80% 40% at 100% 100%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
+  opacity: calc(0.35 + var(--on) * 0.65);
 }
-@media (hover: hover) and (pointer: fine) {
-  .swipe-card[aria-current]:hover {
-    border-color: color-mix(in srgb, var(--accent) 40%, var(--glass-border));
-  }
+.swipe-preview {
+  translate: calc(var(--dir) * -18px) 0;
 }
 .swipe-card:active {
-  scale: calc(0.97 - var(--p) * 0.1);
+  scale: calc(0.975 - var(--p) * 0.12);
   transition: scale 120ms var(--ease-out-soft);
 }
 .swipe-card:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
   .swipe-preview {
