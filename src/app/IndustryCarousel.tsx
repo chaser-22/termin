@@ -168,11 +168,11 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
       </div>
 
       {/* Position and direct jumps */}
-      <div className="mt-1 flex items-center justify-center gap-3">
-        <button type="button" onClick={() => goTo(Math.max(0, active - 1))} disabled={active === 0} aria-label={labels.prev} className="hidden sm:grid place-items-center size-10 rounded-full border border-line text-muted hover:text-ink hover:bg-glass disabled:opacity-30 transition cursor-pointer">
-          <ChevronLeft className="size-5" />
+      <div className="mt-1 flex items-center justify-center gap-2.5 sm:gap-4">
+        <button type="button" onClick={() => goTo(Math.max(0, active - 1))} disabled={active === 0} aria-label={labels.prev} className="grid shrink-0 place-items-center size-11 sm:size-12 rounded-full border border-[var(--glass-border)] bg-glass-strong text-ink shadow-soft backdrop-blur-xl hover:bg-surface active:scale-95 disabled:opacity-35 disabled:shadow-none transition cursor-pointer">
+          <ChevronLeft className="size-6" />
         </button>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center">
           {cards.map((c, i) => (
             <button
               key={c.slug}
@@ -180,17 +180,17 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
               onClick={() => goTo(i)}
               aria-label={c.title}
               aria-current={i === active ? "true" : undefined}
-              className="grid place-items-center size-6 cursor-pointer"
+              className="grid place-items-center h-8 w-6 sm:w-7 cursor-pointer"
             >
-              <span className={`block h-1.5 rounded-full transition-all duration-300 ${i === active ? "w-5 bg-accent" : "w-1.5 bg-muted/40"}`} />
+              <span className={`block h-2 rounded-full transition-all duration-300 ${i === active ? "w-6 sm:w-7 bg-accent" : "w-2 bg-muted/45 hover:bg-muted/70"}`} />
             </button>
           ))}
         </div>
-        <button type="button" onClick={() => goTo(Math.min(cards.length - 1, active + 1))} disabled={active === cards.length - 1} aria-label={labels.next} className="hidden sm:grid place-items-center size-10 rounded-full border border-line text-muted hover:text-ink hover:bg-glass disabled:opacity-30 transition cursor-pointer">
-          <ChevronRight className="size-5" />
+        <button type="button" onClick={() => goTo(Math.min(cards.length - 1, active + 1))} disabled={active === cards.length - 1} aria-label={labels.next} className="grid shrink-0 place-items-center size-11 sm:size-12 rounded-full bg-accent text-accent-ink shadow-[0_12px_28px_-12px_var(--accent)] hover:bg-accent-hover active:scale-95 disabled:opacity-35 disabled:shadow-none transition cursor-pointer">
+          <ChevronRight className="size-6" />
         </button>
       </div>
-      <p className="mt-1 text-center text-[12.5px] text-muted sm:hidden">{labels.swipeHint}</p>
+      <p className="mt-2 text-center text-[14px] text-muted sm:hidden">{labels.swipeHint}</p>
     </div>
   );
 }

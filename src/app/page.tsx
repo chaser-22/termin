@@ -71,13 +71,13 @@ async function Landing() {
               </Fragment>
             ))}
           </h1>
-          <p className="enter mx-auto mt-2.5 sm:mt-3 max-w-[34ch] sm:max-w-none text-[15.5px] sm:text-[17px] leading-relaxed text-muted text-balance" style={delay(220)}>
+          <p className="enter mx-auto mt-3 max-w-[30ch] sm:max-w-none text-[18px] sm:text-[21px] leading-snug text-muted text-balance" style={delay(220)}>
             {h.heroBody}
           </p>
         </div>
 
         <section className="mt-5 sm:mt-7" aria-labelledby="pick">
-          <h2 id="pick" className="enter text-center text-[13px] font-semibold uppercase tracking-[0.14em] text-muted" style={delay(280)}>
+          <h2 id="pick" className="enter display text-center text-[22px] sm:text-[27px] font-semibold tracking-[-0.02em]" style={delay(280)}>
             {h.pickTitle}
           </h2>
 
