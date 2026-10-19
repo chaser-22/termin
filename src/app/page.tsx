@@ -1,14 +1,14 @@
 import { Fragment, Suspense, type CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, MessageCircle } from "lucide-react";
+import { Check, MessageCircle } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
-import { VerticalIcon } from "@/components/VerticalIcon";
 import { getDict } from "@/i18n/server";
 import { CONTACT, CONTACT_LINKS } from "@/lib/contact";
 import { VERTICALS } from "@/lib/verticals";
 import { ContinueChip } from "./VerticalMemory";
-import { TiltGrid } from "./TiltGrid";
+import { IndustryCarousel, type CarouselCard } from "./IndustryCarousel";
+import { brandCss } from "@/lib/brand";
 
 export default function Home() {
   return (
@@ -27,6 +27,23 @@ async function Landing() {
   const { locale, t } = await getDict();
   const h = t.home;
   const titles = Object.fromEntries(VERTICALS.map((v) => [v.slug, v.tile.title[locale]]));
+  const cards: CarouselCard[] = [
+    ...VERTICALS.map((v) => ({
+      slug: v.slug,
+      href: `/za/${v.slug}`,
+      icon: v.icon,
+      title: v.tile.title[locale],
+      line: v.tile.line[locale],
+      preview: {
+        initial: v.mock.initial,
+        name: v.mock.name,
+        typeLabel: v.mock.typeLabel[locale],
+        items: v.mock.items.slice(0, 3).map((it) => ({ name: it.name[locale], meta: it.meta, price: it.price, left: it.left })),
+        nextFree: { day: v.mock.pill.day[locale], time: v.mock.pill.time },
+      },
+    })),
+    { slug: "other", href: "/start", icon: "more" as const, title: h.other, line: h.otherLine },
+  ];
   // "Vaš posao. Vaši termini. Jednostavno." reads as three beats
   const beats = h.heroTitle.split(/(?<=\.)\s+/);
 
@@ -63,14 +80,38 @@ async function Landing() {
           <h2 id="pick" className="enter text-center text-[13px] font-semibold uppercase tracking-[0.14em] text-muted" style={delay(280)}>
             {h.pickTitle}
           </h2>
-          <TiltGrid className="industry-grid mt-4 sm:mt-5 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-4 gap-2 min-[380px]:gap-2.5 sm:gap-3.5">
-            {VERTICALS.map((v, i) => (
-              <IndustryCard key={v.slug} href={`/za/${v.slug}`} icon={v.icon} title={v.tile.title[locale]} line={v.tile.line[locale]} index={i} />
-            ))}
-            <IndustryCard href="/start" icon="more" title={h.other} line={h.otherLine} index={VERTICALS.length} quiet />
-          </TiltGrid>
 
-          <div className="enter mt-5 flex flex-col items-center gap-3" style={delay(560)}>
+          <div className="enter -mx-5 sm:mx-0" style={delay(320)}>
+            <style>{VERTICALS.map((v) => brandCss(v.accent, `[data-accent="${v.slug}"]`)).join("")}</style>
+            <IndustryCarousel
+              cards={cards}
+              labels={{
+                example: h.example,
+                nextFree: t.book.nextFree,
+                open: h.seeHow,
+                prev: h.prev,
+                next: h.next,
+                swipeHint: h.swipeHint,
+                placesLeft: t.book.placesLeft,
+              }}
+            />
+          </div>
+
+          {/* Every industry one tap away, without swiping */}
+          <nav aria-label={h.orPick} className="enter mt-6 text-center" style={delay(420)}>
+            <p className="text-[12.5px] font-semibold uppercase tracking-[0.12em] text-muted">{h.orPick}</p>
+            <ul className="mt-3 flex flex-wrap justify-center gap-2">
+              {[...VERTICALS.map((v) => ({ href: `/za/${v.slug}`, title: v.tile.title[locale] })), { href: "/start", title: h.other }].map((x) => (
+                <li key={x.href}>
+                  <Link href={x.href} className="inline-flex h-9 items-center rounded-full border border-line px-3.5 text-[13.5px] font-medium text-ink/85 transition hover:border-accent hover:text-ink hover:bg-glass active:scale-[0.97]">
+                    {x.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="enter mt-6 flex flex-col items-center gap-3" style={delay(480)}>
             <ContinueChip label={h.continueAs} titles={titles} />
             <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-[13.5px] text-muted">
               {h.trust.map((x) => (
@@ -98,44 +139,5 @@ async function Landing() {
         </span>
       </footer>
     </div>
-  );
-}
-
-function IndustryCard({
-  href,
-  icon,
-  title,
-  line,
-  index,
-  quiet,
-}: {
-  href: string;
-  icon: Parameters<typeof VerticalIcon>[0]["icon"];
-  title: string;
-  line: string;
-  index: number;
-  quiet?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      style={delay(320 + index * 35)}
-      className={`industry-card enter group rounded-[22px] min-[380px]:rounded-[24px] border p-3.5 min-[380px]:p-4 sm:p-5 grid grid-cols-[auto_1fr_auto] items-center gap-x-3.5 min-h-[76px] min-[380px]:grid-cols-[1fr_auto] min-[380px]:grid-rows-[auto_1fr] min-[380px]:gap-y-5 min-[380px]:min-h-[140px] sm:min-h-[148px] outline-none ${
-        quiet
-          ? "border-dashed border-line bg-transparent"
-          : "border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--glass-border))]"
-      }`}
-    >
-      <span className="industry-icon grid place-items-center size-11 rounded-2xl bg-accent-soft text-accent ring-1 ring-inset ring-[color-mix(in_srgb,var(--accent)_18%,transparent)] shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] min-[380px]:self-start">
-        <VerticalIcon icon={icon} className="size-[20px]" strokeWidth={1.8} />
-      </span>
-      <span className="min-w-0 min-[380px]:col-span-2 min-[380px]:row-start-2 min-[380px]:self-end">
-        <span className="block text-[15px] sm:text-[16.5px] font-semibold leading-snug tracking-[-0.01em] text-balance">{title}</span>
-        <span className="mt-0.5 min-[380px]:mt-1 block text-[13px] sm:text-[13.5px] leading-snug text-muted">{line}</span>
-      </span>
-      <span className="industry-arrow grid place-items-center size-7 rounded-full text-muted min-[380px]:col-start-2 min-[380px]:row-start-1 min-[380px]:self-start">
-        <ArrowUpRight className="size-4" />
-      </span>
-    </Link>
   );
 }

@@ -443,112 +443,64 @@ input[type="radio"] {
 
 /* ------------------------------------------------------------ homepage */
 
-/* Industry cards: a tactile object that leans toward the cursor (TiltGrid sets
-   --rx/--ry and the light position --mx/--my), presses on touch. */
-.industry-grid {
-  position: relative;
-  perspective: 1100px;
+/* Swipeable industries. A native scroll-snap track; IndustryCarousel sets each
+   item's distance from the centre (--p, 0 = centred) and side (--dir). The
+   centred card is full size; neighbours shrink, fade and their preview slides
+   a little, which reads as depth while swiping. */
+.swipe-track {
+  --card-w: min(80vw, 330px);
+  padding-inline: calc(50% - var(--card-w) / 2);
+  scroll-padding-inline: calc(50% - var(--card-w) / 2);
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
 }
-/* A soft light behind the grid that follows the cursor */
-.industry-grid::before {
-  content: "";
-  position: absolute;
-  inset: -80px;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(260px circle at calc(var(--gx, 50%) + 80px) calc(var(--gy, 50%) + 80px), color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
-  opacity: 0;
-  transition: opacity 500ms var(--ease-out-soft);
+@media (min-width: 640px) {
+  .swipe-track {
+    --card-w: 360px;
+    /* fade the far edges on wide screens */
+    -webkit-mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
 }
-.industry-grid:hover::before {
-  opacity: 1;
+.swipe-item {
+  --p: 0;
+  --dir: 0;
+  width: var(--card-w);
+  padding-inline: 7px;
 }
-.industry-card {
-  --rx: 0deg;
-  --ry: 0deg;
-  --mx: 50%;
-  --my: 0%;
-  --lift: 0px;
-  --glare: 0;
-  position: relative;
-  isolation: isolate;
-  transform: translate3d(0, var(--lift), 0) rotateX(var(--rx)) rotateY(var(--ry));
-  transform-style: preserve-3d;
+.swipe-card {
+  scale: calc(1 - var(--p) * 0.1);
+  opacity: calc(1 - var(--p) * 0.5);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.05) inset,
+    0 30px 60px -36px rgb(var(--shadow-color) / calc(0.7 - var(--p) * 0.5));
   transition:
-    transform 500ms var(--ease-out-soft),
-    scale 160ms var(--ease-out-soft),
-    box-shadow 400ms var(--ease-out-soft),
     border-color 300ms var(--ease-out-soft),
-    opacity 300ms var(--ease-out-soft);
+    background-color 300ms var(--ease-out-soft);
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
-/* While following the cursor, keep up with it */
-.industry-card[data-tilt] {
-  transition-duration: 140ms, 160ms, 400ms, 300ms, 300ms;
-}
-/* Surface light, then a thin rim light, both centred on the cursor */
-.industry-card::before,
-.industry-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: var(--glare);
-  transition: opacity 350ms var(--ease-out-soft);
-}
-.industry-card::before {
-  z-index: -1;
-  background: radial-gradient(220px circle at var(--mx) var(--my), var(--card-glare), transparent 65%);
-}
-.industry-card::after {
-  padding: 1px;
-  background: radial-gradient(160px circle at var(--mx) var(--my), var(--card-rim), transparent 70%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-}
-.industry-icon {
-  transition: transform 450ms var(--ease-out-soft);
-}
-.industry-arrow {
-  transition:
-    transform 350ms var(--ease-out-soft),
-    background-color 300ms,
-    color 300ms;
+.swipe-preview {
+  translate: calc(var(--dir) * -14px) 0;
 }
 @media (hover: hover) and (pointer: fine) {
-  .industry-card:hover {
-    --lift: -6px;
-    --glare: 1;
-    box-shadow:
-      0 1px 0 rgb(255 255 255 / 0.06) inset,
-      0 4px 10px rgb(var(--shadow-color) / 0.1),
-      0 30px 50px -24px rgb(var(--shadow-color) / 0.55);
-  }
-  .industry-card:hover .industry-icon {
-    transform: translateZ(18px) scale(1.06) rotate(-4deg);
-  }
-  .industry-card:hover .industry-arrow {
-    transform: translateX(2px);
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-  /* The others step back a little, still readable */
-  .industry-grid:has(.industry-card:hover) .industry-card:not(:hover) {
-    opacity: 0.72;
+  .swipe-card[aria-current]:hover {
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--glass-border));
   }
 }
-/* Touch and click: a quick, small press */
-.industry-card:active {
-  scale: 0.975;
+.swipe-card:active {
+  scale: calc(0.97 - var(--p) * 0.1);
+  transition: scale 120ms var(--ease-out-soft);
 }
-.industry-card:focus-visible {
-  --glare: 1;
+.swipe-card:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .swipe-preview {
+    translate: none;
+  }
 }
 
 /* Short entrance: small rise and fade, never blocks clicks. Uses `translate`
@@ -582,9 +534,6 @@ input[type="radio"] {
   ::view-transition-group(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
-  }
-  .industry-card:hover {
-    --lift: 0px;
   }
   *,
   *::before,
