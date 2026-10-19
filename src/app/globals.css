@@ -443,112 +443,132 @@ input[type="radio"] {
 
 /* ------------------------------------------------------------ homepage */
 
-/* Industry cards: a tactile object that leans toward the cursor (TiltGrid sets
-   --rx/--ry and the light position --mx/--my), presses on touch. */
-.industry-grid {
-  position: relative;
-  perspective: 1100px;
+/* Living background. The homepage brings its own environment (Atmosphere):
+   two depths of contour rings that breathe very slowly, light that drifts, and
+   a soft pool of light easing after the cursor. --px/--py (-1..1) move the
+   layers by different amounts for gentle parallax. Only transforms and opacity
+   animate; no blur filters. Phones and reduced motion keep it still. */
+body:has(.atmo)::before,
+body:has(.atmo)::after {
+  display: none;
 }
-/* A soft light behind the grid that follows the cursor */
-.industry-grid::before {
-  content: "";
-  position: absolute;
-  inset: -80px;
+.atmo {
+  --px: 0;
+  --py: -0.4;
+  position: fixed;
+  inset: 0;
   z-index: -1;
+  overflow: hidden;
   pointer-events: none;
-  background: radial-gradient(260px circle at calc(var(--gx, 50%) + 80px) calc(var(--gy, 50%) + 80px), color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
-  opacity: 0;
-  transition: opacity 500ms var(--ease-out-soft);
 }
-.industry-grid:hover::before {
+.atmo > * {
+  position: absolute;
+  will-change: transform;
+}
+/* Wide, slow light in the brand colours */
+.atmo-glow {
+  inset: -25%;
+  background:
+    radial-gradient(34% 30% at 22% 24%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    radial-gradient(30% 28% at 82% 70%, var(--glow-b), transparent 70%),
+    radial-gradient(26% 22% at 58% 6%, var(--glow-b), transparent 72%);
+  translate: calc(var(--px) * -8px) calc(var(--py) * -8px);
+}
+.atmo[data-live] .atmo-glow {
+  animation: atmo-drift 46s ease-in-out infinite alternate;
+}
+/* Contour rings: far set is finer and moves least */
+.atmo-rings {
+  inset: -30%;
+}
+.atmo-rings-far {
+  background:
+    repeating-radial-gradient(circle at 74% 18%, transparent 0 30px, var(--contour) 30px 31px),
+    radial-gradient(70% 45% at 50% 0%, var(--bg-top), transparent 70%);
+  translate: calc(var(--px) * -10px) calc(var(--py) * -10px);
+}
+.atmo-rings-near {
+  background: repeating-radial-gradient(circle at 18% 92%, transparent 0 46px, var(--contour) 46px 47px);
+  opacity: 0.8;
+  translate: calc(var(--px) * -22px) calc(var(--py) * -22px);
+}
+.atmo[data-live] .atmo-rings-far {
+  animation: atmo-breathe 26s ease-in-out infinite alternate;
+}
+.atmo[data-live] .atmo-rings-near {
+  animation: atmo-breathe 34s ease-in-out -12s infinite alternate-reverse;
+}
+/* A soft pool of light under the cursor: felt more than seen */
+.atmo-light {
+  left: 0;
+  top: 0;
+  width: 900px;
+  height: 900px;
+  margin: -450px 0 0 -450px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 13%, transparent) 0%, color-mix(in srgb, var(--accent) 5%, transparent) 38%, transparent 68%);
+  translate: calc((var(--px) + 1) * 50vw) calc((var(--py) + 1) * 50vh);
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-out-soft);
+}
+.atmo[data-live] .atmo-light {
   opacity: 1;
 }
+@keyframes atmo-drift {
+  to {
+    transform: translate3d(4%, -3%, 0) scale(1.08);
+  }
+}
+@keyframes atmo-breathe {
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+  to {
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+/* Cards stay calm and readable; the environment carries the depth */
 .industry-card {
-  --rx: 0deg;
-  --ry: 0deg;
-  --mx: 50%;
-  --my: 0%;
-  --lift: 0px;
-  --glare: 0;
   position: relative;
-  isolation: isolate;
-  transform: translate3d(0, var(--lift), 0) rotateX(var(--rx)) rotateY(var(--ry));
-  transform-style: preserve-3d;
   transition:
-    transform 500ms var(--ease-out-soft),
-    scale 160ms var(--ease-out-soft),
+    translate 400ms var(--ease-out-soft),
+    border-color 350ms var(--ease-out-soft),
+    background-color 350ms var(--ease-out-soft),
     box-shadow 400ms var(--ease-out-soft),
-    border-color 300ms var(--ease-out-soft),
-    opacity 300ms var(--ease-out-soft);
+    scale 160ms var(--ease-out-soft);
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
-/* While following the cursor, keep up with it */
-.industry-card[data-tilt] {
-  transition-duration: 140ms, 160ms, 400ms, 300ms, 300ms;
-}
-/* Surface light, then a thin rim light, both centred on the cursor */
-.industry-card::before,
-.industry-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: var(--glare);
-  transition: opacity 350ms var(--ease-out-soft);
-}
-.industry-card::before {
-  z-index: -1;
-  background: radial-gradient(220px circle at var(--mx) var(--my), var(--card-glare), transparent 65%);
-}
-.industry-card::after {
-  padding: 1px;
-  background: radial-gradient(160px circle at var(--mx) var(--my), var(--card-rim), transparent 70%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-}
-.industry-icon {
-  transition: transform 450ms var(--ease-out-soft);
-}
+.industry-icon,
 .industry-arrow {
   transition:
-    transform 350ms var(--ease-out-soft),
+    color 300ms,
     background-color 300ms,
-    color 300ms;
+    translate 350ms var(--ease-out-soft);
 }
 @media (hover: hover) and (pointer: fine) {
   .industry-card:hover {
-    --lift: -6px;
-    --glare: 1;
+    translate: 0 -2px;
+    background-color: var(--glass-strong);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--glass-border));
     box-shadow:
-      0 1px 0 rgb(255 255 255 / 0.06) inset,
-      0 4px 10px rgb(var(--shadow-color) / 0.1),
-      0 30px 50px -24px rgb(var(--shadow-color) / 0.55);
-  }
-  .industry-card:hover .industry-icon {
-    transform: translateZ(18px) scale(1.06) rotate(-4deg);
+      0 1px 0 rgb(255 255 255 / 0.05) inset,
+      0 22px 40px -26px rgb(var(--shadow-color) / 0.55);
   }
   .industry-card:hover .industry-arrow {
-    transform: translateX(2px);
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-  /* The others step back a little, still readable */
-  .industry-grid:has(.industry-card:hover) .industry-card:not(:hover) {
-    opacity: 0.72;
+    color: var(--ink);
+    translate: 2px -2px;
   }
 }
-/* Touch and click: a quick, small press */
 .industry-card:active {
-  scale: 0.975;
+  scale: 0.98;
 }
 .industry-card:focus-visible {
-  --glare: 1;
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+  background-color: var(--glass-strong);
 }
 
 /* Short entrance: small rise and fade, never blocks clicks. Uses `translate`
@@ -582,9 +602,6 @@ input[type="radio"] {
   ::view-transition-group(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
-  }
-  .industry-card:hover {
-    --lift: 0px;
   }
   *,
   *::before,

@@ -8,7 +8,7 @@ import { getDict } from "@/i18n/server";
 import { CONTACT, CONTACT_LINKS } from "@/lib/contact";
 import { VERTICALS } from "@/lib/verticals";
 import { ContinueChip } from "./VerticalMemory";
-import { TiltGrid } from "./TiltGrid";
+import { Atmosphere } from "./Atmosphere";
 
 export default function Home() {
   return (
@@ -32,6 +32,7 @@ async function Landing() {
 
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
+      <Atmosphere />
       <header className="mx-auto w-full max-w-5xl px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 flex items-center justify-between gap-3" style={{ viewTransitionName: "app-header" }}>
         <span className="display text-[23px] tracking-[-0.04em]">{t.appName}</span>
         <div className="flex items-center gap-1 sm:gap-2">
@@ -63,12 +64,12 @@ async function Landing() {
           <h2 id="pick" className="enter text-center text-[13px] font-semibold uppercase tracking-[0.14em] text-muted" style={delay(280)}>
             {h.pickTitle}
           </h2>
-          <TiltGrid className="industry-grid mt-4 sm:mt-5 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-4 gap-2 min-[380px]:gap-2.5 sm:gap-3.5">
+          <div className="industry-grid mt-4 sm:mt-5 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-4 gap-2 min-[380px]:gap-2.5 sm:gap-3.5">
             {VERTICALS.map((v, i) => (
               <IndustryCard key={v.slug} href={`/za/${v.slug}`} icon={v.icon} title={v.tile.title[locale]} line={v.tile.line[locale]} index={i} />
             ))}
             <IndustryCard href="/start" icon="more" title={h.other} line={h.otherLine} index={VERTICALS.length} quiet />
-          </TiltGrid>
+          </div>
 
           <div className="enter mt-5 flex flex-col items-center gap-3" style={delay(560)}>
             <ContinueChip label={h.continueAs} titles={titles} />
