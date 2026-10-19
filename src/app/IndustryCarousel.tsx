@@ -95,7 +95,8 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
   };
 
   return (
-    <div className="relative" onKeyDown={onKey}>
+    <div className="swipe relative" onKeyDown={onKey}>
+      <div className="relative">
       <div
         ref={track}
         role="list"
@@ -167,9 +168,30 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
         ))}
       </div>
 
+      {/* Desktop: big arrows beside the centred card, where the eye already is */}
+      <button
+        type="button"
+        onClick={() => goTo(Math.max(0, active - 1))}
+        disabled={active === 0}
+        aria-label={labels.prev}
+        className="swipe-side swipe-side-prev hidden sm:grid place-items-center rounded-full border border-[var(--glass-border)] bg-glass-strong text-ink shadow-lift backdrop-blur-xl hover:bg-surface hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-0 cursor-pointer"
+      >
+        <ChevronLeft className="size-7" />
+      </button>
+      <button
+        type="button"
+        onClick={() => goTo(Math.min(cards.length - 1, active + 1))}
+        disabled={active === cards.length - 1}
+        aria-label={labels.next}
+        className="swipe-side swipe-side-next hidden sm:grid place-items-center rounded-full bg-accent text-accent-ink shadow-[0_16px_36px_-14px_var(--accent)] hover:bg-accent-hover hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-0 cursor-pointer"
+      >
+        <ChevronRight className="size-7" />
+      </button>
+      </div>
+
       {/* Position and direct jumps */}
       <div className="mt-1 flex items-center justify-center gap-2.5 sm:gap-4">
-        <button type="button" onClick={() => goTo(Math.max(0, active - 1))} disabled={active === 0} aria-label={labels.prev} className="grid shrink-0 place-items-center size-11 sm:size-12 rounded-full border border-[var(--glass-border)] bg-glass-strong text-ink shadow-soft backdrop-blur-xl hover:bg-surface active:scale-95 disabled:opacity-35 disabled:shadow-none transition cursor-pointer">
+        <button type="button" onClick={() => goTo(Math.max(0, active - 1))} disabled={active === 0} aria-label={labels.prev} className="grid sm:hidden shrink-0 place-items-center size-11 rounded-full border border-[var(--glass-border)] bg-glass-strong text-ink shadow-soft backdrop-blur-xl hover:bg-surface active:scale-95 disabled:opacity-35 disabled:shadow-none transition cursor-pointer">
           <ChevronLeft className="size-6" />
         </button>
         <div className="flex items-center">
@@ -186,7 +208,7 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
             </button>
           ))}
         </div>
-        <button type="button" onClick={() => goTo(Math.min(cards.length - 1, active + 1))} disabled={active === cards.length - 1} aria-label={labels.next} className="grid shrink-0 place-items-center size-11 sm:size-12 rounded-full bg-accent text-accent-ink shadow-[0_12px_28px_-12px_var(--accent)] hover:bg-accent-hover active:scale-95 disabled:opacity-35 disabled:shadow-none transition cursor-pointer">
+        <button type="button" onClick={() => goTo(Math.min(cards.length - 1, active + 1))} disabled={active === cards.length - 1} aria-label={labels.next} className="grid sm:hidden shrink-0 place-items-center size-11 rounded-full bg-accent text-accent-ink shadow-[0_12px_28px_-12px_var(--accent)] hover:bg-accent-hover active:scale-95 disabled:opacity-35 disabled:shadow-none transition cursor-pointer">
           <ChevronRight className="size-6" />
         </button>
       </div>

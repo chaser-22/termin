@@ -448,8 +448,20 @@ input[type="radio"] {
    centred card is the hero of the page: full size, lit in its industry colour,
    with a coloured shadow. Neighbours shrink, dim and slide their preview a
    little, which reads as depth while swiping. */
-.swipe-track {
+.swipe {
   --card-w: min(86vw, 360px);
+}
+@media (min-width: 640px) {
+  .swipe {
+    --card-w: 410px;
+  }
+}
+@media (min-width: 1024px) {
+  .swipe {
+    --card-w: 440px;
+  }
+}
+.swipe-track {
   padding-inline: calc(50% - var(--card-w) / 2);
   scroll-padding-inline: calc(50% - var(--card-w) / 2);
   touch-action: pan-x pan-y;
@@ -457,16 +469,29 @@ input[type="radio"] {
 }
 @media (min-width: 640px) {
   .swipe-track {
-    --card-w: 410px;
     /* fade the far edges on wide screens */
     -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
     mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
   }
 }
-@media (min-width: 1024px) {
-  .swipe-track {
-    --card-w: 440px;
-  }
+/* Side arrows sit on the edges of the centred card, half over the neighbours */
+.swipe-side {
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  width: 56px;
+  height: 56px;
+  translate: 0 -50%;
+  transition:
+    scale 200ms var(--ease-out-soft),
+    opacity 250ms var(--ease-out-soft),
+    background-color 200ms;
+}
+.swipe-side-prev {
+  left: calc(50% - var(--card-w) / 2 - 28px);
+}
+.swipe-side-next {
+  right: calc(50% - var(--card-w) / 2 - 28px);
 }
 .swipe-item {
   --p: 0;
