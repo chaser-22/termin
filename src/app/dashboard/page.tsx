@@ -121,7 +121,7 @@ async function Calendar({ searchParams }: { searchParams: Promise<Record<string,
         {/* Time grid */}
         <div className="card overflow-x-auto">
           {staffRows.length === 0 ? (
-            <p className="p-8 text-center text-muted">{t.dash.noBookings}</p>
+            <p className="p-8 text-center text-muted">{date === today && !anyBooking ? t.trial.noBookings : t.dash.noBookings}</p>
           ) : (
             <div className="min-w-fit">
               <div className="flex border-b border-line sticky top-0 bg-surface z-[1]">

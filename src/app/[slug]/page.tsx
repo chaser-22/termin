@@ -10,20 +10,22 @@ import { bookableRange, firstFreeSlot } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
 import { openStatus, type OpenStatus } from "@/lib/openStatus";
 import { addDays, dateKeyOf, formatMinutes, formatTime, isoWeekday, parseDateKey, todayKey } from "@/lib/time";
+import { termsFor } from "@/lib/terms";
 import { BookingFlow } from "./BookingFlow";
+import { DemoPreview } from "./DemoPreview";
 
-export default function BusinessPage({ params }: PageProps<"/[slug]">) {
+export default function BusinessPage({ params, searchParams }: PageProps<"/[slug]">) {
   return (
     <PageTransition>
       <Suspense fallback={<PageSkeleton />}>
-        <BusinessBooking params={params} />
+        <BusinessBooking params={params} searchParams={searchParams} />
       </Suspense>
     </PageTransition>
   );
 }
 
-async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+async function BusinessBooking({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const { t } = await getDict();
   const d = await db();
   const business = await d.query.businesses.findFirst({ where: eq(businesses.slug, slug) });
@@ -35,13 +37,32 @@ async function BusinessBooking({ params }: { params: Promise<{ slug: string }> }
     );
   }
 
+  // ?preview=1: the example shown inside an industry page. Nothing is saved.
+  if (sp.preview === "1") {
+    return (
+      <DemoPreview t={t.trial}>
+        <BookingPage business={business} preview />
+      </DemoPreview>
+    );
+  }
   return <BookingPage business={business} />;
 }
 
 /** The public booking page for one business. With `displayName` it shows that
  *  name instead (the invitation preview runs on a demo business). */
-export async function BookingPage({ business, displayName, displayType }: { business: typeof businesses.$inferSelect; displayName?: string; displayType?: BusinessType }) {
+export async function BookingPage({
+  business,
+  displayName,
+  displayType,
+  preview,
+}: {
+  business: typeof businesses.$inferSelect;
+  displayName?: string;
+  displayType?: BusinessType;
+  preview?: boolean;
+}) {
   const { locale, t } = await getDict();
+  const terms = termsFor(displayType ?? business.type);
   const d = await db();
   const [serviceRows, staffRows] = await Promise.all([
     d.select().from(services).where(and(eq(services.businessId, business.id), eq(services.active, true))).orderBy(asc(services.sortOrder), asc(services.createdAt)),
@@ -66,9 +87,11 @@ export async function BookingPage({ business, displayName, displayType }: { busi
     <div className="flex-1 overflow-x-clip">
       <style>{brandCss(business.brandColor)}</style>
 
-      <div className="mx-auto max-w-xl px-4 pt-4 flex justify-end">
-        <LanguageSwitch current={locale} />
-      </div>
+      {!preview && (
+        <div className="mx-auto max-w-xl px-4 pt-4 flex justify-end">
+          <LanguageSwitch current={locale} />
+        </div>
+      )}
 
       {/* Hero: a clearing in the fog */}
       <header className="relative mx-auto max-w-xl px-5 pt-4 pb-8 text-center">
@@ -119,7 +142,7 @@ export async function BookingPage({ business, displayName, displayType }: { busi
             weekdays: [...new Set(hours.filter((h) => h.staffId === s.id).map((h) => h.weekday))],
           }))}
           days={days}
-          t={{ book: t.book, common: t.common, weekdaysShort: t.weekdaysShort, months: t.months }}
+          t={{ book: { ...t.book, chooseStaff: terms.whoQuestion[locale], anyStaff: terms.anyone[locale] }, common: t.common, weekdaysShort: t.weekdaysShort, months: t.months }}
         />
       </main>
     </div>

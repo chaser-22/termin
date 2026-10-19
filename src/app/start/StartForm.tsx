@@ -11,15 +11,17 @@ import type { BusinessType } from "@/lib/slug";
 type Props = {
   invite?: { code: string; name: string };
   defaultType?: BusinessType;
-  types: { type: BusinessType; icon: Vertical["icon"]; label: string }[];
+  namePlaceholder?: string;
+  types: { type: BusinessType; icon: Vertical["icon"] | "more"; label: string }[];
   t: Pick<Dict, "trial" | "common" | "auth">;
 };
 
 /** Activation: one email field with an invite, three fields without. No password. */
-export function StartForm({ invite, defaultType, types, t }: Props) {
+export function StartForm({ invite, defaultType, namePlaceholder, types, t }: Props) {
   const [state, action, pending] = useActionState<LoginState, FormData>(startTrial, { status: "idle" });
   const [type, setType] = useState<BusinessType>(defaultType ?? types[0].type);
   const [email, setEmail] = useState("");
+  const [picking, setPicking] = useState(false);
 
   if (state.status === "sent") {
     return (
@@ -45,6 +47,7 @@ export function StartForm({ invite, defaultType, types, t }: Props) {
   return (
     <form action={action} className="animate-rise">
       <h1 className="display text-[34px] text-center">{invite ? t.trial.oneStep : t.trial.startTitle}</h1>
+      <p className="mt-2 text-center text-sm text-muted">{t.trial.reassurance}</p>
       <div className="mt-8 space-y-5">
         {invite ? (
           <>
@@ -57,8 +60,21 @@ export function StartForm({ invite, defaultType, types, t }: Props) {
           <>
             <div>
               <label className="label" htmlFor="name">{t.trial.businessName}</label>
-              <input id="name" name="name" required minLength={2} maxLength={80} className="input h-13 text-base" placeholder="Berbernica Marko" />
+              <input id="name" name="name" required minLength={2} maxLength={80} className="input h-13 text-base" placeholder={namePlaceholder} />
             </div>
+            {defaultType && !picking ? (
+              // Already chosen on the industry page: don't ask again
+              <p className="flex items-center justify-between gap-3 rounded-xl bg-accent-soft px-4 py-3 text-sm">
+                <span className="flex items-center gap-2 font-semibold text-accent">
+                  <VerticalIcon icon={types.find((x) => x.type === type)?.icon ?? "more"} className="size-4" />
+                  {types.find((x) => x.type === type)?.label}
+                </span>
+                <input type="hidden" name="type" value={type} />
+                <button type="button" onClick={() => setPicking(true)} className="text-muted underline underline-offset-4 hover:text-ink">
+                  {t.trial.change}
+                </button>
+              </p>
+            ) : (
             <fieldset>
               <legend className="label">{t.trial.businessType}</legend>
               <div className="grid grid-cols-3 gap-2">
@@ -71,6 +87,7 @@ export function StartForm({ invite, defaultType, types, t }: Props) {
                 ))}
               </div>
             </fieldset>
+            )}
           </>
         )}
         <div>

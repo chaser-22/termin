@@ -27,10 +27,10 @@ export const SERVICE_TEMPLATES: Record<BusinessType, TemplateService[]> = {
     { me: "Pramenovi", en: "Highlights", minutes: 120, price: 60 },
   ],
   nails: [
-    { me: "Manikir", en: "Manicure", minutes: 45, price: 15 },
     { me: "Gel lak", en: "Gel polish", minutes: 60, price: 20 },
-    { me: "Izlivanje noktiju", en: "Nail extensions", minutes: 90, price: 35 },
-    { me: "Pedikir", en: "Pedicure", minutes: 60, price: 25 },
+    { me: "Klasični manikir", en: "Classic manicure", minutes: 45, price: 15 },
+    { me: "Nadogradnja noktiju", en: "Nail extensions", minutes: 90, price: 35 },
+    { me: "Korekcija noktiju", en: "Nail infill", minutes: 60, price: 25 },
   ],
   beauty: [
     { me: "Tretman lica", en: "Facial", minutes: 60, price: 35 },
@@ -44,10 +44,10 @@ export const SERVICE_TEMPLATES: Record<BusinessType, TemplateService[]> = {
     { me: "Sportska masaža", en: "Sports massage", minutes: 60, price: 40 },
   ],
   dentist: [
-    { me: "Pregled", en: "Check-up", minutes: 30, price: 20 },
-    { me: "Uklanjanje kamenca", en: "Scale and polish", minutes: 45, price: 40 },
-    { me: "Plomba", en: "Filling", minutes: 60, price: null },
-    { me: "Izbjeljivanje zuba", en: "Teeth whitening", minutes: 60, price: 150 },
+    { me: "Stomatološki pregled", en: "Dental examination", minutes: 30, price: 20 },
+    { me: "Čišćenje kamenca", en: "Scale and polish", minutes: 45, price: 40 },
+    { me: "Konsultacije", en: "Consultation", minutes: 30, price: null },
+    { me: "Kontrolni pregled", en: "Follow-up check", minutes: 20, price: null },
   ],
   clinic: [
     { me: "Pregled", en: "Consultation", minutes: 30, price: null },

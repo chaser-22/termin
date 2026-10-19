@@ -6,13 +6,13 @@ import { CONTACT_LINKS } from "@/lib/contact";
 import { markOnboarding, requestContinue } from "./actions";
 
 /** The big "Copy booking link" button and the WhatsApp share next to it. */
-export function ShareLink({ url, t }: { url: string; t: { copyLink: string; copied: string; shareWhatsapp: string; whatsappText: string } }) {
+export function ShareLink({ url, t, compact }: { url: string; t: { copyLink: string; copied: string; shareWhatsapp: string; whatsappText: string }; compact?: boolean }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="space-y-2.5">
+    <div className={compact ? "flex gap-2" : "space-y-2.5"}>
       <button
         type="button"
-        className="btn-primary w-full h-14 text-base"
+        className={compact ? "btn-primary btn-sm" : "btn-primary w-full h-14 text-base"}
         onClick={async () => {
           try {
             await navigator.clipboard.writeText(url);
@@ -29,7 +29,7 @@ export function ShareLink({ url, t }: { url: string; t: { copyLink: string; copi
         target="_blank"
         rel="noreferrer"
         onClick={() => markOnboarding("shared")}
-        className="btn-ghost w-full h-11"
+        className={compact ? "btn-secondary btn-sm" : "btn-ghost w-full h-11"}
       >
         <MessageCircle className="size-4" /> {t.shareWhatsapp}
       </a>

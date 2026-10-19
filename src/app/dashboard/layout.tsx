@@ -43,7 +43,7 @@ async function TopBar() {
             items={[
               { href: "/dashboard", label: t.dash.calendar },
               { href: "/dashboard/services", label: t.dash.services },
-              { href: "/dashboard/staff", label: team.length > 1 ? t.dash.staff : t.dash.hours },
+              { href: "/dashboard/staff", label: business.type === "court" ? t.dash.navCourts : business.type === "rental" ? t.dash.navRentals : team.length > 1 ? t.dash.staff : t.dash.hours },
               { href: "/dashboard/settings", label: t.dash.settings },
             ]}
           />

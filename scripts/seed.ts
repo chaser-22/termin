@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { getDbClient } from "@/db/client";
 import { businesses, staff, users, workingHours, type BusinessType } from "@/db/schema";
 import { createBusinessWithDefaults } from "@/lib/server/setup";
+import { VERTICALS } from "@/lib/verticals";
 
 type Demo = {
   slug: string;
@@ -19,6 +20,16 @@ type Demo = {
 };
 
 export const DEMOS: Demo[] = [
+  {
+    slug: "demo-nokti",
+    name: "Nail Studio Lena",
+    type: "nails",
+    owner: { email: "demo-nokti@example.com", name: "Lena" },
+    city: "Podgorica",
+    address: "Hercegovačka 20",
+    phone: "+382 67 300 200",
+    description: "Gel lak, manikir i nadogradnja, u mirnom studiju u centru.",
+  },
   {
     slug: "marko",
     name: "Berbernica Marko",
@@ -89,7 +100,10 @@ async function main() {
   const db = await getDbClient();
   for (const demo of DEMOS) {
     const existing = await db.query.businesses.findFirst({ where: eq(businesses.slug, demo.slug) });
+    // Each demo wears its industry page's accent, so the page and its example match
+    const accent = VERTICALS.find((v) => v.demo === `/${demo.slug}`)?.accent ?? demo.brandColor;
     if (existing) {
+      if (accent && existing.brandColor !== accent) await db.update(businesses).set({ brandColor: accent }).where(eq(businesses.id, existing.id));
       console.log(`seed: /${demo.slug} already exists`);
       continue;
     }
@@ -109,10 +123,10 @@ async function main() {
       phone: demo.phone,
       locale: "me",
     });
-    if (demo.description || demo.brandColor) {
+    if (demo.description || accent) {
       await db
         .update(businesses)
-        .set({ description: demo.description ?? null, ...(demo.brandColor ? { brandColor: demo.brandColor } : {}) })
+        .set({ description: demo.description ?? null, ...(accent ? { brandColor: accent } : {}) })
         .where(eq(businesses.id, business.id));
     }
     if (demo.slug === "marko") {

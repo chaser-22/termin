@@ -2,9 +2,9 @@
 // is about dentists; everything a court owner sees is about courts.
 import type { Locale } from "@/i18n/dict";
 import type { BusinessType } from "@/lib/slug";
+import type { BrandKey } from "@/lib/brand";
 
 type Text = Record<Locale, string>;
-type Pair = { title: Text; body: Text };
 
 /** What the phone preview on the page shows */
 export type MockData = {
@@ -19,45 +19,91 @@ export type MockData = {
 
 export type Vertical = {
   slug: string;
-  icon: "scissors" | "tooth" | "flower" | "dumbbell" | "trophy" | "bike";
+  icon: "scissors" | "tooth" | "sparkles" | "flower" | "dumbbell" | "trophy" | "bike";
   setupType: BusinessType;
   demo: string;
+  /** A restrained accent for the page (a key from src/lib/brand.ts) */
+  accent: BrandKey;
   tile: { title: Text; line: Text };
   headline: Text;
   sub: Text;
-  pains: Pair[];
   mock: MockData;
 };
 
 export const VERTICALS: Vertical[] = [
   {
+    slug: "stomatolozi",
+    icon: "tooth",
+    setupType: "dentist",
+    demo: "/demo-stomatolog",
+    accent: "cobalt",
+    tile: {
+      title: { me: "Stomatološke ordinacije", en: "Dental clinics" },
+      line: { me: "Pregledi, kamenac, konsultacije", en: "Check-ups, cleanings, consultations" },
+    },
+    headline: { me: "Više vremena za pacijente. Manje poziva za zakazivanje.", en: "More time with patients. Less time answering calls." },
+    sub: {
+      me: "Pacijenti online zakazuju pregled, čišćenje kamenca ili konsultacije. Vi sve vidite u jednom jednostavnom kalendaru.",
+      en: "Your patients book examinations, cleanings and consultations online. You manage appointments in one simple calendar.",
+    },
+    mock: {
+      initial: "S",
+      typeLabel: { me: "Stomatolog · Kotor", en: "Dentist · Kotor" },
+      name: "Stomatologija Kotor",
+      mode: "person",
+      items: [
+        { name: { me: "Stomatološki pregled", en: "Dental examination" }, meta: "30 min", price: "20 €" },
+        { name: { me: "Čišćenje kamenca", en: "Scale and polish" }, meta: "45 min", price: "40 €" },
+        { name: { me: "Konsultacije", en: "Consultation" }, meta: "30 min", price: "—" },
+        { name: { me: "Kontrolni pregled", en: "Follow-up check" }, meta: "20 min", price: "—" },
+      ],
+      pill: { day: { me: "Sjutra · Stomatološki pregled", en: "Tomorrow · Dental examination" }, time: "09:30" },
+    },
+  },
+  {
+    slug: "nokti",
+    icon: "sparkles",
+    setupType: "nails",
+    demo: "/demo-nokti",
+    accent: "bordeaux",
+    tile: {
+      title: { me: "Studiji za nokte", en: "Nail studios" },
+      line: { me: "Manikir, gel lak, nadogradnja", en: "Manicure, gel polish, extensions" },
+    },
+    headline: { me: "Savršeni nokti. Zakazivanje bez muke.", en: "Beautiful nails. Effortless bookings." },
+    sub: {
+      me: "Klijentkinje online biraju tretman i termin. Manje poruka na Instagramu, više vremena za rad.",
+      en: "Clients choose their treatment and time online. Fewer Instagram messages, more time for your work.",
+    },
+    mock: {
+      initial: "L",
+      typeLabel: { me: "Studio za nokte · Podgorica", en: "Nail studio · Podgorica" },
+      name: "Nail Studio Lena",
+      mode: "person",
+      items: [
+        { name: { me: "Gel lak", en: "Gel polish" }, meta: "1 h", price: "20 €" },
+        { name: { me: "Klasični manikir", en: "Classic manicure" }, meta: "45 min", price: "15 €" },
+        { name: { me: "Nadogradnja noktiju", en: "Nail extensions" }, meta: "1 h 30 min", price: "35 €" },
+        { name: { me: "Korekcija noktiju", en: "Nail infill" }, meta: "1 h", price: "25 €" },
+      ],
+      pill: { day: { me: "Sjutra · Gel lak", en: "Tomorrow · Gel polish" }, time: "11:00" },
+    },
+  },
+  {
     slug: "berbernice",
     icon: "scissors",
     setupType: "barber",
     demo: "/marko",
+    accent: "noir",
     tile: {
-      title: { me: "Berbernice", en: "Barbers" },
-      line: { me: "Frizeri, nokti, kozmetika", en: "Hair, nails, beauty" },
+      title: { me: "Berbernice i saloni", en: "Barbers & hair salons" },
+      line: { me: "Šišanje, brada, frizure", en: "Haircuts, beards, styling" },
     },
-    headline: { me: "Online zakazivanje za vašu berbernicu ili salon.", en: "Online booking for your barbershop or salon." },
+    headline: { me: "Više šišanja. Manje poruka oko termina.", en: "More haircuts. Fewer scheduling messages." },
     sub: {
-      me: "Klijenti biraju uslugu, frizera i termin sa Instagrama, 0–24. Vi radite, telefon ćuti.",
-      en: "Clients pick the service, the barber and a time from Instagram, 24/7. You work; the phone stays quiet.",
+      me: "Klijenti online biraju berberina i slobodan termin, bez poziva i poruka.",
+      en: "Customers choose their barber and a free time online, without calling or messaging."
     },
-    pains: [
-      {
-        title: { me: "Telefon zvoni dok radite", en: "The phone rings while you work" },
-        body: { me: "Klijenti zakazuju sami, sa linka u Instagram biografiji ili QR koda na vratima.", en: "Clients book themselves from the link in your Instagram bio or the QR code on the door." },
-      },
-      {
-        title: { me: "Klijenti koji ne dođu", en: "Clients who don't show up" },
-        body: { me: "Termin ide u njihov kalendar sa podsjetnikom, a vi vidite ko često izostaje.", en: "The booking goes into their calendar with a reminder, and you see who often misses." },
-      },
-      {
-        title: { me: "Prazne rupe u danu", en: "Empty gaps in the day" },
-        body: { me: "Slobodni termini su vidljivi odmah, pa ih klijenti popune sami.", en: "Free times are visible right away, so clients fill them on their own." },
-      },
-    ],
     mock: {
       initial: "B",
       typeLabel: { me: "Berbernica · Podgorica", en: "Barber · Podgorica" },
@@ -73,75 +119,20 @@ export const VERTICALS: Vertical[] = [
     },
   },
   {
-    slug: "stomatolozi",
-    icon: "tooth",
-    setupType: "dentist",
-    demo: "/demo-stomatolog",
-    tile: {
-      title: { me: "Stomatolozi", en: "Dentists" },
-      line: { me: "Pregledi, kontrole, terapije", en: "Check-ups, follow-ups, treatments" },
-    },
-    headline: { me: "Online zakazivanje pregleda za vašu ordinaciju.", en: "Online appointment booking for your practice." },
-    sub: {
-      me: "Pacijenti zakazuju sami, bez poziva usred intervencije. Svaki doktor ima svoj uredan raspored.",
-      en: "Patients book themselves, with no calls in the middle of a procedure. Every doctor has a tidy schedule.",
-    },
-    pains: [
-      {
-        title: { me: "Pozivi tokom intervencije", en: "Calls during a procedure" },
-        body: { me: "Pacijent zakaže online, a vi i sestra ne prekidate rad.", en: "Patients book online, so you and your nurse don't have to stop working." },
-      },
-      {
-        title: { me: "Pacijenti zaborave termin", en: "Patients forget appointments" },
-        body: { me: "Pregled ide u kalendar telefona, sa podsjetnikom dva sata ranije.", en: "The appointment goes into their phone calendar, with a reminder two hours before." },
-      },
-      {
-        title: { me: "Privatnost pacijenata", en: "Patient privacy" },
-        body: { me: "Čuvamo samo ime i telefon. Pacijent ne pravi nalog i ne preuzima aplikaciju.", en: "We keep only a name and phone number. Patients make no account and download no app." },
-      },
-    ],
-    mock: {
-      initial: "S",
-      typeLabel: { me: "Stomatolog · Kotor", en: "Dentist · Kotor" },
-      name: "Stomatologija Kotor",
-      mode: "person",
-      items: [
-        { name: { me: "Pregled", en: "Check-up" }, meta: "30 min", price: "20 €" },
-        { name: { me: "Uklanjanje kamenca", en: "Scale and polish" }, meta: "45 min", price: "40 €" },
-        { name: { me: "Plomba", en: "Filling" }, meta: "1 h", price: "—" },
-        { name: { me: "Izbjeljivanje zuba", en: "Teeth whitening" }, meta: "1 h", price: "150 €" },
-      ],
-      pill: { day: { me: "Sjutra · Pregled", en: "Tomorrow · Check-up" }, time: "09:30" },
-    },
-  },
-  {
     slug: "masaza",
     icon: "flower",
     setupType: "massage",
     demo: "/demo-masaza",
+    accent: "olive",
     tile: {
-      title: { me: "Masaža", en: "Massage" },
-      line: { me: "Tretmani, spa, saune", en: "Treatments, spa, saunas" },
+      title: { me: "Masaža i wellness", en: "Massage & wellness" },
+      line: { me: "Masaže, tretmani, spa", en: "Massages, treatments, spa" },
     },
-    headline: { me: "Online zakazivanje za masažu i wellness.", en: "Online booking for massage and wellness." },
+    headline: { me: "Gosti zakazuju sami. Vi ostajete u miru.", en: "Guests book themselves. You stay calm." },
     sub: {
       me: "Gosti biraju tretman i termin, na crnogorskom ili engleskom. Sobe i terapeuti nikad nisu duplo zauzeti.",
       en: "Guests choose a treatment and a time, in Montenegrin or English. Rooms and therapists are never double-booked.",
     },
-    pains: [
-      {
-        title: { me: "Poruke na više jezika", en: "Messages in several languages" },
-        body: { me: "Stranica radi na engleskom i crnogorskom, pa gost zakaže sam.", en: "Your page works in English and Montenegrin, so guests book on their own." },
-      },
-      {
-        title: { me: "Duplo zauzeta soba", en: "A room booked twice" },
-        body: { me: "Svaka soba i svaki terapeut imaju svoj kalendar.", en: "Every room and every therapist has their own calendar." },
-      },
-      {
-        title: { me: "Gosti hotela i turisti", en: "Hotel guests and tourists" },
-        body: { me: "Link ili QR kod na recepciji, a zakazivanje traje minut.", en: "A link or QR code at reception, and booking takes a minute." },
-      },
-    ],
     mock: {
       initial: "W",
       typeLabel: { me: "Masaža · Budva", en: "Massage · Budva" },
@@ -161,29 +152,16 @@ export const VERTICALS: Vertical[] = [
     icon: "dumbbell",
     setupType: "fitness",
     demo: "/demo-joga",
+    accent: "gold",
     tile: {
-      title: { me: "Fitness", en: "Fitness" },
+      title: { me: "Fitness i joga", en: "Fitness & yoga" },
       line: { me: "Grupni časovi, treninzi", en: "Group classes, training" },
     },
-    headline: { me: "Online prijave za vaše časove i treninge.", en: "Online sign-ups for your classes and training." },
+    headline: { me: "Pun čas. Bez prijava preko Vibera.", en: "Full classes. No sign-ups over Viber." },
     sub: {
       me: "Članovi vide raspored i koliko je mjesta ostalo, i prijave se jednim dodirom.",
       en: "Members see the schedule and how many places are left, and sign up in one tap.",
     },
-    pains: [
-      {
-        title: { me: "Prijave preko Vibera", en: "Sign-ups over Viber" },
-        body: { me: "Svako se prijavi sam, a vi vidite spisak za svaki čas.", en: "Everyone signs up themselves, and you see the list for every class." },
-      },
-      {
-        title: { me: "Prepun čas", en: "An overfull class" },
-        body: { me: "Kad je čas pun, prijave se zatvaraju same.", en: "When a class is full, sign-ups close on their own." },
-      },
-      {
-        title: { me: "Personalni treninzi", en: "Personal training" },
-        body: { me: "Individualni termini su u istom kalendaru kao i časovi.", en: "One-to-one sessions sit in the same calendar as your classes." },
-      },
-    ],
     mock: {
       initial: "J",
       typeLabel: { me: "Fitness i joga · Kotor", en: "Fitness & yoga · Kotor" },
@@ -202,29 +180,16 @@ export const VERTICALS: Vertical[] = [
     icon: "trophy",
     setupType: "court",
     demo: "/demo-padel",
+    accent: "cobalt",
     tile: {
-      title: { me: "Tereni", en: "Courts" },
+      title: { me: "Sportski tereni", en: "Sports courts" },
       line: { me: "Padel, tenis, fudbal", en: "Padel, tennis, football" },
     },
-    headline: { me: "Online rezervacija terena, 0–24.", en: "Online court booking, 24/7." },
+    headline: { me: "Tereni se rezervišu sami, 0–24.", en: "Courts that book themselves, 24/7." },
     sub: {
       me: "Igrači vide slobodne termine i rezervišu teren sami. Bez poziva u 23h.",
       en: "Players see the free times and book a court themselves. No calls at 11 pm.",
     },
-    pains: [
-      {
-        title: { me: "Pozivi do kasno u noć", en: "Calls late into the night" },
-        body: { me: "Igrači rezervišu sami, kad god im odgovara.", en: "Players book on their own, whenever suits them." },
-      },
-      {
-        title: { me: "Duple rezervacije", en: "Double bookings" },
-        body: { me: "Svaki teren ima svoj raspored, pa preklapanja nisu moguća.", en: "Every court has its own schedule, so overlaps can't happen." },
-      },
-      {
-        title: { me: "Prazni termini", en: "Empty slots" },
-        body: { me: "Slobodni termini se vide odmah, pa se lakše popune.", en: "Free times are visible right away, so they fill up more easily." },
-      },
-    ],
     mock: {
       initial: "P",
       typeLabel: { me: "Tereni · Budva", en: "Courts · Budva" },
@@ -242,29 +207,16 @@ export const VERTICALS: Vertical[] = [
     icon: "bike",
     setupType: "rental",
     demo: "/demo-rent",
+    accent: "adriatic",
     tile: {
-      title: { me: "Iznajmljivanje", en: "Rentals" },
+      title: { me: "Iznajmljivanje opreme", en: "Equipment rentals" },
       line: { me: "Bicikli, kajaci, čamci", en: "Bikes, kayaks, boats" },
     },
-    headline: { me: "Online rezervacije za bicikle, kajake i čamce.", en: "Online bookings for bikes, kayaks and boats." },
+    headline: { me: "Rezervacije stižu i dok ste na vodi.", en: "Bookings arrive even while you're on the water." },
     sub: {
       me: "Turisti rezervišu na sat ili cijeli dan, na engleskom, i dođu po opremu u dogovoreno vrijeme.",
       en: "Tourists book by the hour or the day, in English, and come for the gear at the agreed time.",
     },
-    pains: [
-      {
-        title: { me: "Turisti pišu na engleskom", en: "Tourists write in English" },
-        body: { me: "Stranica je na engleskom i crnogorskom, pa nema prepiske.", en: "Your page is in English and Montenegrin, so there's no back-and-forth." },
-      },
-      {
-        title: { me: "Ko ima koji bicikl", en: "Who has which bike" },
-        body: { me: "Svaka stvar ima svoj kalendar, bez zabune.", en: "Every item has its own calendar, with no mix-ups." },
-      },
-      {
-        title: { me: "Sezona je kratka", en: "The season is short" },
-        body: { me: "Rezervacije stižu 0–24, i dok ste na vodi.", en: "Bookings come in 24/7, even while you're out on the water." },
-      },
-    ],
     mock: {
       initial: "T",
       typeLabel: { me: "Iznajmljivanje · Tivat", en: "Rentals · Tivat" },
@@ -284,7 +236,7 @@ export function verticalBySlug(slug: string): Vertical | undefined {
 }
 
 // Business types without a page of their own borrow the closest one's demo
-const DEMO_FALLBACK: Partial<Record<BusinessType, string>> = { salon: "barber", nails: "barber", beauty: "barber", clinic: "dentist", other: "barber" };
+const DEMO_FALLBACK: Partial<Record<BusinessType, string>> = { salon: "barber", beauty: "nails", clinic: "dentist", other: "barber" };
 
 /** The demo business slug to preview for a business type. */
 export function demoSlugFor(type: BusinessType): string {
