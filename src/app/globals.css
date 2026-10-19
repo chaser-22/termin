@@ -443,110 +443,137 @@ input[type="radio"] {
 
 /* ------------------------------------------------------------ homepage */
 
-/* Industry cards: a tactile object that leans toward the cursor (TiltGrid sets
-   --rx/--ry and the light position --mx/--my), presses on touch. */
+/* Soft 3D cards. Each card is a thin glass sheet that leans toward the cursor
+   (TiltGrid sets --rx/--ry, the light position --mx/--my and the shadow offset
+   --sx/--sy). The icon, text and arrow float at different heights above the
+   sheet, so they shift against each other as it tilts. */
 .industry-grid {
-  position: relative;
-  perspective: 1100px;
-}
-/* A soft light behind the grid that follows the cursor */
-.industry-grid::before {
-  content: "";
-  position: absolute;
-  inset: -80px;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(260px circle at calc(var(--gx, 50%) + 80px) calc(var(--gy, 50%) + 80px), color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
-  opacity: 0;
-  transition: opacity 500ms var(--ease-out-soft);
-}
-.industry-grid:hover::before {
-  opacity: 1;
+  perspective: 1000px;
 }
 .industry-card {
   --rx: 0deg;
   --ry: 0deg;
   --mx: 50%;
   --my: 0%;
+  --sx: 0px;
+  --sy: 0px;
   --lift: 0px;
   --glare: 0;
+  --depth: 0;
   position: relative;
-  isolation: isolate;
   transform: translate3d(0, var(--lift), 0) rotateX(var(--rx)) rotateY(var(--ry));
   transform-style: preserve-3d;
   transition:
-    transform 500ms var(--ease-out-soft),
-    scale 160ms var(--ease-out-soft),
-    box-shadow 400ms var(--ease-out-soft),
-    border-color 300ms var(--ease-out-soft),
-    opacity 300ms var(--ease-out-soft);
+    transform 600ms var(--ease-out-soft),
+    scale 180ms var(--ease-out-soft),
+    opacity 350ms var(--ease-out-soft);
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
-/* While following the cursor, keep up with it */
 .industry-card[data-tilt] {
-  transition-duration: 140ms, 160ms, 400ms, 300ms, 300ms;
+  transition-duration: 160ms, 180ms, 350ms;
 }
-/* Surface light, then a thin rim light, both centred on the cursor */
-.industry-card::before,
-.industry-card::after {
-  content: "";
+.industry-surface {
   position: absolute;
   inset: 0;
   border-radius: inherit;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.05) inset,
+    0 1px 2px rgb(var(--shadow-color) / 0.06),
+    0 10px 24px -18px rgb(var(--shadow-color) / 0.45);
+  transition:
+    box-shadow 600ms var(--ease-out-soft),
+    border-color 350ms var(--ease-out-soft),
+    background-color 350ms var(--ease-out-soft);
+}
+.industry-surface-quiet {
+  border-style: dashed;
+  border-color: var(--line);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+/* Surface light and rim light, centred on the cursor */
+.industry-surface::before,
+.industry-surface::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
   pointer-events: none;
   opacity: var(--glare);
-  transition: opacity 350ms var(--ease-out-soft);
+  transition: opacity 400ms var(--ease-out-soft);
 }
-.industry-card::before {
-  z-index: -1;
-  background: radial-gradient(220px circle at var(--mx) var(--my), var(--card-glare), transparent 65%);
+.industry-surface::before {
+  background: radial-gradient(240px circle at var(--mx) var(--my), var(--card-glare), transparent 65%);
 }
-.industry-card::after {
+.industry-surface::after {
   padding: 1px;
-  background: radial-gradient(160px circle at var(--mx) var(--my), var(--card-rim), transparent 70%);
+  background: radial-gradient(170px circle at var(--mx) var(--my), var(--card-rim), transparent 70%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
-.industry-icon {
-  transition: transform 450ms var(--ease-out-soft);
-}
+/* Content layers float at different heights */
+.industry-icon,
+.industry-text,
 .industry-arrow {
+  position: relative;
   transition:
-    transform 350ms var(--ease-out-soft),
+    transform 600ms var(--ease-out-soft),
     background-color 300ms,
     color 300ms;
 }
+.industry-icon {
+  transform: translateZ(calc(var(--depth) * 34px));
+}
+.industry-text {
+  transform: translateZ(calc(var(--depth) * 16px));
+}
+.industry-arrow {
+  transform: translateZ(calc(var(--depth) * 24px));
+}
 @media (hover: hover) and (pointer: fine) {
   .industry-card:hover {
-    --lift: -6px;
+    --lift: -8px;
     --glare: 1;
-    box-shadow:
-      0 1px 0 rgb(255 255 255 / 0.06) inset,
-      0 4px 10px rgb(var(--shadow-color) / 0.1),
-      0 30px 50px -24px rgb(var(--shadow-color) / 0.55);
+    --depth: 1;
   }
-  .industry-card:hover .industry-icon {
-    transform: translateZ(18px) scale(1.06) rotate(-4deg);
+  /* The shadow falls away from the light as the sheet lifts */
+  .industry-card:hover .industry-surface {
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--glass-border));
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.07) inset,
+      calc(var(--sx) * 0.4) calc(6px + var(--sy) * 0.4) 12px -4px rgb(var(--shadow-color) / 0.16),
+      var(--sx) calc(34px + var(--sy)) 46px -20px rgb(var(--shadow-color) / 0.6);
   }
   .industry-card:hover .industry-arrow {
-    transform: translateX(2px);
     background: var(--accent);
     color: var(--accent-ink);
   }
-  /* The others step back a little, still readable */
   .industry-grid:has(.industry-card:hover) .industry-card:not(:hover) {
-    opacity: 0.72;
+    opacity: 0.8;
   }
 }
-/* Touch and click: a quick, small press */
+/* Touch: the sheet presses into the page and its shadow tightens */
 .industry-card:active {
-  scale: 0.975;
+  scale: 0.965;
+}
+.industry-card:active .industry-surface {
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.05) inset,
+    0 2px 6px -2px rgb(var(--shadow-color) / 0.35);
+  transition-duration: 120ms;
 }
 .industry-card:focus-visible {
   --glare: 1;
+  --lift: -4px;
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -585,6 +612,7 @@ input[type="radio"] {
   }
   .industry-card:hover {
     --lift: 0px;
+    --depth: 0;
   }
   *,
   *::before,

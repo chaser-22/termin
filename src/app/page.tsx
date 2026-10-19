@@ -120,16 +120,14 @@ function IndustryCard({
     <Link
       href={href}
       style={delay(320 + index * 35)}
-      className={`industry-card enter group rounded-[22px] min-[380px]:rounded-[24px] border p-3.5 min-[380px]:p-4 sm:p-5 grid grid-cols-[auto_1fr_auto] items-center gap-x-3.5 min-h-[76px] min-[380px]:grid-cols-[1fr_auto] min-[380px]:grid-rows-[auto_1fr] min-[380px]:gap-y-5 min-[380px]:min-h-[140px] sm:min-h-[148px] outline-none ${
-        quiet
-          ? "border-dashed border-line bg-transparent"
-          : "border-[var(--glass-border)] bg-glass backdrop-blur-xl shadow-soft hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--glass-border))]"
-      }`}
+      className="industry-card enter group rounded-[22px] min-[380px]:rounded-[24px] p-3.5 min-[380px]:p-4 sm:p-5 grid grid-cols-[auto_1fr_auto] items-center gap-x-3.5 min-h-[76px] min-[380px]:grid-cols-[1fr_auto] min-[380px]:grid-rows-[auto_1fr] min-[380px]:gap-y-5 min-[380px]:min-h-[140px] sm:min-h-[148px] outline-none"
     >
+      {/* The glass sheet itself: kept as its own layer so the content can float above it */}
+      <span aria-hidden className={`industry-surface ${quiet ? "industry-surface-quiet" : ""}`} />
       <span className="industry-icon grid place-items-center size-11 rounded-2xl bg-accent-soft text-accent ring-1 ring-inset ring-[color-mix(in_srgb,var(--accent)_18%,transparent)] shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] min-[380px]:self-start">
         <VerticalIcon icon={icon} className="size-[20px]" strokeWidth={1.8} />
       </span>
-      <span className="min-w-0 min-[380px]:col-span-2 min-[380px]:row-start-2 min-[380px]:self-end">
+      <span className="industry-text min-w-0 min-[380px]:col-span-2 min-[380px]:row-start-2 min-[380px]:self-end">
         <span className="block text-[15px] sm:text-[16.5px] font-semibold leading-snug tracking-[-0.01em] text-balance">{title}</span>
         <span className="mt-0.5 min-[380px]:mt-1 block text-[13px] sm:text-[13.5px] leading-snug text-muted">{line}</span>
       </span>
