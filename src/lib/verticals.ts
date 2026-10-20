@@ -28,11 +28,14 @@ export type Vertical = {
   headline: Text;
   sub: Text;
   mock: MockData;
+  /** First beat of the homepage story: how a client finds the booking page */
+  arrive: { kind: "qr" | "instagram" | "chat"; caption: Text; handle?: string };
 };
 
 export const VERTICALS: Vertical[] = [
   {
     slug: "stomatolozi",
+    arrive: { kind: "qr", caption: { me: "Pacijent skenira QR kod na recepciji", en: "A patient scans the QR code at reception" } },
     icon: "tooth",
     setupType: "dentist",
     demo: "/demo-stomatolog",
@@ -62,6 +65,7 @@ export const VERTICALS: Vertical[] = [
   },
   {
     slug: "nokti",
+    arrive: { kind: "instagram", handle: "nailstudio.lena", caption: { me: "Klijentkinja klikne link u vašoj Instagram biografiji", en: "A client taps the link in your Instagram bio" } },
     icon: "sparkles",
     setupType: "nails",
     demo: "/demo-nokti",
@@ -91,6 +95,7 @@ export const VERTICALS: Vertical[] = [
   },
   {
     slug: "berbernice",
+    arrive: { kind: "qr", caption: { me: "Klijent skenira QR kod na vratima", en: "A client scans the QR code on the door" } },
     icon: "scissors",
     setupType: "barber",
     demo: "/marko",
@@ -120,6 +125,7 @@ export const VERTICALS: Vertical[] = [
   },
   {
     slug: "masaza",
+    arrive: { kind: "qr", caption: { me: "Gost skenira QR kod u hotelskoj sobi", en: "A guest scans the QR code in their hotel room" } },
     icon: "flower",
     setupType: "massage",
     demo: "/demo-masaza",
@@ -149,6 +155,7 @@ export const VERTICALS: Vertical[] = [
   },
   {
     slug: "fitness",
+    arrive: { kind: "instagram", handle: "joga.kotor", caption: { me: "Član klikne link u vašoj Instagram biografiji", en: "A member taps the link in your Instagram bio" } },
     icon: "dumbbell",
     setupType: "fitness",
     demo: "/demo-joga",
@@ -177,6 +184,7 @@ export const VERTICALS: Vertical[] = [
   },
   {
     slug: "tereni",
+    arrive: { kind: "chat", caption: { me: "Igrač otvori link iz grupe za dogovor", en: "A player opens the link shared in the group chat" } },
     icon: "trophy",
     setupType: "court",
     demo: "/demo-padel",
@@ -204,6 +212,7 @@ export const VERTICALS: Vertical[] = [
   },
   {
     slug: "iznajmljivanje",
+    arrive: { kind: "qr", caption: { me: "Turista skenira QR kod na biciklu", en: "A tourist scans the QR code on the bike" } },
     icon: "bike",
     setupType: "rental",
     demo: "/demo-rent",

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Clock, Users } from "lucide-react";
+import { ArrowRight, Bell, Check, ChevronLeft, ChevronRight, Clock, Link2, Users } from "lucide-react";
 import { VerticalIcon } from "@/components/VerticalIcon";
 import type { Vertical } from "@/lib/verticals";
 
@@ -19,10 +19,11 @@ export type CarouselCard = {
     typeLabel: string;
     items: { name: string; meta: string; price?: string; left?: number }[];
     nextFree: { day: string; time: string };
+    arrive: { kind: "qr" | "instagram" | "chat"; caption: string; handle?: string; link: string };
   };
 };
 
-type Labels = { example: string; nextFree: string; open: string; prev: string; next: string; swipeHint: string; placesLeft: string; booked: string };
+type Labels = { example: string; nextFree: string; open: string; prev: string; next: string; swipeHint: string; placesLeft: string; booked: string; newBooking: string; yourCalendar: string; ownerSees: string; busy: string };
 
 /** The times shown around the next free one in the little booking demo */
 function nearbyTimes(time: string): string[] {
@@ -158,7 +159,10 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
                       </span>
                     ))}
                   </span>
-                  {/* A short booking plays here on the centred card: next free -> pick a time -> booked */}
+                  {/* Beat 1 and beat 3 of the story play over the example page */}
+                  <ArriveScene arrive={c.preview.arrive} initial={c.preview.initial} name={c.preview.name} />
+                  <OwnerScene preview={c.preview} labels={labels} />
+                  {/* Beat 2: a short booking on the page itself: next free -> pick a time -> booked */}
                   <span className="demo-stage relative mt-4 block h-[60px] overflow-hidden rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)]">
                     <span className="demo-next absolute inset-0 flex items-center justify-between py-2 pl-5 pr-2">
                       <span className="min-w-0 leading-tight">
@@ -245,5 +249,144 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
       </div>
       <p className="mt-2 text-center text-[14px] text-muted sm:hidden">{labels.swipeHint}</p>
     </div>
+  );
+}
+
+// ------------------------------------------------------------ story scenes
+
+/** A QR-style pattern (drawn, not a real code) that stays the same for each business */
+function QrPattern({ seed }: { seed: string }) {
+  const n = 21;
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const cells: [number, number][] = [];
+  const finder = (x: number, y: number) => (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      if (finder(x, y)) continue;
+      h = Math.imul(h ^ (x * 31 + y), 2246822507) >>> 0;
+      if (h % 100 < 46) cells.push([x, y]);
+    }
+  }
+  const eye = (x: number, y: number) => (
+    <g key={`${x}-${y}`}>
+      <rect x={x} y={y} width={7} height={7} rx={1.6} fill="currentColor" />
+      <rect x={x + 1} y={y + 1} width={5} height={5} rx={1.1} fill="var(--surface)" />
+      <rect x={x + 2} y={y + 2} width={3} height={3} rx={0.7} fill="currentColor" />
+    </g>
+  );
+  return (
+    <svg viewBox={`0 0 ${n} ${n}`} className="size-full" aria-hidden>
+      {eye(0, 0)}
+      {eye(n - 7, 0)}
+      {eye(0, n - 7)}
+      {cells.map(([x, y]) => (
+        <rect key={`${x}.${y}`} x={x + 0.08} y={y + 0.08} width={0.84} height={0.84} rx={0.25} fill="currentColor" />
+      ))}
+    </svg>
+  );
+}
+
+/** Beat 1: how a client gets to the booking page */
+function ArriveScene({ arrive, initial, name }: { arrive: NonNullable<CarouselCard["preview"]>["arrive"]; initial: string; name: string }) {
+  return (
+    <span aria-hidden className="demo-arrive absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 rounded-[inherit] bg-bg p-5 text-center">
+      {arrive.kind === "qr" && (
+        <span className="relative grid place-items-center">
+          <span className="block size-[132px] rounded-[22px] bg-surface p-3 text-ink shadow-lift ring-1 ring-line">
+            <QrPattern seed={name} />
+          </span>
+          {/* a phone comes up and scans */}
+          <span className="demo-phone absolute -bottom-7 -right-14 block h-[100px] w-[56px] rounded-[14px] border-[3px] border-ink/80 bg-bg shadow-lift">
+            <span className="absolute inset-x-2 top-3 bottom-3 overflow-hidden rounded-[8px] bg-accent-soft">
+              <span className="demo-scan absolute inset-x-0 h-[2px] bg-accent shadow-[0_0_12px_var(--accent)]" />
+            </span>
+          </span>
+        </span>
+      )}
+      {arrive.kind === "instagram" && (
+        <span className="w-full max-w-[250px] rounded-[22px] bg-surface p-4 text-left shadow-lift ring-1 ring-line">
+          <span className="flex items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink display text-[20px] ring-2 ring-accent ring-offset-2 ring-offset-surface">{initial}</span>
+            <span className="min-w-0">
+              <span className="block truncate text-[13.5px] font-semibold">{arrive.handle}</span>
+              <span className="mt-1.5 flex gap-1.5">
+                <span className="block h-1.5 w-8 rounded-full bg-line" />
+                <span className="block h-1.5 w-8 rounded-full bg-line" />
+                <span className="block h-1.5 w-8 rounded-full bg-line" />
+              </span>
+            </span>
+          </span>
+          <span className="mt-3 block text-[12px] font-semibold">{name}</span>
+          <span className="mt-1 block h-1.5 w-4/5 rounded-full bg-line" />
+          <span className="demo-link relative mt-2 inline-flex items-center gap-1 rounded-md px-1 text-[12px] font-semibold text-accent">
+            <Link2 className="size-3.5" /> {arrive.link}
+          </span>
+        </span>
+      )}
+      {arrive.kind === "chat" && (
+        <span className="w-full max-w-[250px] space-y-2 text-left">
+          <span className="block w-3/4 rounded-[16px] rounded-bl-md bg-surface px-3.5 py-2 text-[12.5px] shadow-soft ring-1 ring-line">
+            <span className="block h-1.5 w-full rounded-full bg-line" />
+            <span className="mt-1.5 block h-1.5 w-2/3 rounded-full bg-line" />
+          </span>
+          <span className="demo-link relative ml-auto block w-[88%] rounded-[16px] rounded-br-md bg-accent px-3.5 py-2.5 text-[12.5px] text-accent-ink shadow-soft">
+            <span className="flex items-center gap-1.5 font-semibold">
+              <Link2 className="size-3.5" /> {arrive.link}
+            </span>
+            <span className="mt-0.5 block opacity-85">{name}</span>
+          </span>
+        </span>
+      )}
+      <span className="max-w-[240px] text-[14px] font-medium leading-snug">{arrive.caption}</span>
+    </span>
+  );
+}
+
+/** Beat 3: what the owner sees */
+function OwnerScene({ preview, labels }: { preview: NonNullable<CarouselCard["preview"]>; labels: Labels }) {
+  const [before, at, after] = [-60, 0, 60].map((d) => {
+    const [h, m] = preview.nextFree.time.split(":").map(Number);
+    const t = (((h * 60 + m + d) % 1440) + 1440) % 1440;
+    return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+  });
+  const service = preview.items[0]?.name ?? "";
+  return (
+    <span aria-hidden className="demo-owner absolute inset-0 z-10 flex flex-col gap-3 rounded-[inherit] bg-bg p-4 sm:p-5 text-left">
+      {/* the notification */}
+      <span className="demo-toast flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-lift ring-1 ring-line">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-accent-ink">
+          <Bell className="size-4" />
+        </span>
+        <span className="min-w-0 leading-tight">
+          <span className="block text-[12.5px] font-semibold">{labels.newBooking}</span>
+          <span className="block truncate text-[12px] text-muted">
+            Ana · {service} · {at}
+          </span>
+        </span>
+      </span>
+      {/* the owner calendar, the slot fills */}
+      <span className="flex-1 rounded-2xl border border-line/60 bg-surface/60 p-3">
+        <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{labels.yourCalendar}</span>
+        <span className="mt-2.5 block space-y-1.5">
+          <span className="flex items-center gap-2.5 text-[12px]">
+            <span className="w-10 shrink-0 tabular-nums text-muted">{before}</span>
+            <span className="flex-1 rounded-lg bg-line/60 px-2.5 py-1.5 text-muted">{labels.busy}</span>
+          </span>
+          <span className="flex items-center gap-2.5 text-[12px]">
+            <span className="w-10 shrink-0 tabular-nums font-semibold">{at}</span>
+            <span className="demo-slot relative flex-1 overflow-hidden rounded-lg border border-dashed border-line px-2.5 py-1.5">
+              <span className="demo-slot-fill absolute inset-0 bg-accent" />
+              <span className="demo-slot-text relative block truncate font-semibold text-accent-ink">Ana · {service}</span>
+            </span>
+          </span>
+          <span className="flex items-center gap-2.5 text-[12px]">
+            <span className="w-10 shrink-0 tabular-nums text-muted">{after}</span>
+            <span className="flex-1 rounded-lg border border-dashed border-line px-2.5 py-1.5">&nbsp;</span>
+          </span>
+        </span>
+      </span>
+      <span className="text-center text-[14px] font-medium leading-snug">{labels.ownerSees}</span>
+    </span>
   );
 }

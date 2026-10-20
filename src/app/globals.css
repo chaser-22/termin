@@ -542,181 +542,162 @@ input[type="radio"] {
   }
 }
 
-/* Living cards: the centred card plays a short booking on a loop. A service is
-   tapped, the next free pill turns into a few times and one is picked, then
-   "booked" with a check, and it starts over. One shared timeline (--loop);
-   only the centred card plays; still for reduced motion. */
+/* Living cards: the centred card tells a short story on a loop.
+   Beat 1 (0-25%): how a client arrives (QR code, Instagram bio link, group chat).
+   Beat 2 (25-66%): they book on the page: a service, a time, booked.
+   Beat 3 (66-96%): the owner gets a notification and the slot fills.
+   One shared timeline (--loop); only the centred card plays; the scenes stay
+   hidden for reduced motion, so the card is just the example page. */
 .swipe {
-  --loop: 6s;
+  --loop: 8.5s;
 }
 .demo-times,
-.demo-booked {
+.demo-booked,
+.demo-arrive,
+.demo-owner {
   opacity: 0;
+  pointer-events: none;
 }
 .demo-pick::after,
-.demo-time::after {
+.demo-time::after,
+.demo-link::after {
   /* the tap */
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -2px;
   border-radius: inherit;
   background: var(--accent);
   opacity: 0;
   pointer-events: none;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .swipe-card[aria-current] .demo-pick {
-    animation: demo-pick var(--loop) var(--ease-out-soft) infinite;
-  }
-  .swipe-card[aria-current] .demo-pick::after {
-    animation: demo-tap-1 var(--loop) ease-out infinite;
-  }
-  .swipe-card[aria-current] .demo-next {
-    animation: demo-next var(--loop) var(--ease-out-soft) infinite;
-  }
-  .swipe-card[aria-current] .demo-times {
-    animation: demo-times var(--loop) var(--ease-out-soft) infinite;
-  }
-  .swipe-card[aria-current] .demo-time {
-    animation: demo-time var(--loop) var(--ease-out-soft) infinite;
-  }
-  .swipe-card[aria-current] .demo-time::after {
-    animation: demo-tap-2 var(--loop) ease-out infinite;
-  }
-  .swipe-card[aria-current] .demo-booked {
-    animation: demo-booked var(--loop) var(--ease-out-soft) infinite;
-  }
-  .swipe-card[aria-current] .demo-check {
-    animation: demo-check var(--loop) var(--ease-out-soft) infinite;
-  }
+.demo-slot-fill {
+  transform-origin: left;
+  scale: 0 1;
 }
-/* 1. the first service gets tapped and stays chosen */
+.demo-slot-text {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .swipe-card[aria-current] :is(.demo-arrive, .demo-phone, .demo-scan, .demo-pick, .demo-next, .demo-times, .demo-time, .demo-booked, .demo-check, .demo-owner, .demo-toast, .demo-slot-fill, .demo-slot-text) {
+    animation-duration: var(--loop);
+    animation-iteration-count: infinite;
+    animation-timing-function: var(--ease-out-soft);
+  }
+  .swipe-card[aria-current] .demo-link::after,
+  .swipe-card[aria-current] .demo-pick::after,
+  .swipe-card[aria-current] .demo-time::after {
+    animation-duration: var(--loop);
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-out;
+  }
+  .swipe-card[aria-current] .demo-arrive { animation-name: demo-arrive; }
+  .swipe-card[aria-current] .demo-phone { animation-name: demo-phone; }
+  .swipe-card[aria-current] .demo-scan { animation-name: demo-scan; }
+  .swipe-card[aria-current] .demo-link::after { animation-name: demo-tap-0; }
+  .swipe-card[aria-current] .demo-pick { animation-name: demo-pick; }
+  .swipe-card[aria-current] .demo-pick::after { animation-name: demo-tap-1; }
+  .swipe-card[aria-current] .demo-next { animation-name: demo-next; }
+  .swipe-card[aria-current] .demo-times { animation-name: demo-times; }
+  .swipe-card[aria-current] .demo-time { animation-name: demo-time; }
+  .swipe-card[aria-current] .demo-time::after { animation-name: demo-tap-2; }
+  .swipe-card[aria-current] .demo-booked { animation-name: demo-booked; }
+  .swipe-card[aria-current] .demo-check { animation-name: demo-check; }
+  .swipe-card[aria-current] .demo-owner { animation-name: demo-owner; }
+  .swipe-card[aria-current] .demo-toast { animation-name: demo-toast; }
+  .swipe-card[aria-current] .demo-slot-fill { animation-name: demo-slot-fill; }
+  .swipe-card[aria-current] .demo-slot-text { animation-name: demo-slot-text; }
+}
+
+/* ---- beat 1: arrive */
+@keyframes demo-arrive {
+  0%, 21% { opacity: 1; }
+  26%, 97% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes demo-phone {
+  0% { translate: 18px 40px; rotate: 8deg; opacity: 0; }
+  7%, 22% { translate: 0 0; rotate: -6deg; opacity: 1; }
+  100% { translate: 0 0; rotate: -6deg; opacity: 1; }
+}
+@keyframes demo-scan {
+  0%, 7% { top: 0; opacity: 0; }
+  8% { opacity: 1; }
+  17% { top: calc(100% - 2px); opacity: 1; }
+  19%, 100% { top: calc(100% - 2px); opacity: 0; }
+}
+@keyframes demo-tap-0 {
+  0%, 11% { opacity: 0; scale: 0.9; }
+  13% { opacity: 0.3; scale: 1; }
+  20%, 100% { opacity: 0; scale: 1.08; }
+}
+
+/* ---- beat 2: book */
 @keyframes demo-pick {
-  0%,
-  12% {
+  0%, 30% {
     border-color: color-mix(in srgb, var(--line) 50%, transparent);
     background-color: color-mix(in srgb, var(--surface) 70%, transparent);
   }
-  16%,
-  90% {
+  33%, 94% {
     border-color: var(--accent);
     background-color: var(--accent-soft);
   }
-  96%,
-  100% {
+  98%, 100% {
     border-color: color-mix(in srgb, var(--line) 50%, transparent);
     background-color: color-mix(in srgb, var(--surface) 70%, transparent);
   }
 }
 @keyframes demo-tap-1 {
-  0%,
-  12% {
-    opacity: 0;
-    scale: 0.9;
-  }
-  14% {
-    opacity: 0.35;
-    scale: 1;
-  }
-  22%,
-  100% {
-    opacity: 0;
-    scale: 1.04;
-  }
+  0%, 30% { opacity: 0; scale: 0.9; }
+  32% { opacity: 0.35; scale: 1; }
+  38%, 100% { opacity: 0; scale: 1.04; }
 }
-/* 2. the next-free pill makes way for times */
 @keyframes demo-next {
-  0%,
-  22% {
-    opacity: 1;
-    translate: 0 0;
-  }
-  28%,
-  94% {
-    opacity: 0;
-    translate: 0 -14px;
-  }
-  100% {
-    opacity: 1;
-    translate: 0 0;
-  }
+  0%, 37% { opacity: 1; translate: 0 0; }
+  41%, 96% { opacity: 0; translate: 0 -14px; }
+  100% { opacity: 1; translate: 0 0; }
 }
 @keyframes demo-times {
-  0%,
-  24% {
-    opacity: 0;
-    translate: 0 14px;
-  }
-  30%,
-  56% {
-    opacity: 1;
-    translate: 0 0;
-  }
-  62%,
-  100% {
-    opacity: 0;
-    translate: 0 -14px;
-  }
+  0%, 39% { opacity: 0; translate: 0 14px; }
+  43%, 54% { opacity: 1; translate: 0 0; }
+  58%, 100% { opacity: 0; translate: 0 -14px; }
 }
-/* 3. one time is picked */
 @keyframes demo-time {
-  0%,
-  40% {
-    background-color: transparent;
-    color: inherit;
-  }
-  44%,
-  100% {
-    background-color: var(--accent);
-    color: var(--accent-ink);
-  }
+  0%, 47% { background-color: transparent; color: inherit; }
+  49%, 100% { background-color: var(--accent); color: var(--accent-ink); }
 }
 @keyframes demo-tap-2 {
-  0%,
-  41% {
-    opacity: 0;
-    scale: 0.8;
-  }
-  43% {
-    opacity: 0.5;
-    scale: 1;
-  }
-  52%,
-  100% {
-    opacity: 0;
-    scale: 1.5;
-  }
+  0%, 47% { opacity: 0; scale: 0.8; }
+  49% { opacity: 0.5; scale: 1; }
+  55%, 100% { opacity: 0; scale: 1.5; }
 }
-/* 4. booked */
 @keyframes demo-booked {
-  0%,
-  60% {
-    opacity: 0;
-    translate: 0 14px;
-  }
-  66%,
-  90% {
-    opacity: 1;
-    translate: 0 0;
-  }
-  96%,
-  100% {
-    opacity: 0;
-    translate: 0 0;
-  }
+  0%, 56% { opacity: 0; translate: 0 14px; }
+  60%, 94% { opacity: 1; translate: 0 0; }
+  98%, 100% { opacity: 0; translate: 0 0; }
 }
 @keyframes demo-check {
-  0%,
-  62% {
-    scale: 0.4;
-  }
-  70% {
-    scale: 1.12;
-  }
-  76%,
-  100% {
-    scale: 1;
-  }
+  0%, 58% { scale: 0.4; }
+  63% { scale: 1.12; }
+  67%, 100% { scale: 1; }
+}
+
+/* ---- beat 3: the owner */
+@keyframes demo-owner {
+  0%, 67% { opacity: 0; }
+  71%, 94% { opacity: 1; }
+  98%, 100% { opacity: 0; }
+}
+@keyframes demo-toast {
+  0%, 70% { translate: 0 -22px; opacity: 0; }
+  75%, 100% { translate: 0 0; opacity: 1; }
+}
+@keyframes demo-slot-fill {
+  0%, 78% { scale: 0 1; }
+  84%, 100% { scale: 1 1; }
+}
+@keyframes demo-slot-text {
+  0%, 81% { opacity: 0; }
+  86%, 100% { opacity: 1; }
 }
 
 /* Short entrance: small rise and fade, never blocks clicks. Uses `translate`

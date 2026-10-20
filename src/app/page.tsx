@@ -6,6 +6,7 @@ import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { getDict } from "@/i18n/server";
 import { CONTACT, CONTACT_LINKS } from "@/lib/contact";
 import { VERTICALS } from "@/lib/verticals";
+import { slugify } from "@/lib/slug";
 import { ContinueChip } from "./VerticalMemory";
 import { IndustryCarousel, type CarouselCard } from "./IndustryCarousel";
 import { brandCss } from "@/lib/brand";
@@ -40,6 +41,7 @@ async function Landing() {
         typeLabel: v.mock.typeLabel[locale],
         items: v.mock.items.slice(0, 4).map((it) => ({ name: it.name[locale], meta: it.meta, price: it.price, left: it.left })),
         nextFree: { day: v.mock.pill.day[locale], time: v.mock.pill.time },
+        arrive: { kind: v.arrive.kind, caption: v.arrive.caption[locale], handle: v.arrive.handle, link: `termin.me/${slugify(v.mock.name)}` },
       },
     })),
     { slug: "other", href: "/start", icon: "more" as const, title: h.other, line: h.otherLine },
@@ -94,6 +96,10 @@ async function Landing() {
                 swipeHint: h.swipeHint,
                 placesLeft: t.book.placesLeft,
                 booked: h.booked,
+                newBooking: h.newBooking,
+                yourCalendar: h.yourCalendar,
+                ownerSees: h.ownerSees,
+                busy: h.busy,
               }}
             />
           </div>
