@@ -542,6 +542,183 @@ input[type="radio"] {
   }
 }
 
+/* Living cards: the centred card plays a short booking on a loop. A service is
+   tapped, the next free pill turns into a few times and one is picked, then
+   "booked" with a check, and it starts over. One shared timeline (--loop);
+   only the centred card plays; still for reduced motion. */
+.swipe {
+  --loop: 6s;
+}
+.demo-times,
+.demo-booked {
+  opacity: 0;
+}
+.demo-pick::after,
+.demo-time::after {
+  /* the tap */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .swipe-card[aria-current] .demo-pick {
+    animation: demo-pick var(--loop) var(--ease-out-soft) infinite;
+  }
+  .swipe-card[aria-current] .demo-pick::after {
+    animation: demo-tap-1 var(--loop) ease-out infinite;
+  }
+  .swipe-card[aria-current] .demo-next {
+    animation: demo-next var(--loop) var(--ease-out-soft) infinite;
+  }
+  .swipe-card[aria-current] .demo-times {
+    animation: demo-times var(--loop) var(--ease-out-soft) infinite;
+  }
+  .swipe-card[aria-current] .demo-time {
+    animation: demo-time var(--loop) var(--ease-out-soft) infinite;
+  }
+  .swipe-card[aria-current] .demo-time::after {
+    animation: demo-tap-2 var(--loop) ease-out infinite;
+  }
+  .swipe-card[aria-current] .demo-booked {
+    animation: demo-booked var(--loop) var(--ease-out-soft) infinite;
+  }
+  .swipe-card[aria-current] .demo-check {
+    animation: demo-check var(--loop) var(--ease-out-soft) infinite;
+  }
+}
+/* 1. the first service gets tapped and stays chosen */
+@keyframes demo-pick {
+  0%,
+  12% {
+    border-color: color-mix(in srgb, var(--line) 50%, transparent);
+    background-color: color-mix(in srgb, var(--surface) 70%, transparent);
+  }
+  16%,
+  90% {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+  }
+  96%,
+  100% {
+    border-color: color-mix(in srgb, var(--line) 50%, transparent);
+    background-color: color-mix(in srgb, var(--surface) 70%, transparent);
+  }
+}
+@keyframes demo-tap-1 {
+  0%,
+  12% {
+    opacity: 0;
+    scale: 0.9;
+  }
+  14% {
+    opacity: 0.35;
+    scale: 1;
+  }
+  22%,
+  100% {
+    opacity: 0;
+    scale: 1.04;
+  }
+}
+/* 2. the next-free pill makes way for times */
+@keyframes demo-next {
+  0%,
+  22% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  28%,
+  94% {
+    opacity: 0;
+    translate: 0 -14px;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes demo-times {
+  0%,
+  24% {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  30%,
+  56% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  62%,
+  100% {
+    opacity: 0;
+    translate: 0 -14px;
+  }
+}
+/* 3. one time is picked */
+@keyframes demo-time {
+  0%,
+  40% {
+    background-color: transparent;
+    color: inherit;
+  }
+  44%,
+  100% {
+    background-color: var(--accent);
+    color: var(--accent-ink);
+  }
+}
+@keyframes demo-tap-2 {
+  0%,
+  41% {
+    opacity: 0;
+    scale: 0.8;
+  }
+  43% {
+    opacity: 0.5;
+    scale: 1;
+  }
+  52%,
+  100% {
+    opacity: 0;
+    scale: 1.5;
+  }
+}
+/* 4. booked */
+@keyframes demo-booked {
+  0%,
+  60% {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  66%,
+  90% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  96%,
+  100% {
+    opacity: 0;
+    translate: 0 0;
+  }
+}
+@keyframes demo-check {
+  0%,
+  62% {
+    scale: 0.4;
+  }
+  70% {
+    scale: 1.12;
+  }
+  76%,
+  100% {
+    scale: 1;
+  }
+}
+
 /* Short entrance: small rise and fade, never blocks clicks. Uses `translate`
    so it never fights the card's own transform. */
 @keyframes enter {

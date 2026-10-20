@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, Clock, Users } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Clock, Users } from "lucide-react";
 import { VerticalIcon } from "@/components/VerticalIcon";
 import type { Vertical } from "@/lib/verticals";
 
@@ -22,7 +22,17 @@ export type CarouselCard = {
   };
 };
 
-type Labels = { example: string; nextFree: string; open: string; prev: string; next: string; swipeHint: string; placesLeft: string };
+type Labels = { example: string; nextFree: string; open: string; prev: string; next: string; swipeHint: string; placesLeft: string; booked: string };
+
+/** The times shown around the next free one in the little booking demo */
+function nearbyTimes(time: string): string[] {
+  const [h, m] = time.split(":").map(Number);
+  const at = (d: number) => {
+    const t = (((h * 60 + m + d) % 1440) + 1440) % 1440;
+    return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+  };
+  return [at(-30), at(0), at(30)];
+}
 
 // Industries as a native swipe carousel (CSS scroll snap). The centred card is
 // full size; neighbours shrink and fade with their distance from the centre,
@@ -136,7 +146,7 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
                   <span className="mt-4 block space-y-2">
                     {c.preview.items.map((it, n) => (
                       // Phones show three services so the whole card fits the first screen
-                      <span key={it.name} className={`${n === 3 ? "hidden sm:flex" : "flex"} items-center justify-between gap-3 rounded-2xl border border-line/50 bg-surface/70 px-3.5 py-2 text-[14px]`}>
+                      <span key={it.name} className={`${n === 3 ? "hidden sm:flex" : "flex"} ${n === 0 ? "demo-pick" : ""} relative items-center justify-between gap-3 rounded-2xl border border-line/50 bg-surface/70 px-3.5 py-2 text-[14px]`}>
                         <span className="min-w-0">
                           <span className="block truncate font-medium leading-snug">{it.name}</span>
                           <span className="mt-0.5 flex items-center gap-1 text-[12px] text-muted tabular-nums">
@@ -148,12 +158,33 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
                       </span>
                     ))}
                   </span>
-                  <span className="mt-4 flex items-center justify-between rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)] py-2 pl-5 pr-2">
-                    <span className="min-w-0 leading-tight">
-                      <span className="block text-[10px] font-bold uppercase tracking-[0.14em] opacity-80">{labels.nextFree}</span>
-                      <span className="block truncate text-[12.5px] opacity-90">{c.preview.nextFree.day}</span>
+                  {/* A short booking plays here on the centred card: next free -> pick a time -> booked */}
+                  <span className="demo-stage relative mt-4 block h-[60px] overflow-hidden rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)]">
+                    <span className="demo-next absolute inset-0 flex items-center justify-between py-2 pl-5 pr-2">
+                      <span className="min-w-0 leading-tight">
+                        <span className="block text-[10px] font-bold uppercase tracking-[0.14em] opacity-80">{labels.nextFree}</span>
+                        <span className="block truncate text-[12.5px] opacity-90">{c.preview.nextFree.day}</span>
+                      </span>
+                      <span className="display text-[26px] text-[var(--pill-time)] tabular-nums px-2">{c.preview.nextFree.time}</span>
                     </span>
-                    <span className="display text-[26px] text-[var(--pill-time)] tabular-nums px-2">{c.preview.nextFree.time}</span>
+                    <span aria-hidden className="demo-times absolute inset-0 flex items-center justify-center gap-2 px-3">
+                      {nearbyTimes(c.preview.nextFree.time).map((tm, k) => (
+                        <span key={tm} className={`relative rounded-full px-3.5 py-1.5 text-[14px] font-semibold tabular-nums ring-1 ring-white/15 ${k === 1 ? "demo-time" : "opacity-70"}`}>
+                          {tm}
+                        </span>
+                      ))}
+                    </span>
+                    <span aria-hidden className="demo-booked absolute inset-0 flex items-center gap-3 py-2 pl-2 pr-5">
+                      <span className="demo-check grid shrink-0 place-items-center size-11 rounded-full bg-accent text-accent-ink">
+                        <Check className="size-5" strokeWidth={3} />
+                      </span>
+                      <span className="min-w-0 leading-tight">
+                        <span className="block text-[14px] font-semibold">{labels.booked}</span>
+                        <span className="block truncate text-[12px] opacity-80">
+                          {c.preview.items[0]?.name} · {c.preview.nextFree.time}
+                        </span>
+                      </span>
+                    </span>
                   </span>
                 </span>
               ) : (

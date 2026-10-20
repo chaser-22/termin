@@ -93,6 +93,7 @@ async function Landing() {
                 next: h.next,
                 swipeHint: h.swipeHint,
                 placesLeft: t.book.placesLeft,
+                booked: h.booked,
               }}
             />
           </div>
