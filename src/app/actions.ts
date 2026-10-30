@@ -14,6 +14,7 @@ import { createBusinessWithDefaults, trialEnd, uniqueSlug } from "@/lib/server/s
 import { cancelByToken, createBooking } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
 import { emailEnabled, sendEmail } from "@/lib/server/email";
+import { notifyOwner } from "@/lib/server/notify";
 import { appOrigin } from "@/lib/server/url";
 import { normalizePhone } from "@/lib/phone";
 import { formatDateLong } from "@/lib/format";
@@ -55,6 +56,7 @@ export async function bookAppointment(input: z.input<typeof bookSchema>): Promis
   if (!business) return { ok: false, error: "invalid" };
 
   try {
+    const { locale, t } = await getDict();
     const result = await createBooking({
       business,
       serviceId: data.serviceId,
@@ -65,16 +67,17 @@ export async function bookAppointment(input: z.input<typeof bookSchema>): Promis
       email: data.email || null,
       note: data.note || null,
       source: "online",
+      locale,
     });
     if (!result.ok) return result;
 
+    const origin = await appOrigin();
+    // Sent after the response, so slow emails don't slow the booking.
+    after(() => notifyOwner(result.bookingId, origin));
     const email = data.email;
     if (email) {
-      const { locale, t } = await getDict();
-      const origin = await appOrigin();
       const start = new Date(data.startsAt);
       const when = `${formatDateLong(dateKeyOf(start, business.timezone), t, locale)} ${formatTime(start, business.timezone)}`;
-      // Sent after the response, so a slow email doesn't slow the booking.
       after(() => sendEmail({
         to: email,
         subject: `${t.booking.confirmedTitle}: ${business.name}, ${when}`,

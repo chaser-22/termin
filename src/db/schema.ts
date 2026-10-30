@@ -38,6 +38,7 @@ export const sessions = pgTable("sessions", {
 });
 
 import type { BusinessType } from "@/lib/slug";
+import type { Locale } from "@/i18n/dict";
 export { BUSINESS_TYPES, type BusinessType } from "@/lib/slug";
 
 export const businesses = pgTable("businesses", {
@@ -214,6 +215,10 @@ export const bookings = pgTable(
     // Secret token in the customer's link to view, cancel or add to calendar
     publicToken: text("public_token").notNull().unique(),
     note: text("note"),
+    // Language the customer booked in, for their reminder (null = Montenegrin)
+    locale: text("locale").$type<Locale>(),
+    // Set when the reminder email went out, so nobody gets two
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     createdAt: createdAt(),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   },

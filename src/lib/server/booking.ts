@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, eq, gt, inArray, lt, ne } from "drizzle-orm";
 import { bookings, businesses, classTimes, customers, services, serviceStaff, staff, workingHours, type Business, type BookingSource, type Service } from "@/db/schema";
+import type { Locale } from "@/i18n/dict";
 import { availableStarts, fits, mergeStaffSlots, placesTaken } from "@/lib/slots";
 import { addDays, dateKeyOf, localToInstant, todayKey, type DateKey } from "@/lib/time";
 import { randomToken } from "./crypto";
@@ -168,6 +169,8 @@ export type CreateBookingInput = {
   email?: string | null;
   note?: string | null;
   source: BookingSource;
+  // Language for the customer's reminder
+  locale?: Locale | null;
 };
 
 export type CreateBookingResult =
@@ -239,6 +242,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
         endsAt,
         source: input.source,
         note: input.note || null,
+        locale: input.locale ?? null,
         publicToken,
       })
       .returning({ id: bookings.id });

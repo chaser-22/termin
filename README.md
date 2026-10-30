@@ -42,7 +42,8 @@ npm run lint
 2. In the Vercel project, open **Storage → Create Database → Neon (Postgres)** and connect it. This sets `DATABASE_URL`. Neon's free plan is enough to start.
 3. Optional, for real emails: create a free [Resend](https://resend.com) account, verify your domain, and set `RESEND_API_KEY` and `EMAIL_FROM`.
 4. Set `APP_URL` to your address (for example `https://termin.me`) once you have a domain.
-5. Deploy. The build runs the database migrations first (`npm run build`).
+5. Set `CRON_SECRET` to a long random string. Vercel Cron then calls `/api/cron/reminders` once a day (16:00 UTC, see `vercel.json`), which emails clients a reminder for appointments in the next 24 hours. The free plan allows only daily cron jobs; on Pro you can make it hourly (`0 * * * *`) so reminders arrive about a day ahead, or call the route from any external cron with the header `Authorization: Bearer <CRON_SECRET>`.
+6. Deploy. The build runs the database migrations first (`npm run build`).
 
 Note: Vercel's free Hobby plan is for non-commercial use; a paid plan is needed once businesses pay you.
 
@@ -52,7 +53,7 @@ Edit `src/db/schema.ts`, then `npm run db:generate` to create a migration in `dr
 
 ## Next steps (rest of Phase 1)
 
-- Web push notifications and reminders (needs a service worker and a scheduled job; Vercel Cron on the free plan runs once a day, so reminders may need an external free cron).
+- Web push notifications (needs a service worker). Owners already get an email for each online booking, and clients an email reminder.
 - Waitlist for full days.
 - Customer accounts across businesses (rebooking history).
 - Time off / holidays per staff member, and drag-and-drop in the calendar.

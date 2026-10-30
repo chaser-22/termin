@@ -146,6 +146,17 @@ const me = {
     yourBooking: "Vaš termin",
     notFound: "Termin nije pronađen. Provjerite link.",
   },
+  // Emails: the owner's alert on a new booking and the client's reminder
+  notify: {
+    newBooking: "Novi termin",
+    client: "Klijent",
+    phone: "Telefon",
+    note: "Napomena",
+    openInCalendar: "Pogledajte u kalendaru:",
+    reminder: "Podsjetnik",
+    reminderBody: "Podsjećamo vas na termin.",
+    reminderCancel: "Ako ne možete doći, otkažite termin preko ovog linka da bi se oslobodio za nekog drugog:",
+  },
   auth: {
     signIn: "Prijava",
     devSignIn: "Prijavi se kao",
@@ -437,6 +448,16 @@ const en: Dict = {
     bookNext: "Book your next visit",
     yourBooking: "Your booking",
     notFound: "Booking not found. Please check the link.",
+  },
+  notify: {
+    newBooking: "New booking",
+    client: "Client",
+    phone: "Phone",
+    note: "Note",
+    openInCalendar: "See it in your calendar:",
+    reminder: "Reminder",
+    reminderBody: "A reminder of your appointment.",
+    reminderCancel: "Can't make it? Cancel with this link so someone else can take the time:",
   },
   auth: {
     signIn: "Sign in",
