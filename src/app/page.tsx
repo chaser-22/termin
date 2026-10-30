@@ -54,7 +54,7 @@ async function Landing() {
       <header className="mx-auto w-full max-w-5xl px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 flex items-center justify-between gap-3" style={{ viewTransitionName: "app-header" }}>
         <span className="display text-[23px] tracking-[-0.04em]">{t.appName}</span>
         <div className="flex items-center gap-1 sm:gap-2">
-          <Link href="/login" className="btn-ghost btn-sm px-3 text-muted">
+          <Link href="/login" className="btn-ghost btn-sm px-2 min-[360px]:px-3 whitespace-nowrap text-muted">
             {t.auth.signIn}
           </Link>
           <LanguageSwitch current={locale} />

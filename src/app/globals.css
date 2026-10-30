@@ -449,7 +449,7 @@ input[type="radio"] {
    with a coloured shadow. Neighbours shrink, dim and slide their preview a
    little, which reads as depth while swiping. */
 .swipe {
-  --card-w: min(86vw, 360px);
+  --card-w: min(90vw, 360px);
 }
 @media (min-width: 640px) {
   .swipe {
@@ -606,6 +606,18 @@ input[type="radio"] {
   .swipe-card[aria-current] .demo-toast { animation-name: demo-toast; }
   .swipe-card[aria-current] .demo-slot-fill { animation-name: demo-slot-fill; }
   .swipe-card[aria-current] .demo-slot-text { animation-name: demo-slot-text; }
+  /* When a card arrives in the centre, its first scene fades in instead of popping.
+     Listed second, so it wins for its 350ms, then the loop takes over. */
+  .swipe-card[aria-current] .demo-arrive {
+    animation:
+      demo-arrive var(--loop) var(--ease-out-soft) infinite,
+      demo-fade-in 350ms ease-out;
+  }
+}
+@keyframes demo-fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* ---- beat 1: arrive */

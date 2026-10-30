@@ -121,7 +121,7 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
               onClick={onCardClick(i)}
               onFocus={() => goTo(i)}
               aria-current={i === active ? "true" : undefined}
-              className="swipe-card group relative flex h-full flex-col overflow-hidden rounded-[34px] border p-5 sm:p-6 outline-none"
+              className="swipe-card group relative flex h-full flex-col overflow-hidden rounded-[34px] border p-4 min-[360px]:p-5 sm:p-6 outline-none"
             >
               {/* A soft wash of the industry colour at the top of the card */}
               <span aria-hidden className="swipe-wash" />
@@ -136,12 +136,12 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
               </span>
 
               {c.preview ? (
-                <span className="swipe-preview relative mt-4 sm:mt-5 block flex-1 rounded-[26px] border border-line/60 bg-bg/75 p-4 sm:p-5 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]">
-                  <span className="flex items-center gap-3.5">
-                    <span className="grid place-items-center size-12 rounded-full bg-accent text-accent-ink display text-[22px] ring-4 ring-[color-mix(in_srgb,var(--accent)_18%,transparent)]">{c.preview.initial}</span>
+                <span className="swipe-preview relative mt-4 sm:mt-5 block flex-1 rounded-[26px] border border-line/60 bg-bg/75 p-3 min-[360px]:p-4 sm:p-5 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]">
+                  <span className="flex items-center gap-3 min-[360px]:gap-3.5">
+                    <span className="grid shrink-0 place-items-center size-10 min-[360px]:size-12 rounded-full bg-accent text-accent-ink display text-[19px] min-[360px]:text-[22px] ring-4 ring-[color-mix(in_srgb,var(--accent)_18%,transparent)]">{c.preview.initial}</span>
                     <span className="min-w-0">
-                      <span className="block truncate font-semibold text-[17px] tracking-[-0.01em]">{c.preview.name}</span>
-                      <span className="block truncate text-[12.5px] text-muted">{c.preview.typeLabel}</span>
+                      <span className="block line-clamp-2 font-semibold text-[15.5px] min-[360px]:text-[17px] leading-tight tracking-[-0.01em]">{c.preview.name}</span>
+                      <span className="mt-0.5 block truncate text-[11.5px] min-[360px]:text-[12.5px] text-muted">{c.preview.typeLabel}</span>
                     </span>
                   </span>
                   <span className="mt-4 block space-y-2">
@@ -149,7 +149,7 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
                       // Phones show three services so the whole card fits the first screen
                       <span key={it.name} className={`${n === 3 ? "hidden sm:flex" : "flex"} ${n === 0 ? "demo-pick" : ""} relative items-center justify-between gap-3 rounded-2xl border border-line/50 bg-surface/70 px-3.5 py-2 text-[14px]`}>
                         <span className="min-w-0">
-                          <span className="block truncate font-medium leading-snug">{it.name}</span>
+                          <span className="block line-clamp-2 font-medium leading-snug">{it.name}</span>
                           <span className="mt-0.5 flex items-center gap-1 text-[12px] text-muted tabular-nums">
                             {it.left !== undefined ? <Users className="size-3" /> : <Clock className="size-3" />}
                             {it.left !== undefined ? `${it.meta} · ${it.left} ${labels.placesLeft}` : it.meta}
@@ -163,17 +163,17 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
                   <ArriveScene arrive={c.preview.arrive} initial={c.preview.initial} name={c.preview.name} />
                   <OwnerScene preview={c.preview} labels={labels} />
                   {/* Beat 2: a short booking on the page itself: next free -> pick a time -> booked */}
-                  <span className="demo-stage relative mt-4 block h-[60px] overflow-hidden rounded-full bg-[var(--pill-bg)] text-[var(--pill-fg)]">
+                  <span className="demo-stage relative mt-4 block h-[64px] overflow-hidden rounded-[32px] bg-[var(--pill-bg)] text-[var(--pill-fg)]">
                     <span className="demo-next absolute inset-0 flex items-center justify-between py-2 pl-5 pr-2">
                       <span className="min-w-0 leading-tight">
                         <span className="block text-[10px] font-bold uppercase tracking-[0.14em] opacity-80">{labels.nextFree}</span>
-                        <span className="block truncate text-[12.5px] opacity-90">{c.preview.nextFree.day}</span>
+                        <span className="block truncate text-[12.5px] opacity-90">{c.preview.nextFree.day.split(" · ")[0]}</span>
                       </span>
                       <span className="display text-[26px] text-[var(--pill-time)] tabular-nums px-2">{c.preview.nextFree.time}</span>
                     </span>
-                    <span aria-hidden className="demo-times absolute inset-0 flex items-center justify-center gap-2 px-3">
+                    <span aria-hidden className="demo-times absolute inset-0 flex items-center justify-center gap-1.5 min-[360px]:gap-2 px-2">
                       {nearbyTimes(c.preview.nextFree.time).map((tm, k) => (
-                        <span key={tm} className={`relative rounded-full px-3.5 py-1.5 text-[14px] font-semibold tabular-nums ring-1 ring-white/15 ${k === 1 ? "demo-time" : "opacity-70"}`}>
+                        <span key={tm} className={`relative rounded-full px-2.5 min-[360px]:px-3.5 py-1.5 text-[13px] min-[360px]:text-[14px] font-semibold tabular-nums ring-1 ring-white/15 ${k === 1 ? "demo-time" : "opacity-70"}`}>
                           {tm}
                         </span>
                       ))}
@@ -183,9 +183,9 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
                         <Check className="size-5" strokeWidth={3} />
                       </span>
                       <span className="min-w-0 leading-tight">
-                        <span className="block text-[14px] font-semibold">{labels.booked}</span>
-                        <span className="block truncate text-[12px] opacity-80">
-                          {c.preview.items[0]?.name} · {c.preview.nextFree.time}
+                        <span className="block text-[13.5px] font-semibold leading-tight">{labels.booked}</span>
+                        <span className="mt-0.5 block line-clamp-2 text-[11.5px] leading-tight opacity-80">
+                          {c.preview.nextFree.time} · {c.preview.items[0]?.name}
                         </span>
                       </span>
                     </span>
@@ -290,7 +290,7 @@ function QrPattern({ seed }: { seed: string }) {
 /** Beat 1: how a client gets to the booking page */
 function ArriveScene({ arrive, initial, name }: { arrive: NonNullable<CarouselCard["preview"]>["arrive"]; initial: string; name: string }) {
   return (
-    <span aria-hidden className="demo-arrive absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 rounded-[inherit] bg-bg p-5 text-center">
+    <span aria-hidden className="demo-arrive absolute inset-0 z-10 flex flex-col items-center justify-center gap-9 rounded-[inherit] bg-bg p-5 text-center">
       {arrive.kind === "qr" && (
         <span className="relative grid place-items-center">
           <span className="block size-[132px] rounded-[22px] bg-surface p-3 text-ink shadow-lift ring-1 ring-line">
@@ -305,11 +305,11 @@ function ArriveScene({ arrive, initial, name }: { arrive: NonNullable<CarouselCa
         </span>
       )}
       {arrive.kind === "instagram" && (
-        <span className="w-full max-w-[250px] rounded-[22px] bg-surface p-4 text-left shadow-lift ring-1 ring-line">
+        <span className="w-full max-w-[250px] rounded-[22px] bg-surface p-3 min-[360px]:p-4 text-left shadow-lift ring-1 ring-line">
           <span className="flex items-center gap-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink display text-[20px] ring-2 ring-accent ring-offset-2 ring-offset-surface">{initial}</span>
+            <span className="grid size-10 min-[360px]:size-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink display text-[18px] min-[360px]:text-[20px] ring-2 ring-accent ring-offset-2 ring-offset-surface">{initial}</span>
             <span className="min-w-0">
-              <span className="block truncate text-[13.5px] font-semibold">{arrive.handle}</span>
+              <span className="block truncate text-[12.5px] min-[360px]:text-[13.5px] font-semibold">{arrive.handle}</span>
               <span className="mt-1.5 flex gap-1.5">
                 <span className="block h-1.5 w-8 rounded-full bg-line" />
                 <span className="block h-1.5 w-8 rounded-full bg-line" />
@@ -360,8 +360,8 @@ function OwnerScene({ preview, labels }: { preview: NonNullable<CarouselCard["pr
         </span>
         <span className="min-w-0 leading-tight">
           <span className="block text-[12.5px] font-semibold">{labels.newBooking}</span>
-          <span className="block truncate text-[12px] text-muted">
-            Ana · {service} · {at}
+          <span className="block line-clamp-2 text-[12px] leading-snug text-muted">
+            {at} · Ana · {service}
           </span>
         </span>
       </span>
@@ -377,7 +377,7 @@ function OwnerScene({ preview, labels }: { preview: NonNullable<CarouselCard["pr
             <span className="w-10 shrink-0 tabular-nums font-semibold">{at}</span>
             <span className="demo-slot relative flex-1 overflow-hidden rounded-lg border border-dashed border-line px-2.5 py-1.5">
               <span className="demo-slot-fill absolute inset-0 bg-accent" />
-              <span className="demo-slot-text relative block truncate font-semibold text-accent-ink">Ana · {service}</span>
+              <span className="demo-slot-text relative block line-clamp-2 font-semibold leading-snug text-accent-ink">Ana · {service}</span>
             </span>
           </span>
           <span className="flex items-center gap-2.5 text-[12px]">
