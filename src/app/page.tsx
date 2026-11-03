@@ -133,7 +133,10 @@ async function Landing() {
 
       <footer className="mx-auto w-full max-w-5xl px-5 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line/40 text-sm text-muted">
         <span>
-          <span className="display text-[17px] text-ink">{t.appName}</span> · © 2026
+          <span className="display text-[17px] text-ink">{t.appName}</span> · © 2026 ·{" "}
+          <Link href="/privacy" className="hover:text-ink">
+            {t.book.privacy}
+          </Link>
         </span>
         <span className="flex items-center gap-1">
           {t.home.contactTitle}

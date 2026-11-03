@@ -540,6 +540,12 @@ function DetailsStep({
             <label className="label" htmlFor="note">{t.book.note}</label>
             <input id="note" className="input" maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
+          <p className="text-xs text-muted">
+            {t.book.privacyNote}{" "}
+            <a href="/privacy" target="_blank" className="underline underline-offset-2 hover:text-ink">
+              {t.book.privacy}
+            </a>
+          </p>
         </form>
       </section>
 

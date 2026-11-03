@@ -48,7 +48,7 @@ async function Start({ searchParams }: { searchParams: Promise<Record<string, st
           defaultType={defaultType}
           namePlaceholder={vertical?.mock.name ?? "Berbernica Marko"}
           types={[...VERTICALS.map((v) => ({ type: v.setupType, icon: v.icon, label: v.tile.title[locale] })), { type: "other" as const, icon: "more" as const, label: t.businessTypes.other }]}
-          t={{ trial: t.trial, common: t.common, auth: t.auth }}
+          t={{ trial: t.trial, common: t.common, auth: t.auth, book: t.book }}
         />
       </main>
     </div>

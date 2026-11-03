@@ -13,7 +13,7 @@ type Props = {
   defaultType?: BusinessType;
   namePlaceholder?: string;
   types: { type: BusinessType; icon: Vertical["icon"] | "more"; label: string }[];
-  t: Pick<Dict, "trial" | "common" | "auth">;
+  t: Pick<Dict, "trial" | "common" | "auth" | "book">;
 };
 
 /** Activation: one email field with an invite, three fields without. No password. */
@@ -110,6 +110,11 @@ export function StartForm({ invite, defaultType, namePlaceholder, types, t }: Pr
           {pending ? t.common.loading : t.trial.sendLink}
         </button>
         <p className="text-center text-sm text-muted">{t.trial.linkHint}</p>
+        <p className="text-center text-xs text-muted">
+          <a href="/privacy" target="_blank" className="underline underline-offset-2 hover:text-ink">
+            {t.book.privacy}
+          </a>
+        </p>
       </div>
     </form>
   );

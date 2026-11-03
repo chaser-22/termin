@@ -6,6 +6,7 @@ import { formatDateLong } from "@/lib/format";
 import { addDays, dateKeyOf, formatTime, todayKey } from "@/lib/time";
 import { db } from "./db";
 import { emailEnabled, sendEmail } from "./email";
+import { sendSms, smsEnabled } from "./sms";
 
 /** Clients get their reminder within this many hours of the appointment. */
 export const REMINDER_HOURS = 24;
@@ -65,13 +66,14 @@ export async function notifyOwner(bookingId: string, origin: string) {
 }
 
 /**
- * Marks the bookings due a reminder and returns their ids: confirmed, with a
- * client email, starting within REMINDER_HOURS, and booked at least that far
- * ahead (a booking made for later today already has its confirmation). The
- * mark is set in the same statement, so a booking is only ever claimed once,
- * even when two runs overlap.
+ * Marks the bookings due a reminder and returns their ids: confirmed, starting
+ * within REMINDER_HOURS, and booked at least that far ahead (a booking made for
+ * later today already has its confirmation). Clients need an email, or, when
+ * SMS is on, just their phone (every client has one). The mark is set in the
+ * same statement, so a booking is only ever claimed once, even when two runs
+ * overlap.
  */
-export async function claimDueReminders(now = new Date()): Promise<string[]> {
+export async function claimDueReminders(now = new Date(), withSms = smsEnabled()): Promise<string[]> {
   const d = await db();
   const until = new Date(now.getTime() + REMINDER_HOURS * 3_600_000);
   const due = d
@@ -85,8 +87,7 @@ export async function claimDueReminders(now = new Date()): Promise<string[]> {
         gt(bookings.startsAt, now),
         lte(bookings.startsAt, until),
         lte(bookings.createdAt, sql`${bookings.startsAt} - ${sql.raw(`interval '${REMINDER_HOURS} hours'`)}`),
-        isNotNull(customers.email),
-        ne(customers.email, ""),
+        withSms ? undefined : and(isNotNull(customers.email), ne(customers.email, "")),
       ),
     );
   const rows = await d
@@ -97,15 +98,32 @@ export async function claimDueReminders(now = new Date()): Promise<string[]> {
   return rows.map((r) => r.id);
 }
 
-/** Sends the due client reminders. Returns how many were sent (or logged, without an email provider). */
-export async function sendDueReminders(origin: string, now = new Date()): Promise<number> {
-  const rows = await bookingDetails(await claimDueReminders(now));
+/**
+ * Sends the due client reminders: by email when the client left one, otherwise
+ * by SMS (when SMS is on). Returns how many were sent (or logged, without a
+ * provider).
+ */
+export async function sendDueReminders(origin: string, now = new Date(), withSms = smsEnabled()): Promise<number> {
+  const rows = await bookingDetails(await claimDueReminders(now, withSms));
   let sent = 0;
   for (const { booking, business, service, staff: person, customer } of rows) {
-    if (!customer.email) continue;
     const locale: Locale = booking.locale ?? "me";
     const t = DICTS[locale];
     const tz = business.timezone;
+    if (!customer.email) {
+      // Short, so it fits in one or two SMS
+      const ok = await sendSms({
+        to: customer.phone,
+        text: t.notify.smsReminder
+          .replace("{business}", business.name)
+          .replace("{service}", service.name)
+          .replace("{when}", whenShort(booking.startsAt, tz, t, locale, now))
+          .replace("{link}", `${origin}/booking/${booking.publicToken}`),
+      });
+      if (ok || !smsEnabled()) sent++;
+      else await (await db()).update(bookings).set({ reminderSentAt: null }).where(eq(bookings.id, booking.id));
+      continue;
+    }
     const ok = await sendEmail({
       to: customer.email,
       subject: `${t.notify.reminder}: ${service.name} ${whenShort(booking.startsAt, tz, t, locale, now)} · ${business.name}`,

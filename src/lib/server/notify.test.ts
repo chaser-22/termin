@@ -100,9 +100,14 @@ describe("claimDueReminders", () => {
     expect(await claimDueReminders(now)).toEqual([]);
   });
 
-  it("skips clients without an email", async () => {
+  it("skips clients without an email when SMS is off", async () => {
     await booking(20, { customerId: noEmail.id });
-    expect(await claimDueReminders(now)).toEqual([]);
+    expect(await claimDueReminders(now, false)).toEqual([]);
+  });
+
+  it("includes clients without an email when SMS is on", async () => {
+    const id = await booking(20, { customerId: noEmail.id });
+    expect(await claimDueReminders(now, true)).toEqual([id]);
   });
 
   it("skips bookings made less than a day ahead", async () => {
@@ -123,6 +128,18 @@ describe("sendDueReminders", () => {
     expect(text).toContain("to=ana@test.me");
     expect(text).toContain("Reminder: Gel tomorrow 07:00 · Test");
     expect(text).toContain("https://termin.test/booking/tok-123");
+    log.mockRestore();
+  });
+
+  it("texts clients without an email when SMS is on (logged without an SMS provider)", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    await booking(20, { customerId: noEmail.id, publicToken: "tok-sms" });
+    expect(await sendDueReminders("https://termin.test", now, true)).toBe(1);
+    expect(log).toHaveBeenCalledTimes(1);
+    const text = String(log.mock.calls[0][0]);
+    expect(text).toContain("[sms] to=+38267000002");
+    expect(text).toContain("Test: podsjetnik – Gel, sjutra 07:00");
+    expect(text).toContain("https://termin.test/booking/tok-sms");
     log.mockRestore();
   });
 });

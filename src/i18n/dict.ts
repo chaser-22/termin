@@ -92,6 +92,8 @@ const me = {
     name: "Ime i prezime",
     phone: "Broj telefona",
     email: "Email (nije obavezno)",
+    privacyNote: "Vaše podatke koristimo samo za ovaj termin.",
+    privacy: "Privatnost",
     emailHint: "Poslaćemo potvrdu i podsjetnik.",
     note: "Napomena (nije obavezno)",
     confirm: "Potvrdi termin",
@@ -148,6 +150,7 @@ const me = {
   },
   // Emails: the owner's alert on a new booking and the client's reminder
   notify: {
+    smsReminder: "{business}: podsjetnik – {service}, {when}. Otkazivanje: {link}",
     newBooking: "Novi termin",
     client: "Klijent",
     phone: "Telefon",
@@ -395,6 +398,8 @@ const en: Dict = {
     name: "Full name",
     phone: "Phone number",
     email: "Email (optional)",
+    privacyNote: "Your details are only used for this booking.",
+    privacy: "Privacy",
     emailHint: "We'll send a confirmation and a reminder.",
     note: "Note (optional)",
     confirm: "Confirm booking",
@@ -450,6 +455,7 @@ const en: Dict = {
     notFound: "Booking not found. Please check the link.",
   },
   notify: {
+    smsReminder: "{business}: reminder – {service}, {when}. To cancel: {link}",
     newBooking: "New booking",
     client: "Client",
     phone: "Phone",
