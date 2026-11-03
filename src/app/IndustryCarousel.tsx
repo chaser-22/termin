@@ -112,15 +112,16 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
 
   return (
     <div className="swipe relative" onKeyDown={onKey}>
-      {/* Desktop: every industry one click away, above the big stage */}
-      <div className="hidden lg:flex flex-wrap justify-center gap-1.5 px-5">
+      {/* Desktop: every industry one click away, above the big stage, always in one row
+          (it scrolls sideways instead of wrapping if a window is too narrow) */}
+      <div className="mt-5 hidden lg:flex flex-nowrap [justify-content:safe_center] gap-1 xl:gap-1.5 overflow-x-auto px-1 py-0.5 [scrollbar-width:none]">
         {cards.map((c, i) => (
           <button
             key={c.slug}
             type="button"
             onClick={() => goTo(i)}
             aria-current={i === active ? "true" : undefined}
-            className={`h-9 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition cursor-pointer ${
+            className={`h-8 xl:h-9 shrink-0 whitespace-nowrap rounded-full border px-2 xl:px-3 text-[11.5px] xl:text-[12.5px] font-medium transition cursor-pointer ${
               i === active ? "border-transparent bg-ink text-bg" : "border-line text-muted hover:text-ink hover:border-ink/40"
             }`}
           >
