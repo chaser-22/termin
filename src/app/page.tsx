@@ -76,6 +76,14 @@ async function Landing() {
           <p className="enter mx-auto mt-3 max-w-[30ch] sm:max-w-none text-[18px] sm:text-[21px] leading-snug text-muted text-balance" style={delay(220)}>
             {h.heroBody}
           </p>
+          {/* The three answers an owner wants before anything else: trial, no card, no commission */}
+          <ul className="enter mt-3.5 flex flex-wrap justify-center gap-x-5 gap-y-1 text-[13.5px] text-muted" style={delay(250)}>
+            {h.trust.map((x) => (
+              <li key={x} className="flex items-center gap-1.5">
+                <Check className="size-3.5 text-accent" strokeWidth={2.5} /> {x}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <section className="mt-5 sm:mt-7" aria-labelledby="pick">
@@ -121,16 +129,6 @@ async function Landing() {
               ))}
             </ul>
           </nav>
-
-          <div className="enter mt-6 flex flex-col items-center" style={delay(480)}>
-            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-[13.5px] text-muted">
-              {h.trust.map((x) => (
-                <li key={x} className="flex items-center gap-1.5">
-                  <Check className="size-3.5 text-accent" strokeWidth={2.5} /> {x}
-                </li>
-              ))}
-            </ul>
-          </div>
         </section>
         <FeatureTiles
           title={FEATURES[locale].title}
