@@ -100,6 +100,10 @@ async function Landing() {
                 yourCalendar: h.yourCalendar,
                 ownerSees: h.ownerSees,
                 busy: h.busy,
+                clientSide: h.clientSide,
+                ownerSide: h.ownerSide,
+                confirm: h.confirm,
+                today: t.common.today,
               }}
             />
           </div>

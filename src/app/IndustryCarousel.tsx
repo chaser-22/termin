@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, Bell, Check, ChevronLeft, ChevronRight, Clock, Link2, Users } from "lucide-react";
+import { ArrowRight, Bell, CalendarCheck, Check, ChevronLeft, ChevronRight, Clock, Link2, Smartphone, Users } from "lucide-react";
 import { VerticalIcon } from "@/components/VerticalIcon";
 import type { Vertical } from "@/lib/verticals";
 
@@ -23,7 +23,7 @@ export type CarouselCard = {
   };
 };
 
-type Labels = { example: string; nextFree: string; open: string; prev: string; next: string; swipeHint: string; placesLeft: string; booked: string; newBooking: string; yourCalendar: string; ownerSees: string; busy: string };
+type Labels = { example: string; nextFree: string; open: string; prev: string; next: string; swipeHint: string; placesLeft: string; booked: string; newBooking: string; yourCalendar: string; ownerSees: string; busy: string; clientSide: string; ownerSide: string; confirm: string; today: string };
 
 /** The times shown around the next free one in the little booking demo */
 function nearbyTimes(time: string): string[] {
@@ -107,6 +107,22 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
 
   return (
     <div className="swipe relative" onKeyDown={onKey}>
+      {/* Desktop: every industry one click away, above the big stage */}
+      <div className="hidden lg:flex flex-wrap justify-center gap-1.5 px-5">
+        {cards.map((c, i) => (
+          <button
+            key={c.slug}
+            type="button"
+            onClick={() => goTo(i)}
+            aria-current={i === active ? "true" : undefined}
+            className={`h-9 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition cursor-pointer ${
+              i === active ? "border-transparent bg-ink text-bg" : "border-line text-muted hover:text-ink hover:border-ink/40"
+            }`}
+          >
+            {c.title}
+          </button>
+        ))}
+      </div>
       <div className="relative">
       <div
         ref={track}
@@ -136,60 +152,81 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
               </span>
 
               {c.preview ? (
-                <span className="swipe-preview relative mt-4 sm:mt-5 block flex-1 rounded-[26px] border border-line/60 bg-bg/75 p-3 min-[360px]:p-4 sm:p-5 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]">
-                  <span className="flex items-center gap-3 min-[360px]:gap-3.5">
-                    <span className="grid shrink-0 place-items-center size-10 min-[360px]:size-12 rounded-full bg-accent text-accent-ink display text-[19px] min-[360px]:text-[22px] ring-4 ring-[color-mix(in_srgb,var(--accent)_18%,transparent)]">{c.preview.initial}</span>
-                    <span className="min-w-0">
-                      <span className="block line-clamp-2 font-semibold text-[15.5px] min-[360px]:text-[17px] leading-tight tracking-[-0.01em]">{c.preview.name}</span>
-                      <span className="mt-0.5 block truncate text-[11.5px] min-[360px]:text-[12.5px] text-muted">{c.preview.typeLabel}</span>
+                // Both sides of one booking at once: the client books (top / left),
+                // the owner sees it arrive (bottom / right), joined by a dot that
+                // travels from the client's Potvrdi to the owner's calendar.
+                <span className="split relative mt-4 sm:mt-5 grid flex-1 lg:grid-cols-[minmax(0,370px)_76px_minmax(0,1fr)] lg:items-stretch">
+                  {/* ---- the client */}
+                  <span className="flex min-w-0 flex-col">
+                    <span className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
+                      <Smartphone className="size-3.5" /> {labels.clientSide}
                     </span>
-                  </span>
-                  <span className="mt-4 block space-y-2">
-                    {c.preview.items.map((it, n) => (
-                      // Phones show three services so the whole card fits the first screen
-                      <span key={it.name} className={`${n === 3 ? "hidden sm:flex" : "flex"} ${n === 0 ? "demo-pick" : ""} relative items-center justify-between gap-3 rounded-2xl border border-line/50 bg-surface/70 px-3.5 py-2 text-[14px]`}>
+                    <span className="swipe-preview relative block flex-1 overflow-hidden rounded-[26px] border border-line/60 bg-bg/75 p-3 min-[360px]:p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]">
+                      <ArriveScene arrive={c.preview.arrive} initial={c.preview.initial} name={c.preview.name} />
+                      <span className="flex items-center gap-3">
+                        <span className="grid shrink-0 place-items-center size-10 rounded-full bg-accent text-accent-ink display text-[19px] ring-4 ring-[color-mix(in_srgb,var(--accent)_18%,transparent)]">{c.preview.initial}</span>
                         <span className="min-w-0">
-                          <span className="block line-clamp-2 font-medium leading-snug">{it.name}</span>
-                          <span className="mt-0.5 flex items-center gap-1 text-[12px] text-muted tabular-nums">
-                            {it.left !== undefined ? <Users className="size-3" /> : <Clock className="size-3" />}
-                            {it.left !== undefined ? `${it.meta} · ${it.left} ${labels.placesLeft}` : it.meta}
+                          <span className="block line-clamp-2 font-semibold text-[15.5px] leading-tight tracking-[-0.01em]">{c.preview.name}</span>
+                          <span className="mt-0.5 block truncate text-[11.5px] text-muted">{c.preview.typeLabel}</span>
+                        </span>
+                      </span>
+                      <span className="mt-3 block space-y-1.5">
+                        {c.preview.items.map((it, n) => (
+                          // Phones show two services so both sides fit; desktop shows all
+                          <span key={it.name} className={`${n >= 2 ? "hidden lg:flex" : "flex"} ${n === 0 ? "demo-pick" : ""} relative items-center justify-between gap-3 rounded-2xl border border-line/50 bg-surface/70 px-3 py-1.5 text-[13.5px]`}>
+                            <span className="min-w-0">
+                              <span className="block line-clamp-2 font-medium leading-snug">{it.name}</span>
+                              <span className="mt-0.5 flex items-center gap-1 text-[11.5px] text-muted tabular-nums">
+                                {it.left !== undefined ? <Users className="size-3" /> : <Clock className="size-3" />}
+                                {it.left !== undefined ? `${it.meta} · ${it.left} ${labels.placesLeft}` : it.meta}
+                              </span>
+                            </span>
+                            {it.price && <span className="shrink-0 text-[14px] font-semibold tabular-nums">{it.price}</span>}
+                          </span>
+                        ))}
+                      </span>
+                      {/* next free -> pick a time -> Potvrdi -> booked */}
+                      <span className="demo-stage relative mt-3 block h-[64px] overflow-hidden rounded-[32px] bg-[var(--pill-bg)] text-[var(--pill-fg)]">
+                        <span className="demo-next absolute inset-0 flex items-center justify-between py-2 pl-5 pr-2">
+                          <span className="min-w-0 leading-tight">
+                            <span className="block text-[10px] font-bold uppercase tracking-[0.14em] opacity-80">{labels.nextFree}</span>
+                            <span className="block truncate text-[12.5px] opacity-90">{c.preview.nextFree.day.split(" · ")[0]}</span>
+                          </span>
+                          <span className="display text-[24px] text-[var(--pill-time)] tabular-nums px-2">{c.preview.nextFree.time}</span>
+                        </span>
+                        <span aria-hidden className="demo-times absolute inset-0 flex items-center justify-center gap-1.5 min-[360px]:gap-2 px-2">
+                          {nearbyTimes(c.preview.nextFree.time).map((tm, k) => (
+                            <span key={tm} className={`relative rounded-full px-2.5 min-[360px]:px-3.5 py-1.5 text-[13px] min-[360px]:text-[14px] font-semibold tabular-nums ring-1 ring-white/15 ${k === 1 ? "demo-time" : "opacity-70"}`}>
+                              {tm}
+                            </span>
+                          ))}
+                        </span>
+                        <span aria-hidden className="demo-confirm absolute inset-1.5 flex items-center justify-center gap-2 rounded-full bg-accent text-[15px] font-semibold text-accent-ink">
+                          {labels.confirm} <Check className="size-4" strokeWidth={3} />
+                        </span>
+                        <span aria-hidden className="demo-booked absolute inset-0 flex items-center gap-3 py-2 pl-2 pr-5">
+                          <span className="demo-check grid shrink-0 place-items-center size-11 rounded-full bg-accent text-accent-ink">
+                            <Check className="size-5" strokeWidth={3} />
+                          </span>
+                          <span className="min-w-0 leading-tight">
+                            <span className="block text-[13.5px] font-semibold leading-tight">{labels.booked}</span>
+                            <span className="mt-0.5 block line-clamp-2 text-[11.5px] leading-tight opacity-80">
+                              {c.preview.nextFree.time} · {c.preview.items[0]?.name}
+                            </span>
                           </span>
                         </span>
-                        {it.price && <span className="shrink-0 text-[14.5px] font-semibold tabular-nums">{it.price}</span>}
-                      </span>
-                    ))}
-                  </span>
-                  {/* Beat 1 and beat 3 of the story play over the example page */}
-                  <ArriveScene arrive={c.preview.arrive} initial={c.preview.initial} name={c.preview.name} />
-                  <OwnerScene preview={c.preview} labels={labels} />
-                  {/* Beat 2: a short booking on the page itself: next free -> pick a time -> booked */}
-                  <span className="demo-stage relative mt-4 block h-[64px] overflow-hidden rounded-[32px] bg-[var(--pill-bg)] text-[var(--pill-fg)]">
-                    <span className="demo-next absolute inset-0 flex items-center justify-between py-2 pl-5 pr-2">
-                      <span className="min-w-0 leading-tight">
-                        <span className="block text-[10px] font-bold uppercase tracking-[0.14em] opacity-80">{labels.nextFree}</span>
-                        <span className="block truncate text-[12.5px] opacity-90">{c.preview.nextFree.day.split(" · ")[0]}</span>
-                      </span>
-                      <span className="display text-[26px] text-[var(--pill-time)] tabular-nums px-2">{c.preview.nextFree.time}</span>
-                    </span>
-                    <span aria-hidden className="demo-times absolute inset-0 flex items-center justify-center gap-1.5 min-[360px]:gap-2 px-2">
-                      {nearbyTimes(c.preview.nextFree.time).map((tm, k) => (
-                        <span key={tm} className={`relative rounded-full px-2.5 min-[360px]:px-3.5 py-1.5 text-[13px] min-[360px]:text-[14px] font-semibold tabular-nums ring-1 ring-white/15 ${k === 1 ? "demo-time" : "opacity-70"}`}>
-                          {tm}
-                        </span>
-                      ))}
-                    </span>
-                    <span aria-hidden className="demo-booked absolute inset-0 flex items-center gap-3 py-2 pl-2 pr-5">
-                      <span className="demo-check grid shrink-0 place-items-center size-11 rounded-full bg-accent text-accent-ink">
-                        <Check className="size-5" strokeWidth={3} />
-                      </span>
-                      <span className="min-w-0 leading-tight">
-                        <span className="block text-[13.5px] font-semibold leading-tight">{labels.booked}</span>
-                        <span className="mt-0.5 block line-clamp-2 text-[11.5px] leading-tight opacity-80">
-                          {c.preview.nextFree.time} · {c.preview.items[0]?.name}
-                        </span>
                       </span>
                     </span>
                   </span>
+
+                  {/* ---- the link between them */}
+                  <span aria-hidden className="split-link relative mx-auto block h-9 w-px lg:my-auto lg:h-px lg:w-full">
+                    <span className="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,var(--line)_0_4px,transparent_4px_8px)] lg:bg-[repeating-linear-gradient(to_right,var(--line)_0_4px,transparent_4px_8px)]" />
+                    <span className="split-dot absolute left-1/2 top-0 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_0_5px_color-mix(in_srgb,var(--accent)_22%,transparent),0_0_18px_var(--accent)] lg:left-0 lg:top-1/2" />
+                  </span>
+
+                  {/* ---- the owner */}
+                  <OwnerSide preview={c.preview} labels={labels} />
                 </span>
               ) : (
                 <span className="relative mt-5 flex flex-1 items-center rounded-[26px] border border-dashed border-line p-5 text-[16px] leading-relaxed text-muted">{c.line}</span>
@@ -343,50 +380,59 @@ function ArriveScene({ arrive, initial, name }: { arrive: NonNullable<CarouselCa
   );
 }
 
-/** Beat 3: what the owner sees */
-function OwnerScene({ preview, labels }: { preview: NonNullable<CarouselCard["preview"]>; labels: Labels }) {
-  const [before, at, after] = [-60, 0, 60].map((d) => {
+/** The owner's side: today's calendar, where the client's booking lands. */
+function OwnerSide({ preview, labels }: { preview: NonNullable<CarouselCard["preview"]>; labels: Labels }) {
+  const at = (d: number) => {
     const [h, m] = preview.nextFree.time.split(":").map(Number);
     const t = (((h * 60 + m + d) % 1440) + 1440) % 1440;
     return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
-  });
+  };
   const service = preview.items[0]?.name ?? "";
   return (
-    <span aria-hidden className="demo-owner absolute inset-0 z-10 flex flex-col gap-3 rounded-[inherit] bg-bg p-4 sm:p-5 text-left">
-      {/* the notification */}
-      <span className="demo-toast flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-lift ring-1 ring-line">
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-accent-ink">
-          <Bell className="size-4" />
-        </span>
-        <span className="min-w-0 leading-tight">
-          <span className="block text-[12.5px] font-semibold">{labels.newBooking}</span>
-          <span className="block line-clamp-2 text-[12px] leading-snug text-muted">
-            {at} · Ana · {service}
-          </span>
-        </span>
+    <span className="flex min-w-0 flex-col">
+      <span className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <CalendarCheck className="size-3.5" /> {labels.ownerSide}
       </span>
-      {/* the owner calendar, the slot fills */}
-      <span className="flex-1 rounded-2xl border border-line/60 bg-surface/60 p-3">
-        <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{labels.yourCalendar}</span>
-        <span className="mt-2.5 block space-y-1.5">
-          <span className="flex items-center gap-2.5 text-[12px]">
-            <span className="w-10 shrink-0 tabular-nums text-muted">{before}</span>
-            <span className="flex-1 rounded-lg bg-line/60 px-2.5 py-1.5 text-muted">{labels.busy}</span>
+      <span className="demo-owner-panel relative block flex-1 overflow-hidden rounded-[26px] border border-line/60 bg-surface/60 p-3 min-[360px]:p-4">
+        {/* The title bar; the notification drops in over it, never over the rows */}
+        <span className="relative block h-[52px]">
+          <span className="absolute inset-0 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
+            {labels.yourCalendar}
+            <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] tracking-normal text-bg normal-case">{labels.today}</span>
           </span>
-          <span className="flex items-center gap-2.5 text-[12px]">
-            <span className="w-10 shrink-0 tabular-nums font-semibold">{at}</span>
-            <span className="demo-slot relative flex-1 overflow-hidden rounded-lg border border-dashed border-line px-2.5 py-1.5">
-              <span className="demo-slot-fill absolute inset-0 bg-accent" />
-              <span className="demo-slot-text relative block line-clamp-2 font-semibold leading-snug text-accent-ink">Ana · {service}</span>
+          <span className="demo-toast absolute inset-0 z-10 flex items-center gap-2.5 rounded-2xl bg-surface px-2.5 shadow-lift ring-1 ring-line">
+            <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-accent text-accent-ink">
+              <Bell className="size-4" />
+            </span>
+            <span className="min-w-0 leading-tight">
+              <span className="block text-[12.5px] font-semibold">{labels.newBooking}</span>
+              <span className="block line-clamp-2 text-[11.5px] leading-tight text-muted">
+                {at(0)} · Ana · {service}
+              </span>
             </span>
           </span>
-          <span className="flex items-center gap-2.5 text-[12px]">
-            <span className="w-10 shrink-0 tabular-nums text-muted">{after}</span>
-            <span className="flex-1 rounded-lg border border-dashed border-line px-2.5 py-1.5">&nbsp;</span>
-          </span>
+        </span>
+        <span className="mt-2 block space-y-1.5">
+          {[
+            { time: at(-60), kind: "busy" as const },
+            { time: at(0), kind: "new" as const },
+            { time: at(60), kind: "free" as const },
+            { time: at(120), kind: "busy" as const },
+          ].map((r, n) => (
+            <span key={r.time} className={`${n === 3 ? "hidden lg:flex" : "flex"} items-center gap-2.5 text-[12px]`}>
+              <span className={`w-10 shrink-0 tabular-nums ${r.kind === "new" ? "font-semibold" : "text-muted"}`}>{r.time}</span>
+              {r.kind === "busy" && <span className="flex-1 rounded-lg bg-line/60 px-2.5 py-1.5 text-muted">{labels.busy}</span>}
+              {r.kind === "free" && <span className="flex-1 rounded-lg border border-dashed border-line px-2.5 py-1.5">&nbsp;</span>}
+              {r.kind === "new" && (
+                <span className="relative flex-1 overflow-hidden rounded-lg border border-dashed border-line px-2.5 py-1.5">
+                  <span className="demo-slot-fill absolute inset-0 bg-accent" />
+                  <span className="demo-slot-text relative block line-clamp-2 font-semibold leading-snug text-accent-ink">Ana · {service}</span>
+                </span>
+              )}
+            </span>
+          ))}
         </span>
       </span>
-      <span className="text-center text-[14px] font-medium leading-snug">{labels.ownerSees}</span>
     </span>
   );
 }
