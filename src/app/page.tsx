@@ -110,8 +110,8 @@ async function Landing() {
             />
           </div>
 
-          {/* Every industry one tap away, without swiping */}
-          <nav aria-label={h.orPick} className="enter mt-6 text-center" style={delay(420)}>
+          {/* Phones: every industry one tap away, without swiping (desktop has the chip row above the cards) */}
+          <nav aria-label={h.orPick} className="enter mt-6 text-center lg:hidden" style={delay(420)}>
             <p className="text-[12.5px] font-semibold uppercase tracking-[0.12em] text-muted">{h.orPick}</p>
             <ul className="mt-3 flex flex-wrap justify-center gap-2">
               {[...VERTICALS.map((v) => ({ href: `/za/${v.slug}`, title: v.tile.title[locale] })), { href: "/start", title: h.other }].map((x) => (
