@@ -14,7 +14,6 @@ import { db } from "@/lib/server/db";
 import { termsFor } from "@/lib/terms";
 import { VERTICALS, verticalBySlug } from "@/lib/verticals";
 import { StartLink } from "../../StartLink";
-import { RememberVertical } from "../../VerticalMemory";
 
 export function generateStaticParams() {
   return VERTICALS.map((v) => ({ vertical: v.slug }));
@@ -49,7 +48,6 @@ async function Landing({ params }: { params: Promise<{ vertical: string }> }) {
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
       <style>{brandCss(v.accent)}</style>
-      <RememberVertical slug={v.slug} />
       <header className="mx-auto w-full max-w-5xl px-5 py-4 flex items-center justify-between gap-2" style={{ viewTransitionName: "app-header" }}>
         <Link href="/" className="btn-ghost btn-sm -ml-2 min-w-0">
           <ArrowLeft className="size-4 shrink-0" /> <span className="truncate">{h.allTypes}</span>

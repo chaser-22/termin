@@ -7,7 +7,6 @@ import { getDict } from "@/i18n/server";
 import { CONTACT, CONTACT_LINKS } from "@/lib/contact";
 import { VERTICALS } from "@/lib/verticals";
 import { slugify } from "@/lib/slug";
-import { ContinueChip } from "./VerticalMemory";
 import { FeatureTiles } from "./FeatureTiles";
 import { FEATURES } from "./features";
 import { IndustryCarousel, type CarouselCard } from "./IndustryCarousel";
@@ -29,7 +28,6 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 async function Landing() {
   const { locale, t } = await getDict();
   const h = t.home;
-  const titles = Object.fromEntries(VERTICALS.map((v) => [v.slug, v.tile.title[locale]]));
   const cards: CarouselCard[] = [
     ...VERTICALS.map((v) => ({
       slug: v.slug,
@@ -124,8 +122,7 @@ async function Landing() {
             </ul>
           </nav>
 
-          <div className="enter mt-6 flex flex-col items-center gap-3" style={delay(480)}>
-            <ContinueChip label={h.continueAs} titles={titles} />
+          <div className="enter mt-6 flex flex-col items-center" style={delay(480)}>
             <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-[13.5px] text-muted">
               {h.trust.map((x) => (
                 <li key={x} className="flex items-center gap-1.5">
