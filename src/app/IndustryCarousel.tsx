@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Bell, CalendarCheck, Check, ChevronLeft, ChevronRight, Clock, Link2, Smartphone, Users } from "lucide-react";
+import { ArrowRight, Bell, Check, ChevronLeft, ChevronRight, Clock, Link2, Users } from "lucide-react";
 import { VerticalIcon } from "@/components/VerticalIcon";
 import type { Vertical } from "@/lib/verticals";
 
@@ -141,14 +141,15 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
             >
               {/* A soft wash of the industry colour at the top of the card */}
               <span aria-hidden className="swipe-wash" />
-              <span className="relative flex items-center justify-between">
-                <span className="flex items-center gap-3">
-                  <span className="grid place-items-center size-12 rounded-[18px] bg-accent text-accent-ink shadow-[0_10px_24px_-10px_var(--accent)]">
-                    <VerticalIcon icon={c.icon} className="size-[22px]" strokeWidth={1.8} />
+              {/* The industry, centred */}
+              <span className="relative flex flex-col items-center text-center">
+                <span className="flex items-center justify-center gap-3">
+                  <span className="grid shrink-0 place-items-center size-11 rounded-[16px] bg-accent text-accent-ink shadow-[0_10px_24px_-10px_var(--accent)]">
+                    <VerticalIcon icon={c.icon} className="size-[21px]" strokeWidth={1.8} />
                   </span>
-                  <span className="text-[18px] sm:text-[19px] font-semibold leading-tight tracking-[-0.015em]">{c.title}</span>
+                  <span className="text-[19px] sm:text-[21px] font-semibold leading-tight tracking-[-0.015em] text-balance">{c.title}</span>
                 </span>
-                {c.preview && <span className="rounded-full border border-[var(--glass-border)] bg-glass px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted">{labels.example}</span>}
+                {c.preview && <span className="mt-2 rounded-full border border-[var(--glass-border)] bg-glass px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{labels.example}</span>}
               </span>
 
               {c.preview ? (
@@ -158,9 +159,7 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
                 <span className="split relative mt-4 sm:mt-5 grid flex-1 lg:grid-cols-[minmax(0,370px)_76px_minmax(0,1fr)] lg:items-stretch">
                   {/* ---- the client */}
                   <span className="flex min-w-0 flex-col">
-                    <span className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
-                      <Smartphone className="size-3.5" /> {labels.clientSide}
-                    </span>
+                    <SideLabel n={1}>{labels.clientSide}</SideLabel>
                     <span className="swipe-preview relative block flex-1 overflow-hidden rounded-[26px] border border-line/60 bg-bg/75 p-3 min-[360px]:p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]">
                       <ArriveScene arrive={c.preview.arrive} initial={c.preview.initial} name={c.preview.name} />
                       <span className="flex items-center gap-3">
@@ -390,9 +389,9 @@ function OwnerSide({ preview, labels }: { preview: NonNullable<CarouselCard["pre
   const service = preview.items[0]?.name ?? "";
   return (
     <span className="flex min-w-0 flex-col">
-      <span className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
-        <CalendarCheck className="size-3.5" /> {labels.ownerSide}
-      </span>
+      <SideLabel n={2} owner>
+        {labels.ownerSide}
+      </SideLabel>
       <span className="demo-owner-panel relative block flex-1 overflow-hidden rounded-[26px] border border-line/60 bg-surface/60 p-3 min-[360px]:p-4">
         {/* The title bar; the notification drops in over it, never over the rows */}
         <span className="relative block h-[52px]">
@@ -432,6 +431,21 @@ function OwnerSide({ preview, labels }: { preview: NonNullable<CarouselCard["pre
             </span>
           ))}
         </span>
+      </span>
+    </span>
+  );
+}
+
+/** "1 Klijent zakazuje" / "2 Vi to odmah vidite": the two sides, clearly named. The
+ *  owner's label lights up when the booking arrives. */
+function SideLabel({ n, owner, children }: { n: number; owner?: boolean; children: ReactNode }) {
+  return (
+    <span className="mb-2.5 flex justify-center">
+      <span
+        className={`${owner ? "demo-owner-label" : ""} inline-flex items-center gap-2 rounded-full bg-accent-soft py-1.5 pl-1.5 pr-3.5 text-[14px] sm:text-[15px] font-semibold text-accent ring-1 ring-[color-mix(in_srgb,var(--accent)_30%,transparent)]`}
+      >
+        <span className="grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[12px] font-bold text-accent-ink">{n}</span>
+        {children}
       </span>
     </span>
   );

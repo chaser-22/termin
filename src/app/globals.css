@@ -622,6 +622,12 @@ input[type="radio"] {
   .swipe-card[aria-current] .demo-slot-fill { animation-name: demo-slot-fill; }
   .swipe-card[aria-current] .demo-slot-text { animation-name: demo-slot-text; }
   .swipe-card[aria-current] .demo-owner-panel { animation-name: demo-owner-glow; }
+  .swipe-card[aria-current] .demo-owner-label {
+    animation: demo-owner-label var(--loop) var(--ease-out-soft) infinite;
+  }
+  .swipe-card[aria-current] .demo-owner-label > span {
+    animation: demo-owner-label-n var(--loop) var(--ease-out-soft) infinite;
+  }
   /* When a card arrives in the centre, its first scene fades in instead of popping.
      Listed second, so it wins for its 350ms, then the loop takes over. */
   .swipe-card[aria-current] .demo-arrive {
@@ -751,6 +757,18 @@ input[type="radio"] {
   0%, 65% { opacity: 0; }
   70%, 94% { opacity: 1; }
   98%, 100% { opacity: 0; }
+}
+/* the owner's label lights up as the booking lands */
+@keyframes demo-owner-label {
+  0%, 57% { background-color: var(--accent-soft); color: var(--accent); scale: 1; }
+  61% { background-color: var(--accent); color: var(--accent-ink); scale: 1.06; }
+  66%, 84% { background-color: var(--accent); color: var(--accent-ink); scale: 1; }
+  90%, 100% { background-color: var(--accent-soft); color: var(--accent); scale: 1; }
+}
+@keyframes demo-owner-label-n {
+  0%, 57% { background-color: var(--accent); color: var(--accent-ink); }
+  61%, 84% { background-color: var(--accent-ink); color: var(--accent); }
+  90%, 100% { background-color: var(--accent); color: var(--accent-ink); }
 }
 @keyframes demo-owner-glow {
   0%, 57% { box-shadow: 0 0 0 0 transparent; border-color: color-mix(in srgb, var(--line) 60%, transparent); }
