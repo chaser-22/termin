@@ -88,6 +88,11 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
     };
   }, []);
 
+  // The "what else you get" tiles below wear the colour of the centred industry
+  useEffect(() => {
+    document.getElementById("features")?.setAttribute("data-accent", cards[active]?.slug ?? "");
+  }, [active, cards]);
+
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();
@@ -291,7 +296,7 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
 // ------------------------------------------------------------ story scenes
 
 /** A QR-style pattern (drawn, not a real code) that stays the same for each business */
-function QrPattern({ seed }: { seed: string }) {
+export function QrPattern({ seed }: { seed: string }) {
   const n = 21;
   let h = 2166136261;
   for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);

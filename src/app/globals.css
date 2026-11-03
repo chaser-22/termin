@@ -776,6 +776,116 @@ input[type="radio"] {
   80%, 100% { box-shadow: 0 0 0 0 transparent; border-color: color-mix(in srgb, var(--line) 60%, transparent); }
 }
 
+/* "What else you get" tiles: a 4s loop each, only while the tile is on screen.
+   Without motion (or before it scrolls in) every scene shows its end state. */
+.feat {
+  --floop: 4.2s;
+}
+.f-cancel-free,
+.f-lang-text-en {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .feat[data-inview] :is(.f-phone, .f-bubble, .f-cancel-fill, .f-cancel-name, .f-cancel-free, .f-cancel-btn, .f-phone-row, .f-staff-block, .f-qr, .f-qr-link, .f-lang-thumb, .f-lang-me, .f-lang-en, .f-lang-text-me, .f-lang-text-en) {
+    animation-duration: var(--floop);
+    animation-iteration-count: infinite;
+    animation-timing-function: var(--ease-out-soft);
+  }
+  .feat[data-inview] .f-phone { animation-name: f-shake; }
+  .feat[data-inview] .f-bubble { animation-name: f-drop; }
+  .feat[data-inview] .f-cancel-fill { animation-name: f-unfill; }
+  .feat[data-inview] .f-cancel-name { animation-name: f-out; }
+  .feat[data-inview] .f-cancel-free { animation-name: f-in; }
+  .feat[data-inview] .f-cancel-btn { animation-name: f-press; }
+  .feat[data-inview] .f-phone-row { animation-name: f-slide-in; }
+  .feat[data-inview] .f-staff-block { animation-name: f-fill; }
+  .feat[data-inview] .f-staff-1 { animation-delay: 0.25s; }
+  .feat[data-inview] .f-staff-3 { animation-delay: 0.5s; }
+  .feat[data-inview] .f-staff-4 { animation-delay: 0.75s; }
+  .feat[data-inview] .f-qr { animation-name: f-pop; }
+  .feat[data-inview] .f-qr-link { animation-name: f-slide-in; animation-delay: 0.2s; }
+  .feat[data-inview] .f-lang-thumb { animation-name: f-thumb; }
+  .feat[data-inview] .f-lang-me { animation-name: f-ink-on; }
+  .feat[data-inview] .f-lang-en { animation-name: f-ink-off; }
+  .feat[data-inview] .f-lang-text-me { animation-name: f-text-me; }
+  .feat[data-inview] .f-lang-text-en { animation-name: f-text-en; }
+}
+/* the selected language label is light on the dark thumb */
+.f-lang-me {
+  color: var(--bg);
+}
+
+@keyframes f-shake {
+  0%, 14%, 30%, 100% { rotate: 0deg; }
+  18% { rotate: -6deg; }
+  22% { rotate: 6deg; }
+  26% { rotate: -4deg; }
+}
+@keyframes f-drop {
+  0%, 8% { opacity: 0; translate: -50% -14px; }
+  16%, 82% { opacity: 1; translate: -50% 0; }
+  92%, 100% { opacity: 0; translate: -50% 0; }
+}
+@keyframes f-press {
+  0%, 30%, 40%, 100% { scale: 1; }
+  35% { scale: 0.9; background-color: color-mix(in srgb, var(--danger) 18%, transparent); }
+}
+@keyframes f-unfill {
+  0%, 38% { scale: 1 1; transform-origin: left; }
+  50%, 84% { scale: 0 1; transform-origin: left; }
+  94%, 100% { scale: 1 1; transform-origin: left; }
+}
+@keyframes f-out {
+  0%, 38% { opacity: 1; }
+  44%, 88% { opacity: 0; }
+  96%, 100% { opacity: 1; }
+}
+@keyframes f-in {
+  0%, 46% { opacity: 0; }
+  54%, 84% { opacity: 1; }
+  90%, 100% { opacity: 0; }
+}
+@keyframes f-slide-in {
+  0%, 12% { opacity: 0; translate: 16px 0; }
+  26%, 84% { opacity: 1; translate: 0 0; }
+  94%, 100% { opacity: 0; translate: 0 0; }
+}
+@keyframes f-fill {
+  0%, 10% { scale: 0 1; transform-origin: left; }
+  24%, 82% { scale: 1 1; transform-origin: left; }
+  92%, 100% { scale: 0 1; transform-origin: left; }
+}
+@keyframes f-pop {
+  0%, 6% { scale: 0.6; opacity: 0; }
+  18%, 84% { scale: 1; opacity: 1; }
+  94%, 100% { scale: 0.6; opacity: 0; }
+}
+@keyframes f-thumb {
+  0%, 40% { translate: 0 0; }
+  48%, 88% { translate: 100% 0; }
+  96%, 100% { translate: 0 0; }
+}
+@keyframes f-ink-on {
+  0%, 40% { color: var(--bg); }
+  48%, 88% { color: var(--ink); }
+  96%, 100% { color: var(--bg); }
+}
+@keyframes f-ink-off {
+  0%, 40% { color: var(--ink); }
+  48%, 88% { color: var(--bg); }
+  96%, 100% { color: var(--ink); }
+}
+@keyframes f-text-me {
+  0%, 40% { opacity: 1; translate: 0 0; }
+  46%, 90% { opacity: 0; translate: 0 -8px; }
+  96%, 100% { opacity: 1; translate: 0 0; }
+}
+@keyframes f-text-en {
+  0%, 42% { opacity: 0; translate: 0 8px; }
+  48%, 88% { opacity: 1; translate: 0 0; }
+  94%, 100% { opacity: 0; translate: 0 8px; }
+}
+
 /* Short entrance: small rise and fade, never blocks clicks. Uses `translate`
    so it never fights the card's own transform. */
 @keyframes enter {
