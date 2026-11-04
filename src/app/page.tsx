@@ -1,6 +1,6 @@
 import { Fragment, Suspense, type CSSProperties } from "react";
 import Link from "next/link";
-import { Check, MessageCircle } from "lucide-react";
+import { ArrowRight, Check, MessageCircle } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { getDict } from "@/i18n/server";
@@ -54,16 +54,19 @@ async function Landing() {
       <header className="mx-auto w-full max-w-5xl px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 flex items-center justify-between gap-3" style={{ viewTransitionName: "app-header" }}>
         <span className="display text-[23px] tracking-[-0.04em]">{t.appName}</span>
         <div className="flex items-center gap-1 sm:gap-2">
+          <LanguageSwitch current={locale} />
           <Link href="/login" className="btn-ghost btn-sm px-2 min-[360px]:px-3 whitespace-nowrap text-muted">
             {t.auth.signIn}
           </Link>
-          <LanguageSwitch current={locale} />
+          <Link href="/start" className="btn-primary btn-sm hidden sm:inline-flex whitespace-nowrap">
+            {t.trial.startTitle}
+          </Link>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 flex flex-col pt-3 sm:pt-6 pb-10">
         <div className="text-center">
-          <h1 className="display mx-auto max-w-[15ch] sm:max-w-none text-[clamp(1.85rem,7.4vw,3.3rem)] font-semibold leading-[1.04] tracking-[-0.038em]">
+          <h1 className="display mx-auto max-w-[15ch] sm:max-w-none text-[clamp(1.85rem,7.4vw,3.3rem)] xl:text-[3.75rem] font-semibold leading-[1.04] tracking-[-0.038em]">
             {beats.map((b, i) => (
               <Fragment key={b}>
                 {i > 0 && " "}
@@ -76,18 +79,23 @@ async function Landing() {
           <p className="enter mx-auto mt-3 max-w-[30ch] sm:max-w-none text-[18px] sm:text-[21px] leading-snug text-muted text-balance" style={delay(220)}>
             {h.heroBody}
           </p>
-          {/* The three answers an owner wants before anything else: trial, no card, no commission */}
-          <ul className="enter mt-3.5 flex flex-wrap justify-center gap-x-5 gap-y-1 text-[13.5px] text-muted" style={delay(250)}>
-            {h.trust.map((x) => (
-              <li key={x} className="flex items-center gap-1.5">
-                <Check className="size-3.5 text-accent" strokeWidth={2.5} /> {x}
-              </li>
-            ))}
-          </ul>
+          {/* One clear next step, then the three answers an owner wants first: trial, no card, no commission */}
+          <div className="enter mt-5 sm:mt-6 flex flex-col items-center gap-3" style={delay(250)}>
+            <Link href="/start" className="btn-primary h-12 px-7 text-[16px]">
+              {t.trial.startTitle} <ArrowRight className="size-4" />
+            </Link>
+            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-[13.5px] text-muted">
+              {h.trust.map((x) => (
+                <li key={x} className="flex items-center gap-1.5">
+                  <Check className="size-3.5 text-accent" strokeWidth={2.5} /> {x}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        <section className="mt-5 sm:mt-7" aria-labelledby="pick">
-          <h2 id="pick" className="enter display text-center text-[22px] sm:text-[27px] font-semibold tracking-[-0.02em]" style={delay(280)}>
+        <section className="mt-8 sm:mt-10" aria-labelledby="pick">
+          <h2 id="pick" className="enter display text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]" style={delay(280)}>
             {h.pickTitle}
           </h2>
 
