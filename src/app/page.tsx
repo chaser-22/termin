@@ -53,7 +53,7 @@ async function Landing() {
 
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
-      <StickyHeader watch="hero-cta">
+      <StickyHeader>
         <div className="mx-auto w-full max-w-5xl px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 lg:py-4 flex items-center justify-between gap-3">
           <span className="display text-[23px] lg:text-[26px] tracking-[-0.04em]">{t.appName}</span>
           <div className="flex items-center gap-1 sm:gap-2 lg:gap-2.5">
@@ -61,14 +61,9 @@ async function Landing() {
             <Link href="/login" className="btn-ghost btn-sm px-2 min-[360px]:px-3 whitespace-nowrap text-muted lg:h-10 lg:px-4 lg:text-[15px]">
               {t.auth.signIn}
             </Link>
-            {/* On desktop this slides in only once the hero's own button has scrolled away */}
-            <span className="hidden sm:grid lg:-ml-2.5 lg:grid-cols-[0fr] lg:invisible lg:opacity-0 transition-[grid-template-columns,opacity,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:group-data-[cta]/bar:grid-cols-[1fr] lg:group-data-[cta]/bar:visible lg:group-data-[cta]/bar:opacity-100">
-              <span className="min-w-0 overflow-hidden lg:-my-4 lg:-mr-4 lg:py-4 lg:pr-4">
-                <Link href="/start" className="btn-primary btn-sm whitespace-nowrap lg:ml-2.5 lg:h-10 lg:px-5 lg:text-[15px]">
-                  {t.trial.startTitle}
-                </Link>
-              </span>
-            </span>
+            <Link href="/start" className="btn-primary btn-sm hidden sm:inline-flex whitespace-nowrap lg:h-10 lg:px-5 lg:text-[15px]">
+              {t.trial.startTitle}
+            </Link>
           </div>
         </div>
       </StickyHeader>
@@ -90,7 +85,7 @@ async function Landing() {
           </p>
           {/* One clear next step, then the three answers an owner wants first: trial, no card, no commission */}
           <div className="enter mt-6 sm:mt-8 flex flex-col items-center gap-3" style={delay(250)}>
-            <Link id="hero-cta" href="/start" className="btn-primary h-12 px-7 text-[16px]">
+            <Link href="/start" className="btn-primary h-12 px-7 text-[16px]">
               {t.trial.startTitle} <ArrowRight className="size-4" />
             </Link>
             <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-[13.5px] text-muted">
