@@ -54,7 +54,7 @@ async function Landing() {
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
       <StickyHeader>
-        <div className="mx-auto w-full max-w-5xl px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 lg:py-4 flex items-center justify-between gap-3">
+        <div className="mx-auto w-full max-w-6xl px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 lg:py-4 flex items-center justify-between gap-3">
           <span className="display text-[23px] lg:text-[26px] tracking-[-0.04em]">{t.appName}</span>
           <div className="flex items-center gap-1 sm:gap-2 lg:gap-2.5">
             <LanguageSwitch current={locale} large />
