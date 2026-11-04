@@ -81,7 +81,7 @@ async function Landing() {
             {h.heroBody}
           </p>
           {/* One clear next step, then the three answers an owner wants first: trial, no card, no commission */}
-          <div className="enter mt-5 sm:mt-6 flex flex-col items-center gap-3" style={delay(250)}>
+          <div className="enter mt-6 sm:mt-8 flex flex-col items-center gap-3" style={delay(250)}>
             <Link href="/start" className="btn-primary h-12 px-7 text-[16px]">
               {t.trial.startTitle} <ArrowRight className="size-4" />
             </Link>
@@ -95,7 +95,7 @@ async function Landing() {
           </div>
         </div>
 
-        <section className="mt-8 sm:mt-10" aria-labelledby="pick">
+        <section className="mt-6 sm:mt-8" aria-labelledby="pick">
           <h2 id="pick" className="enter display text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]" style={delay(280)}>
             {h.pickTitle}
           </h2>
