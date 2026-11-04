@@ -58,7 +58,7 @@ async function Landing() {
           <span className="display text-[23px] lg:text-[26px] tracking-[-0.04em]">{t.appName}</span>
           <div className="flex items-center gap-1 sm:gap-2 lg:gap-2.5">
             <LanguageSwitch current={locale} large />
-            <Link href="/login" className="btn-ghost btn-sm px-2 min-[360px]:px-3 whitespace-nowrap text-muted lg:h-10 lg:px-4 lg:text-[15px]">
+            <Link href="/login" className="btn-secondary btn-sm px-3 min-[360px]:px-3.5 whitespace-nowrap lg:h-10 lg:px-4.5 lg:text-[15px]">
               {t.auth.signIn}
             </Link>
             <Link href="/start" className="btn-primary btn-sm hidden sm:inline-flex whitespace-nowrap lg:h-10 lg:px-5 lg:text-[15px]">
