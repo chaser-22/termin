@@ -9,6 +9,11 @@ type Copy = {
   faq: { q: string; a: string; privacy?: boolean }[];
   privacyMore: string;
   setUpForYou: string;
+  /** Section names in the desktop header */
+  navIndustries: string;
+  navFeatures: string;
+  navSteps: string;
+  navQuestions: string;
 };
 
 export const HOME_MORE: Record<Locale, Copy> = {
@@ -44,6 +49,10 @@ export const HOME_MORE: Record<Locale, Copy> = {
     ],
     privacyMore: "Više u politici privatnosti",
     setUpForYou: "Ili nam pišite i podesimo sve za vas",
+    navIndustries: "Djelatnosti",
+    navFeatures: "Šta dobijate",
+    navSteps: "Kako počinjete",
+    navQuestions: "Pitanja",
   },
   en: {
     steps: ["Add your services and hours", "Share your link"],
@@ -77,5 +86,9 @@ export const HOME_MORE: Record<Locale, Copy> = {
     ],
     privacyMore: "More in the privacy policy",
     setUpForYou: "Or message us and we'll set it all up for you",
+    navIndustries: "Industries",
+    navFeatures: "What you get",
+    navSteps: "Getting started",
+    navQuestions: "Questions",
   },
 };

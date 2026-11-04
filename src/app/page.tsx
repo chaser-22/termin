@@ -10,7 +10,8 @@ import { slugify } from "@/lib/slug";
 import { FeatureTiles } from "./FeatureTiles";
 import { FEATURES } from "./features";
 import { HomeMore } from "./HomeMore";
-import { StickyHeader } from "./StickyHeader";
+import { HOME_MORE } from "./homeEnd";
+import { PillHeader } from "./PillHeader";
 import { IndustryCarousel, type CarouselCard } from "./IndustryCarousel";
 import { brandCss } from "@/lib/brand";
 
@@ -53,20 +54,28 @@ async function Landing() {
 
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
-      <StickyHeader>
-        <div className="mx-auto w-full max-w-6xl px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 lg:py-4 flex items-center justify-between gap-3">
-          <span className="display text-[23px] lg:text-[26px] tracking-[-0.04em]">{t.appName}</span>
-          <div className="flex items-center gap-1 sm:gap-2 lg:gap-2.5">
+      <PillHeader
+        brand={<span className="display text-[23px] lg:text-[26px] tracking-[-0.04em]">{t.appName}</span>}
+        sections={[
+          { id: "pick", label: HOME_MORE[locale].navIndustries },
+          { id: "features", label: HOME_MORE[locale].navFeatures },
+          { id: "steps-title", label: HOME_MORE[locale].navSteps },
+          { id: "faq-title", label: HOME_MORE[locale].navQuestions },
+        ]}
+        controls={
+          <>
             <LanguageSwitch current={locale} large />
             <Link href="/login" className="btn-secondary btn-sm px-3 min-[360px]:px-3.5 whitespace-nowrap lg:h-10 lg:px-4.5 lg:text-[15px]">
               {t.auth.signIn}
             </Link>
-            <Link href="/start" className="btn-primary btn-sm hidden sm:inline-flex whitespace-nowrap lg:h-10 lg:px-5 lg:text-[15px]">
-              {t.trial.startTitle}
-            </Link>
-          </div>
-        </div>
-      </StickyHeader>
+          </>
+        }
+        cta={
+          <Link href="/start" className="btn-primary btn-sm hidden sm:inline-flex whitespace-nowrap lg:h-10 lg:px-5 lg:text-[15px]">
+            {t.trial.startTitle}
+          </Link>
+        }
+      />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 flex flex-col pt-3 sm:pt-6 pb-16">
         <div className="text-center">
@@ -99,7 +108,7 @@ async function Landing() {
         </div>
 
         <section className="mt-6 sm:mt-8" aria-labelledby="pick">
-          <h2 id="pick" className="enter display text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]" style={delay(280)}>
+          <h2 id="pick" className="enter display scroll-mt-24 text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]" style={delay(280)}>
             {h.pickTitle}
           </h2>
 

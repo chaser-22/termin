@@ -21,7 +21,7 @@ export function HomeMore({ locale, t }: { locale: Locale; t: Dict }) {
   return (
     <>
       <section aria-labelledby="steps-title" className="mx-auto mt-20 w-full max-w-5xl">
-        <h2 id="steps-title" className={heading}>
+        <h2 id="steps-title" className={`${heading} scroll-mt-24`}>
           {h.stepsTitle}
         </h2>
         <ol className="mt-6 grid gap-2.5 sm:grid-cols-3 sm:gap-3">
@@ -36,7 +36,7 @@ export function HomeMore({ locale, t }: { locale: Locale; t: Dict }) {
       </section>
 
       <section aria-labelledby="faq-title" className="mx-auto mt-20 w-full max-w-3xl">
-        <h2 id="faq-title" className={heading}>
+        <h2 id="faq-title" className={`${heading} scroll-mt-24`}>
           {m.faqTitle}
         </h2>
         <div className="mt-6 space-y-2">

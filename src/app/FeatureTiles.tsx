@@ -41,7 +41,7 @@ export function FeatureTiles({
   }, []);
 
   return (
-    <section ref={ref} id="features" aria-labelledby="features-title" className="mx-auto mt-10 w-full max-w-5xl">
+    <section ref={ref} id="features" aria-labelledby="features-title" className="mx-auto mt-10 w-full max-w-5xl scroll-mt-24">
       <h2 id="features-title" className="display text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]">
         {title}
       </h2>
