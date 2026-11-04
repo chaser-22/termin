@@ -21,7 +21,7 @@ function subscribe(onChange: () => void) {
 }
 
 /** Sun/moon button: switches between light and dark and remembers the choice. */
-export function ThemeSwitch() {
+export function ThemeSwitch({ large }: { large?: boolean } = {}) {
   const isDark = useSyncExternalStore(subscribe, dark, () => null);
   const toggle = () => {
     const next = dark() ? "light" : "dark";
@@ -40,7 +40,7 @@ export function ThemeSwitch() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Light" : "Dark"}
-      className="grid place-items-center size-8 rounded-lg border border-line bg-surface text-muted hover:text-ink transition-colors cursor-pointer"
+      className={`grid place-items-center size-8 rounded-lg border border-line bg-surface text-muted hover:text-ink transition-colors cursor-pointer ${large ? "lg:size-10 lg:rounded-xl" : ""}`}
     >
       {isDark === null ? <span className="size-4" /> : isDark ? <Sun className="size-4 animate-pop-in" /> : <Moon className="size-4 animate-pop-in" />}
     </button>
