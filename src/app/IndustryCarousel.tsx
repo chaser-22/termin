@@ -110,8 +110,10 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
     }
   };
 
+  // Teal stays the Termin colour (headline, sign-up buttons); the arrows and dots
+  // around the cards wear the centred industry's colour, like the card itself
   return (
-    <div className="swipe relative" onKeyDown={onKey}>
+    <div className="swipe relative" onKeyDown={onKey} data-accent={cards[active]?.slug}>
       {/* Desktop: every industry one click away, above the big stage, always in one row
           (it scrolls sideways instead of wrapping if a window is too narrow) */}
       <div className="mt-5 hidden lg:flex flex-nowrap [justify-content:safe_center] gap-1 xl:gap-1.5 overflow-x-auto px-1 py-0.5 [scrollbar-width:none]">
