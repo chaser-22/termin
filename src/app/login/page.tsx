@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import Link from "next/link";
 import { getDict } from "@/i18n/server";
+import { HtmlLang } from "@/components/HtmlLang";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { LoginForm } from "./LoginForm";
 
@@ -26,6 +27,7 @@ async function Login({ searchParams }: { searchParams: Promise<Record<string, st
     <div className="w-full max-w-sm">
       <div className="flex items-center justify-between mb-8">
         <Link href="/" className="display text-[28px]">{t.appName}</Link>
+        <HtmlLang locale={locale} title={`${t.auth.signIn} · Termin`} />
         <LanguageSwitch current={locale} />
       </div>
       <div className="card p-7 shadow-lift">

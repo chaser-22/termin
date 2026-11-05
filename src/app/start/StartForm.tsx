@@ -19,7 +19,7 @@ type Props = {
 /** Activation: one email field with an invite, three fields without. No password. */
 export function StartForm({ invite, defaultType, namePlaceholder, types, t }: Props) {
   const [state, action, pending] = useActionState<LoginState, FormData>(startTrial, { status: "idle" });
-  const [type, setType] = useState<BusinessType>(defaultType ?? types[0].type);
+  const [type, setType] = useState<BusinessType | undefined>(defaultType);
   const [email, setEmail] = useState("");
   const [picking, setPicking] = useState(false);
 
@@ -79,8 +79,8 @@ export function StartForm({ invite, defaultType, namePlaceholder, types, t }: Pr
               <legend className="label">{t.trial.businessType}</legend>
               <div className="grid grid-cols-3 gap-2">
                 {types.map((x) => (
-                  <label key={x.type} className="card cursor-pointer px-2 py-3 flex flex-col items-center gap-1.5 text-sm font-semibold has-[:checked]:ring-2 has-[:checked]:ring-accent">
-                    <input type="radio" name="type" value={x.type} checked={type === x.type} onChange={() => setType(x.type)} className="sr-only" />
+                  <label key={x.type} className="card cursor-pointer px-2 py-3 flex flex-col items-center gap-1.5 text-sm font-semibold has-[:checked]:ring-2 has-[:checked]:ring-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent">
+                    <input type="radio" name="type" value={x.type} required checked={type === x.type} onChange={() => setType(x.type)} className="sr-only" />
                     <VerticalIcon icon={x.icon} className="size-5 text-accent" />
                     {x.label}
                   </label>

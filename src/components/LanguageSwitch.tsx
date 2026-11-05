@@ -3,6 +3,7 @@
 import { useTransition, ViewTransition } from "react";
 import { setLanguage } from "@/app/actions";
 import type { Locale } from "@/i18n/dict";
+import { HtmlLang } from "./HtmlLang";
 import { ThemeSwitch } from "./ThemeSwitch";
 
 const LABELS: Record<Locale, string> = { me: "MNE", en: "EN" };
@@ -12,6 +13,7 @@ export function LanguageSwitch({ current, large }: { current: Locale; large?: bo
   const [pending, start] = useTransition();
   return (
     <div className={`flex items-center gap-2 ${large ? "lg:gap-2.5" : ""}`}>
+      <HtmlLang locale={current} />
       <ThemeSwitch large={large} />
       <div
         className={`inline-flex rounded-lg border border-line bg-surface p-0.5 text-xs font-medium ${large ? "lg:h-10 lg:rounded-xl lg:p-1 lg:text-[13.5px]" : ""}`}

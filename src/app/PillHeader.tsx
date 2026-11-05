@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FocusEvent, type MouseEvent, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 
 type Section = { id: string; label: string };
 
 // Grows or collapses sideways; hidden parts can't be tabbed to while collapsed
-const collapses = "lg:grid lg:grid-cols-[1fr] lg:transition-[grid-template-columns,opacity,visibility] lg:duration-300 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:group-data-[compact]/pill:grid-cols-[0fr] lg:group-data-[compact]/pill:invisible lg:group-data-[compact]/pill:opacity-0";
+// (shown at once when opening, so Tab can land on them straight away; hidden after the fade)
+const collapses = "lg:grid lg:grid-cols-[1fr] lg:[transition:grid-template-columns_300ms_cubic-bezier(0.22,1,0.36,1),opacity_300ms_cubic-bezier(0.22,1,0.36,1),visibility_0s] lg:group-data-[compact]/pill:grid-cols-[0fr] lg:group-data-[compact]/pill:invisible lg:group-data-[compact]/pill:opacity-0 lg:group-data-[compact]/pill:[transition:grid-template-columns_300ms_cubic-bezier(0.22,1,0.36,1),opacity_300ms_cubic-bezier(0.22,1,0.36,1),visibility_0s_300ms]";
 
 // Glides to a section, or jumps there for anyone who asked for less motion. Keyboard
 // users land on the section too. Ctrl or cmd click still opens a new tab.
@@ -21,18 +23,21 @@ function glideTo(e: MouseEvent, id: string) {
 
 // Desktop: a floating pill with everything in it at the top of the page. Scrolling
 // down shrinks it to the logo, the section you're in and the sign-up button;
-// scrolling up opens it again, so sign in and language are never far away.
+// scrolling up, or tabbing to it with a keyboard, opens it again, so sign in and
+// language are never far away.
 // Phones and tablets keep a plain header. On every load it fades in from just above.
 export function PillHeader({ brand, sections, controls, cta }: { brand: ReactNode; sections: Section[]; controls: ReactNode; cta: ReactNode }) {
   const [compact, setCompact] = useState(false);
   const [current, setCurrent] = useState(0);
   const lastY = useRef(0);
+  const pill = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
       if (y < 80) setCompact(false);
-      else if (y > lastY.current + 6) setCompact(true);
+      // Never collapse around something a keyboard user is on
+      else if (y > lastY.current + 6 && !pill.current?.querySelector(":focus-visible")) setCompact(true);
       else if (y < lastY.current - 6) setCompact(false);
       if (Math.abs(y - lastY.current) > 6 || y < 80) lastY.current = y;
 
@@ -43,20 +48,36 @@ export function PillHeader({ brand, sections, controls, cta }: { brand: ReactNod
       });
       setCurrent(at);
     };
+    // Tab into the header: open before the browser moves focus, so nothing gets skipped
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const at = document.activeElement;
+      if (at === document.body || pill.current?.contains(at)) flushSync(() => setCompact(false));
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("keydown", onKey);
+    };
   }, [sections]);
+
+  const onFocus = (e: FocusEvent) => {
+    if (e.target.matches(":focus-visible")) setCompact(false);
+  };
 
   return (
     <header className="relative z-40 w-full transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] starting:-translate-y-3 starting:opacity-0 motion-reduce:transition-none lg:pointer-events-none lg:sticky lg:top-0 lg:px-5 lg:pt-3" style={{ viewTransitionName: "app-header" }}>
       <div
+        ref={pill}
+        onFocus={onFocus}
         data-compact={compact ? "" : undefined}
         className="group/pill mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2 lg:pointer-events-auto lg:h-14 lg:max-w-[1112px] lg:rounded-full lg:border lg:border-line lg:bg-[color-mix(in_srgb,var(--surface)_85%,transparent)] lg:py-0 lg:pl-6 lg:pr-2 lg:shadow-soft lg:backdrop-blur-xl lg:backdrop-saturate-150 lg:transition-[max-width] lg:duration-500 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:data-[compact]:max-w-[480px]"
       >
         {brand}
 
-        <nav aria-label={sections[0]?.label} className={`hidden ${collapses}`}>
+        <nav className={`hidden ${collapses}`}>
           <span className="flex min-w-0 items-center gap-0.5 overflow-hidden whitespace-nowrap">
             {sections.map((s) => (
               <a key={s.id} href={`#${s.id}`} onClick={(e) => glideTo(e, s.id)} className="btn-ghost btn-sm px-2 xl:px-3">

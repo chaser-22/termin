@@ -6,6 +6,8 @@ const me = {
   appName: "Termin",
   tagline: "Zakažite za 20 sekundi.",
   common: {
+    pageNotFound: "Ova stranica ne postoji. Provjerite link.",
+    goHome: "Na početnu",
     save: "Sačuvaj",
     saved: "Sačuvano",
     cancel: "Otkaži",
@@ -39,6 +41,7 @@ const me = {
     other: "Drugo",
   },
   home: {
+    pageTitle: "Termin — online zakazivanje",
     eyebrow: "Online zakazivanje u Crnoj Gori",
     heroTitle: "Vaš posao. Vaši termini. Jednostavno.",
     heroBody: "Klijenti zakazuju online, a vi se posvetite svom poslu.",
@@ -105,7 +108,7 @@ const me = {
     invalidName: "Unesite ime i prezime.",
     with: "kod",
     change: "Promijeni",
-    notFound: "Ovaj salon ne postoji ili više ne prima online termine.",
+    notFound: "Ova stranica ne postoji ili više ne prima online termine. Provjerite link.",
     noServices: "Ovaj salon još nije dodao usluge.",
     payOnSite: "Plaćanje na licu mjesta.",
     openNow: "Otvoreno",
@@ -314,6 +317,8 @@ const en: Dict = {
   appName: "Termin",
   tagline: "Book in 20 seconds.",
   common: {
+    pageNotFound: "This page doesn't exist. Please check the link.",
+    goHome: "Go to homepage",
     save: "Save",
     saved: "Saved",
     cancel: "Cancel",
@@ -347,6 +352,7 @@ const en: Dict = {
     other: "Other",
   },
   home: {
+    pageTitle: "Termin — online booking",
     eyebrow: "Online booking in Montenegro",
     heroTitle: "Your business. Your bookings. Made simple.",
     heroBody: "Let your customers book online while you focus on your work.",
@@ -413,7 +419,7 @@ const en: Dict = {
     invalidName: "Please enter your name.",
     with: "with",
     change: "Change",
-    notFound: "This business doesn't exist or no longer takes online bookings.",
+    notFound: "This page doesn't exist or no longer takes online bookings. Please check the link.",
     noServices: "This business hasn't added services yet.",
     payOnSite: "Pay on site.",
     openNow: "Open",

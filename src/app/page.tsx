@@ -2,6 +2,7 @@ import { Fragment, Suspense, type CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, MessageCircle } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
+import { HtmlLang } from "@/components/HtmlLang";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { getDict } from "@/i18n/server";
 import { CONTACT, CONTACT_LINKS } from "@/lib/contact";
@@ -54,6 +55,7 @@ async function Landing() {
 
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
+      <HtmlLang locale={locale} title={h.pageTitle} />
       <PillHeader
         brand={<span className="display text-[23px] lg:text-[26px] tracking-[-0.04em]">{t.appName}</span>}
         sections={[

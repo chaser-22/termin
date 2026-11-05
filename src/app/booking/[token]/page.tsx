@@ -3,6 +3,8 @@ import { PageTransition } from "@/components/PageTransition";
 import Link from "next/link";
 import { CalendarPlus, MapPin, Phone, RotateCcw } from "lucide-react";
 import { getDict } from "@/i18n/server";
+import { DeadEnd } from "@/components/DeadEnd";
+import { HtmlLang } from "@/components/HtmlLang";
 import { PageBrand } from "@/components/PageBrand";
 import { getBookingByToken } from "@/lib/server/booking";
 import { formatPrice } from "@/lib/format";
@@ -26,7 +28,7 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
   const { token } = await params;
   const { locale, t } = await getDict();
   const data = await getBookingByToken(token);
-  if (!data) return <p className="card p-8 text-center text-muted">{t.booking.notFound}</p>;
+  if (!data) return <DeadEnd message={t.booking.notFound} home={t.common.goHome} />;
   const { booking, business, service, staff } = data;
   const tz = business.timezone;
   const cancelled = booking.status === "cancelled";
@@ -41,6 +43,7 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
 
   return (
     <div>
+      <HtmlLang locale={locale} />
       <PageBrand brand={business.brandColor} />
 
       {/* Headline */}

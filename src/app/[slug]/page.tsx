@@ -5,6 +5,7 @@ import { businesses, serviceStaff, services, staff, workingHours, type BusinessT
 import { getDict } from "@/i18n/server";
 import type { Dict } from "@/i18n/dict";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
+import { DeadEnd } from "@/components/DeadEnd";
 import { PageBrand } from "@/components/PageBrand";
 import { bookableRange, firstFreeSlot } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
@@ -32,7 +33,7 @@ async function BusinessBooking({ params, searchParams }: { params: Promise<{ slu
   if (!business) {
     return (
       <main className="flex-1 grid place-items-center px-4 py-20">
-        <p className="card p-8 max-w-sm text-center text-muted">{t.book.notFound}</p>
+        <DeadEnd message={t.book.notFound} home={t.common.goHome} />
       </main>
     );
   }

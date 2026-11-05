@@ -41,8 +41,8 @@ export function HomeMore({ locale, t }: { locale: Locale; t: Dict }) {
           {m.faqTitle}
         </h2>
         <div className="mt-6 space-y-2">
-          {m.faq.map((f) => (
-            <FaqItem key={f.q} question={f.q}>
+          {m.faq.map((f, i) => (
+            <FaqItem key={i} question={f.q}>
               {f.a}
               {f.privacy && (
                 <>
