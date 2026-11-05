@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Dict, Locale } from "@/i18n/dict";
 import { CONTACT_LINKS } from "@/lib/contact";
+import { FaqItem } from "./FaqItem";
 import { HOME_MORE } from "./homeEnd";
 
 const heading = "display text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]";
@@ -41,23 +42,17 @@ export function HomeMore({ locale, t }: { locale: Locale; t: Dict }) {
         </h2>
         <div className="mt-6 space-y-2">
           {m.faq.map((f) => (
-            <details key={f.q} className="group card px-5 sm:px-6 [&>summary::-webkit-details-marker]:hidden">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] sm:text-[16px] font-semibold leading-snug">
-                {f.q}
-                <ChevronDown className="size-4 shrink-0 text-muted transition-transform duration-300 group-open:rotate-180" />
-              </summary>
-              <p className="-mt-1 pb-5 text-[14px] sm:text-[15px] leading-relaxed text-muted">
-                {f.a}
-                {f.privacy && (
-                  <>
-                    {" "}
-                    <Link href="/privacy" className="text-ink underline underline-offset-4 hover:text-accent">
-                      {m.privacyMore}
-                    </Link>
-                  </>
-                )}
-              </p>
-            </details>
+            <FaqItem key={f.q} question={f.q}>
+              {f.a}
+              {f.privacy && (
+                <>
+                  {" "}
+                  <Link href="/privacy" className="text-ink underline underline-offset-4 hover:text-accent">
+                    {m.privacyMore}
+                  </Link>
+                </>
+              )}
+            </FaqItem>
           ))}
         </div>
       </section>
