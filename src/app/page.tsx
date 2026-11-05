@@ -28,7 +28,7 @@ export default function Home() {
 
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 
-// For visitors from the Termin Instagram bio: one sentence, then "what's your business?".
+// For visitors from the Termin Instagram bio: one sentence, then a demo for their kind of business.
 async function Landing() {
   const { locale, t } = await getDict();
   const h = t.home;
@@ -110,7 +110,7 @@ async function Landing() {
         </div>
 
         <section className="mt-6 sm:mt-8" aria-labelledby="pick">
-          <h2 id="pick" className="enter display scroll-mt-24 text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]" style={delay(280)}>
+          <h2 id="pick" className="enter display scroll-mt-24 text-balance text-center text-[24px] sm:text-[30px] font-semibold tracking-[-0.02em]" style={delay(280)}>
             {h.pickTitle}
           </h2>
 
