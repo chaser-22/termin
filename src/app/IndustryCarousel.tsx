@@ -88,11 +88,6 @@ export function IndustryCarousel({ cards, labels }: { cards: CarouselCard[]; lab
     };
   }, []);
 
-  // The "what else you get" tiles below wear the colour of the centred industry
-  useEffect(() => {
-    document.getElementById("features")?.setAttribute("data-accent", cards[active]?.slug ?? "");
-  }, [active, cards]);
-
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();

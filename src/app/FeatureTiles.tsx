@@ -8,8 +8,7 @@ import { QrPattern } from "./IndustryCarousel";
 type Mini = { reminder: string; tomorrow: string; cancel: string; free: string; byPhone: string; online: string; book: string };
 
 // "What else you get": six small tiles, each with a 4-second animation that
-// plays only while the tile is on screen (and never with reduced motion). The
-// section takes the colour of the industry chosen in the carousel above.
+// plays only while the tile is on screen (and never with reduced motion).
 export function FeatureTiles({
   title,
   items,
