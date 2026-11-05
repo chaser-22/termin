@@ -9,7 +9,7 @@ import { getDict } from "@/i18n/server";
 import { db } from "@/lib/server/db";
 import { BUSINESS_TYPES, type BusinessType } from "@/lib/slug";
 import { VERTICALS } from "@/lib/verticals";
-import { brandCss } from "@/lib/brand";
+import { PageBrand } from "@/components/PageBrand";
 import { StartForm } from "./StartForm";
 
 export const metadata = { title: "Start", robots: { index: false } };
@@ -35,7 +35,7 @@ async function Start({ searchParams }: { searchParams: Promise<Record<string, st
 
   return (
     <div className="flex-1 flex flex-col">
-      {vertical && <style>{brandCss(vertical.accent)}</style>}
+      {vertical && <PageBrand brand={vertical.accent} />}
       <header className="mx-auto w-full max-w-md px-5 py-5 flex items-center justify-between">
         <Link href={usable ? `/p/${usable.code}` : back ? `/za/${back}` : "/"} className="btn-ghost btn-sm -ml-2">
           <ArrowLeft className="size-4" /> {t.common.back}

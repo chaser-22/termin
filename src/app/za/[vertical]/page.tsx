@@ -9,7 +9,7 @@ import { PhoneMock } from "@/components/PhoneMock";
 import { ContactBlock } from "@/components/ContactBlock";
 import { businesses } from "@/db/schema";
 import { getDict } from "@/i18n/server";
-import { brandCss } from "@/lib/brand";
+import { PageBrand } from "@/components/PageBrand";
 import { db } from "@/lib/server/db";
 import { termsFor } from "@/lib/terms";
 import { VERTICALS, verticalBySlug } from "@/lib/verticals";
@@ -47,7 +47,7 @@ async function Landing({ params }: { params: Promise<{ vertical: string }> }) {
 
   return (
     <div className="flex-1 flex flex-col overflow-x-clip">
-      <style>{brandCss(v.accent)}</style>
+      <PageBrand brand={v.accent} />
       <header className="mx-auto w-full max-w-5xl px-5 py-4 flex items-center justify-between gap-2" style={{ viewTransitionName: "app-header" }}>
         <Link href="/" className="btn-ghost btn-sm -ml-2 min-w-0">
           <ArrowLeft className="size-4 shrink-0" /> <span className="truncate">{h.allTypes}</span>

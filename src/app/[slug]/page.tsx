@@ -5,7 +5,7 @@ import { businesses, serviceStaff, services, staff, workingHours, type BusinessT
 import { getDict } from "@/i18n/server";
 import type { Dict } from "@/i18n/dict";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
-import { brandCss } from "@/lib/brand";
+import { PageBrand } from "@/components/PageBrand";
 import { bookableRange, firstFreeSlot } from "@/lib/server/booking";
 import { db } from "@/lib/server/db";
 import { openStatus, type OpenStatus } from "@/lib/openStatus";
@@ -85,7 +85,7 @@ export async function BookingPage({
 
   return (
     <div className="flex-1 overflow-x-clip">
-      <style>{brandCss(business.brandColor)}</style>
+      <PageBrand brand={business.brandColor} />
 
       {!preview && (
         <div className="mx-auto max-w-xl px-4 pt-4 flex justify-end">

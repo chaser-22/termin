@@ -3,7 +3,7 @@ import { PageTransition } from "@/components/PageTransition";
 import Link from "next/link";
 import { CalendarPlus, MapPin, Phone, RotateCcw } from "lucide-react";
 import { getDict } from "@/i18n/server";
-import { brandCss } from "@/lib/brand";
+import { PageBrand } from "@/components/PageBrand";
 import { getBookingByToken } from "@/lib/server/booking";
 import { formatPrice } from "@/lib/format";
 import { dateKeyOf, formatTime, isPast, isoWeekday, parseDateKey } from "@/lib/time";
@@ -41,7 +41,7 @@ async function BookingDetails({ params }: { params: Promise<{ token: string }> }
 
   return (
     <div>
-      <style>{brandCss(business.brandColor)}</style>
+      <PageBrand brand={business.brandColor} />
 
       {/* Headline */}
       <div className="text-center mb-7">
